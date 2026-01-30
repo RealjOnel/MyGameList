@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+PLATZHALTER HTML FÜR NAVBAR UND FOOTER
+
+```<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -17,39 +19,7 @@
             <a href="#" class="nav-item">Top Games</a>
             <button class="btn-login">LOGIN</button>
         </div>
-    </nav>
-
-    <main>
-        <header class="hero">
-            <div class="hero-content">
-                <span class="badge-new">PLATZHALTER FÜR NEUE FEATURES</span>
-                <h1>Level up your <span class="gradient-text">gaming organization.</span></h1>
-                <p>Track your backlog, rate your experiences, and discover what to play next. All in one place, modern and intuitive.</p>
-                <div class="hero-btns">
-                    <button class="btn-primary">Join for free</button>
-                    <button class="btn-secondary">How it works</button>
-                </div>
-            </div>
-        </header>
-
-        <section class="features">
-            <div class="feature-card">
-                <div class="icon">📚</div>
-                <h3>Your Library</h3>
-                <p>Organize your games into "Currently Playing", "Completed", or "Dropped" with ease.</p>
-            </div>
-            <div class="feature-card">
-                <div class="icon">⭐</div>
-                <h3>Detailed Reviews</h3>
-                <p>Assign scores, write in-depth critiques, and share your thoughts with the community.</p>
-            </div>
-            <div class="feature-card">
-                <div class="icon">🎯</div>
-                <h3>Smart Discovery</h3>
-                <p>Our algorithm learns your taste to suggest your next favorite masterpiece.</p>
-            </div>
-        </section>
-    </main>
+    </nav>```
 
 <footer class="main-footer">
     <div class="footer-content">

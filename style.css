@@ -1,3 +1,7 @@
+/* ==========================================================================
+   GLOBAL COMPONENTS
+   ========================================================================== */
+
 :root {
     --primary: #0f172a;
     --accent: #3b82f6;
@@ -41,56 +45,6 @@ body {
 }
 
 .nav-item:hover { color: var(--accent); }
-
-/* Hero Section */
-.hero {
-    padding: 10rem 5% 6rem;
-    display: flex;
-    justify-content: center;
-    text-align: center;
-}
-
-.hero-content { max-width: 850px; }
-
-.badge-new {
-    background: #eff6ff;
-    color: var(--accent);
-    padding: 8px 18px;
-    border-radius: 30px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-bottom: 2rem;
-    display: inline-block;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.hero h1 {
-    font-size: 4.5rem;
-    font-weight: 800;
-    letter-spacing: -3px;
-    line-height: 1.05;
-    margin-bottom: 1.5rem;
-}
-
-.gradient-text {
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-    -webkit-background-clip: text; 
-    background-clip: text;         
-    -webkit-text-fill-color: transparent;
-}
-
-.hero p {
-    font-size: 1.3rem;
-    color: var(--text-muted);
-    line-height: 1.6;
-    margin-bottom: 3rem;
-    max-width: 700px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.hero-btns { display: flex; gap: 1.5rem; justify-content: center; }
 
 button {
     font-family: 'Inter', sans-serif;
@@ -142,6 +96,60 @@ button {
     font-size: 0.85rem;
 }
 
+/* ==========================================================================
+   HOME PAGE
+   ========================================================================== */
+
+/* Hero Section */
+.hero {
+    padding: 10rem 5% 6rem;
+    display: flex;
+    justify-content: center;
+    text-align: center;
+}
+
+.hero-content { max-width: 850px; }
+
+.badge-new {
+    background: #eff6ff;
+    color: var(--accent);
+    padding: 8px 18px;
+    border-radius: 30px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.hero h1 {
+    font-size: 4.5rem;
+    font-weight: 800;
+    letter-spacing: -3px;
+    line-height: 1.05;
+    margin-bottom: 1.5rem;
+}
+
+.gradient-text {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text; 
+    background-clip: text;         
+    -webkit-text-fill-color: transparent;
+}
+
+.hero p {
+    font-size: 1.3rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 3rem;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hero-btns { display: flex; gap: 1.5rem; justify-content: center; }
+
 /* Features Section */
 .features {
     display: grid;
@@ -169,4 +177,74 @@ button {
     margin-bottom: 1rem;
     font-size: 1.4rem;
     font-weight: 700;
+}
+
+/* Footer Styles */
+.main-footer {
+    background-color: #ffffff;
+    border-top: 1px solid #f1f5f9;
+    padding: 4rem 8% 2rem;
+    margin-top: 4rem;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 3rem;
+    margin-bottom: 3rem;
+}
+
+.footer-brand {
+    max-width: 300px;
+}
+
+.footer-brand p {
+    color: var(--text-muted);
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.footer-links {
+    display: flex;
+    gap: 4rem;
+}
+
+.link-group h4 {
+    font-size: 1rem;
+    margin-bottom: 1.2rem;
+    color: var(--primary);
+}
+
+.link-group a {
+    display: block;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 0.8rem;
+    transition: color 0.2s;
+}
+
+.link-group a:hover {
+    color: var(--accent);
+}
+
+.footer-bottom {
+    border-top: 1px solid #f1f5f9;
+    padding-top: 2rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+/* Responsiveness: Stack columns on small screens */
+@media (max-width: 768px) {
+    .footer-content {
+        flex-direction: column;
+    }
+    .footer-links {
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
 }
