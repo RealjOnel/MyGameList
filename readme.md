@@ -56,3 +56,14 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+NIKS IDEEN
+
+    -[] test
