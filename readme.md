@@ -5,7 +5,7 @@ NIKS IDEEN
 
 BRANDONS IDEEN
 
-- [x] Wenn wir eh über das mygamelist zeichen zu home gehen können dann brauchen wir eig home nich mehr und könnten das teoretisch für was anderes nutzen
+- [ ] dark/light mode
 - [ ] Eine New/Upcoming Games website   
 
 NICOS IDEEN
