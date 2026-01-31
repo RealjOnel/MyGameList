@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyGameList | Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo">MY<span class="accent">GAMELIST</span></div>
+        <div class="nav-links">
+            <a href="../../index.html" class="nav-item">Home</a>
+            <a href="#" class="nav-item">Features</a>
+            <a href="#" class="nav-item">Explore</a>
+            <a href="#" class="nav-item">Top Games</a>
+            <button class="btn-login">LOGIN</button>
+        </div>
+    </nav>
+
+<main class="explore-container reveal">
+    <header class="explore-header">
+        <h2>Explore <span class="gradient-text">Trending Games</span></h2>
+        <div class="search-filter-bar">
+            <input type="text" placeholder="Search for games..." class="search-input">
+            <select class="filter-select">
+                <option value="all">All Genres</option>
+                <option value="rpg">RPG</option>
+                <option value="action">Action</option>
+                <option value="indie">Indie</option>
+            </select>
+        </div>
+    </header>
+
+    <div class="game-grid">
+        <div class="game-card">
+            <div class="game-cover">
+                <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co498s.jpg" alt="Donkey Kong Land">
+                <div class="game-badge">7.9</div>
+            </div>
+            <div class="game-info">
+                <h4>Donkey Kong Land</h4>
+                <p>Jump ’n’ Run • Rare</p>
+                <button class="btn-add">+ Add to List</button>
+            </div>
+        </div>
+
+        <div class="game-card reveal">
+            <div class="game-cover">
+                <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co5s5v.jpg" alt="God of War">
+                <span class="game-badge ">9.8</span>
+            </div>
+            <div class="game-info">
+                <h4>God of War Ragnarök</h4>
+                <p>Action • Sony Santa Monica</p>
+                <button class="btn-add">+ Add to List</button>
+            </div>
+        </div>
+
+        <div class="game-card reveal">
+            <div class="game-cover">
+                <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co2lbd.jpg" alt="GTA V">
+                <span class="game-badge">9.0</span>
+            </div>
+            <div class="game-info">
+                <h4>GTA V</h4>
+                <p>Open World • Rockstar Games</p>
+                <button class="btn-add">+ Add to List</button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer class="main-footer">
+    <div class="footer-content">
+        <div class="footer-brand">
+            <div class="logo">MY<span class="accent">GAMELIST</span></div>
+            <p>Your ultimate destination to track, discover, and share your gaming journey.</p>
+        </div>
+        
+        <div class="footer-links">
+            <div class="link-group">
+                <h4>Platform</h4>
+                <a href="#">Explore</a>
+                <a href="#">Top Games</a>
+                <a href="#">Statistics</a>
+            </div>
+            <div class="link-group">
+                <h4>Community</h4>
+                <a href="#">Discord</a>
+                <a href="#">Forum</a>
+                <a href="#">Guidelines</a>
+            </div>
+            <div class="link-group">
+                <h4>Legal</h4>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Cookie Policy</a>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2026 MyGameList. All rights reserved. Built with love for gamers.</p>
+    </div>
+</footer>
+
+<script src="../../js/global/reveal.js"></script>
+
+</body>
+</html>
