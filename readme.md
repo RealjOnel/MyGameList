@@ -1,5 +1,5 @@
 TO DO
-- [ ] Dropdown für Statistics und Explorer erstellen
+- [x] Dropdown für Statistics und Explorer erstellen
 - [ ] Features Website finishen
 - [ ] Statistics Website finishen
 
