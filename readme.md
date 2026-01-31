@@ -5,7 +5,8 @@ NIKS IDEEN
 
 BRANDONS IDEEN
 
-- [x] Wenn wir eh über das mygamelist zeichen zu home gehen können dann brauchen wir eig home nich mehr und könnten das teoretisch für was anderes nutzen wie z.b. eine art new games oder upcoming games site nutzen oder nich
+- [x] Wenn wir eh über das mygamelist zeichen zu home gehen können dann brauchen wir eig home nich mehr und könnten das teoretisch für was anderes nutzen
+- [ ] Eine New/Upcoming Games website   
 
 NICOS IDEEN
 
