@@ -415,8 +415,11 @@ button {
 
 .game-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, 240px);
     gap: 2rem;
+    gap: 2.5rem;
+    width: 100%;
+    margin-top: 2rem;
 }
 
 .game-card {
