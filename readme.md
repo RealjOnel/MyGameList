@@ -2,6 +2,8 @@ TO DO
 - [x] Dropdown für Statistics und Explorer erstellen
 - [ ] Features Website finishen
 - [ ] Statistics Website finishen
+- [ ] Dropdown Pages finishen
+- [ ] Login Page bauen
 
 NIKS IDEEN
 
