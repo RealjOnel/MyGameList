@@ -3,6 +3,13 @@ NIKS IDEEN
 - [ ] dieses mygamelist oben links wenn man drauf klickt dass der dich auch zum home bringt
 - [ ] mehrere ansichten bei explore
 
+BRANDONS IDEEN
+
+- [ ] Template
+
+NICOS IDEEN
+
+- [ ] Template
 
 PLATZHALTER HTML FÜR NAVBAR UND FOOTER
 
