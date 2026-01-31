@@ -23,7 +23,7 @@ NIKS IDEEN
             <a href="#" class="nav-item">Top Games</a>
             <button class="btn-login">LOGIN</button>
         </div>
-    </nav>```
+    </nav>
 
 <footer class="main-footer">
     <div class="footer-content">
