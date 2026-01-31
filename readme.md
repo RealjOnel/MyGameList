@@ -1,6 +1,6 @@
 NIKS IDEEN
 
-- [ ] dieses mygamelist oben links wenn man drauf klickt dass der dich auch zum home bringt
+- [x] dieses mygamelist oben links wenn man drauf klickt dass der dich auch zum home bringt
 - [ ] mehrere ansichten bei explore
 
 BRANDONS IDEEN
@@ -25,7 +25,9 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
 <body>
 
     <nav class="navbar">
-        <div class="logo">MY<span class="accent">GAMELIST</span></div>
+        <div class="logo">
+            <a href="index.html">MY<span class="accent">GAMELIST</span></a>
+        </div>
         <div class="nav-links">
             <a href="#" class="nav-item">Features</a>
             <a href="#" class="nav-item">Explore</a>
