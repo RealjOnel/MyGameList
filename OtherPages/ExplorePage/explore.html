@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyGameList | Home</title>
+    <title>MyGameList | Explore</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../style.css">
 </head>
@@ -30,12 +30,14 @@
                 <option value="rpg">RPG</option>
                 <option value="action">Action</option>
                 <option value="indie">Indie</option>
+                <option value="jump n run">Jump ’n’ Run</option>
+                <option value="open world">Open World</option>
             </select>
         </div>
     </header>
 
     <div class="game-grid">
-        <div class="game-card">
+        <div class="game-card reveal" data-genre="jump n run">
             <div class="game-cover">
                 <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co498s.jpg" alt="Donkey Kong Land">
                 <div class="game-badge">7.9</div>
@@ -47,7 +49,7 @@
             </div>
         </div>
 
-        <div class="game-card reveal">
+        <div class="game-card reveal" data-genre="action">
             <div class="game-cover">
                 <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co5s5v.jpg" alt="God of War">
                 <span class="game-badge ">9.8</span>
@@ -59,7 +61,7 @@
             </div>
         </div>
 
-        <div class="game-card reveal">
+        <div class="game-card reveal" data-genre="open world">
             <div class="game-cover">
                 <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co2lbd.jpg" alt="GTA V">
                 <span class="game-badge">9.0</span>
@@ -107,6 +109,7 @@
 </footer>
 
 <script src="../../js/global/reveal.js"></script>
+<script src="../../js/ExplorePage/filter.js"></script>
 
 </body>
 </html>
