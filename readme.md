@@ -1,3 +1,8 @@
+TO DO
+- [ ] Dropdown für Statistics und Explorer erstellen
+- [ ] Features Website finishen
+- [ ] Statistics Website finishen
+
 NIKS IDEEN
 
 - [x] dieses mygamelist oben links wenn man drauf klickt dass der dich auch zum home bringt
