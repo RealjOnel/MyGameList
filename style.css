@@ -192,16 +192,6 @@ button {
     opacity: 0.9;
 }
 
-@keyframes floatCardLeft {
-    0%, 100% { transform: translateY(0) rotate(-12deg); }
-    50% { transform: translateY(-20px) rotate(-10deg); }
-}
-
-@keyframes floatCardRight {
-    0%, 100% { transform: translateY(0) rotate(15deg); }
-    50% { transform: translateY(-25px) rotate(13deg); }
-}
-
 .card-1 { 
     top: 15%; left: 8%; 
     transform: rotate(-12deg); 
