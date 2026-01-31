@@ -31,7 +31,7 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
         <div class="nav-links">
             <a href="#" class="nav-item">Features</a>
             <a href="#" class="nav-item">Explore</a>
-            <a href="#" class="nav-item">Top Games</a>
+            <a href="#" class="nav-item">Statistics</a>
             <button class="btn-login">LOGIN</button>
         </div>
     </nav>
