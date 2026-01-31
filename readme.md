@@ -66,4 +66,4 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
 
 NIKS IDEEN
 
-- [ ] test
+- [x] Das ist ein Test
