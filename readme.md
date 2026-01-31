@@ -1,28 +1,3 @@
-TO DO
-- [x] Dropdown für Statistics und Explorer erstellen
-- [x] Features Website finishen
-- [ ] Statistics Website finishen
-- [ ] Dropdown Pages finishen
-- [ ] Login Page bauen
-
-NIKS IDEEN
-
-- [x] dieses mygamelist oben links wenn man drauf klickt dass der dich auch zum home bringt
-- [ ] mehrere ansichten bei explore
-
-BRANDONS IDEEN
-
-- [ ] dark/light mode
-- [ ] Eine New/Upcoming Games website   
-
-NICOS IDEEN
-
-- [ ] Template
-
-JUSTINS IDEEN
-
-- [ ] Ein "Active" strich unter dem Reiter in dem man sich gerade befindet (navbar)
-
 PLATZHALTER HTML FÜR NAVBAR UND FOOTER
 
 ```<!DOCTYPE html>
