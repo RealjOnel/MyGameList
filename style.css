@@ -13,6 +13,13 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+.gradient-text {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text; 
+    background-clip: text;         
+    -webkit-text-fill-color: transparent;
+}
+
 body {
     font-family: 'Inter', sans-serif;
     background-color: var(--bg-body);
@@ -254,13 +261,6 @@ button {
     letter-spacing: -3px;
     line-height: 1.05;
     margin-bottom: 1.5rem;
-}
-
-.gradient-text {
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-    -webkit-background-clip: text; 
-    background-clip: text;         
-    -webkit-text-fill-color: transparent;
 }
 
 .hero p {
