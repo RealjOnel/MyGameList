@@ -11,6 +11,10 @@ NICOS IDEEN
 
 - [ ] Template
 
+JUSTINS IDEEN
+
+- [ ] Ein "Active" strich unter dem Reiter in dem man sich gerade befindet (navbar)
+
 PLATZHALTER HTML FÜR NAVBAR UND FOOTER
 
 ```<!DOCTYPE html>
