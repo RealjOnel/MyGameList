@@ -758,3 +758,25 @@ button {
         grid-column: span 1;
     }
 }
+
+/* Database Box Effect */
+
+.search-simulation {
+    margin-top: 1.5rem;
+    background: #f1f5f9;
+    padding: 10px 15px;
+    border-radius: 10px;
+    font-family: monospace;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+}
+
+.cursor {
+    animation: blink 1s infinite;
+    color: var(--accent);
+    font-weight: bold;
+}
+
+@keyframes blink {
+    50% { opacity: 0; }
+}
