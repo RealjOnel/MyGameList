@@ -1,4 +1,8 @@
-PLATZHALTER HTML FÜR NAVBAR UND FOOTER
+PLATZHALTER HTML FÜR NAVBAR UND FOOTER UND CHEECKLIST
+
+NIKS IDEEN
+
+- [ ] Das ist ein Test
 
 ```<!DOCTYPE html>
 <html lang="en">
@@ -56,8 +60,3 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
 
 </body>
 </html> ```
-
-
-NIKS IDEEN
-
-- [x] Das ist ein Test
