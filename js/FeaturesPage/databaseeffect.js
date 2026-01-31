@@ -1,5 +1,5 @@
 const textElement = document.getElementById('typewriter-text');
-    const games = ["Search for Elden Ring...", "Search for Yakuza 0", "Search for GTA V...", "Search for Hollow Knight...", "Search for Cyberpunk 2077..."];
+    const games = ["Search for Elden Ring...", "Search for Yakuza 0...", "Search for GTA V...", "Search for Hollow Knight...", "Search for Cyberpunk 2077..."];
     let gameIndex = 0;
     let charIndex = 0;
     let isDeleting = false;
