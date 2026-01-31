@@ -55,13 +55,7 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
 </footer>
 
 </body>
-</html>
-
-
-
-
-
-
+</html> ```
 
 
 NIKS IDEEN
