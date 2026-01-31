@@ -1,6 +1,7 @@
 NIKS IDEEN
 
-- [ ] Das ist ein Test
+- [ ] dieses mygamelist oben links wenn man drauf klickt dass der dich auch zum home bringt
+- [ ] mehrere ansichten bei explore
 
 
 PLATZHALTER HTML FÜR NAVBAR UND FOOTER
