@@ -1012,3 +1012,21 @@ button {
 @keyframes growUp {
     from { height: 0; }
 }
+
+/* Styling für die Icon-Container */
+.card-icon i {
+    font-size: 2.5rem; 
+    color: var(--accent); 
+    background: rgba(59, 130, 246, 0.1); 
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 1rem;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.stats-card:hover .card-icon i {
+    transform: scale(1.1) rotate(-5deg); 
+    background: var(--accent);
+    color: white;
+}
