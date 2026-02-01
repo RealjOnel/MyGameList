@@ -73,5 +73,8 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
     </div>
 </footer>
 
+    <script src="./js/global/reveal.js"></script>
+    <script src="./js/global/active.js"></script>
+
 </body>
 </html> ```

@@ -68,6 +68,57 @@ body {
     margin: 0; 
 }
 
+/* Active Strich */
+
+.nav-links .nav-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 0 5px 5px 5px;
+    text-decoration: none !important;
+    color: #1e293b !important;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.nav-links .nav-item::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0; 
+    height: 3px;
+    background: var(--accent);
+    border-radius: 5px;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                background-color 0.3s ease;
+}
+
+.nav-links .nav-item:hover::after {
+    width: 100%;
+    background: rgba(59, 130, 246, 0.5); 
+}
+
+.nav-links .nav-item.active::after {
+    width: 100%;
+    background: var(--accent); 
+    animation: slideIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes slideIn {
+    from {
+        width: 0;
+        opacity: 0;
+    }
+    to {
+        width: 100%;
+        opacity: 1;
+    }
+}
+
 
 /* Dropdown */
 
