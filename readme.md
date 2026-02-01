@@ -36,6 +36,16 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
             </ul>
         </div>
 
+        <div class="nav-item dropdown">
+            <a href="#">Help</a>
+            <ul class="dropdown-menu">
+                <li><a href="#">About</a></li>
+                <li><a href="#">FAQ</a></li>
+                <li><a href="#">Support</a></li>
+                <li><a href="#">Staff</a></li>
+            </ul>
+        </div>
+
         <button class="btn-login">LOGIN</button>
     </div>
 </nav>
@@ -65,6 +75,13 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
                 <a href="#">Privacy Policy</a>
                 <a href="#">Terms of Service</a>
                 <a href="#">Cookie Policy</a>
+            </div>
+            <div class="link-group">
+                <h4>Help</h4>
+                <a href="#">About</a>
+                <a href="#">FAQ</a>
+                <a href="#">Support</a>
+                <a href="#">Staff</a>
             </div>
         </div>
     </div>
