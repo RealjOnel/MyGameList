@@ -29,6 +29,7 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
         <div class="nav-item dropdown">
             <a href="#">Statistics</a>
             <ul class="dropdown-menu">
+                <li><a href="#">Our Methodology</a></li>
                 <li><a href="#">Top Games</a></li>
                 <li><a href="#">Hidden Gems</a></li>
                 <li><a href="#">Overhyped Titles</a></li>
