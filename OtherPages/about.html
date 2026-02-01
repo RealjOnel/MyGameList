@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyGameList | Statistics</title>
+    <title>MyGameList | About</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../style.css">
@@ -38,7 +38,7 @@
         <div class="nav-item dropdown">
             <a href="./help.html">Help</a>
             <ul class="dropdown-menu">
-                <li><a href="./about.html">About</a></li>
+                <li><a href="#">About</a></li>
                 <li><a href="#">FAQ</a></li>
                 <li><a href="#">Support</a></li>
                 <li><a href="#">Staff</a></li>
@@ -49,61 +49,68 @@
     </div>
 </nav>
 
-<main class="stats-page">
-    <section class="stats-hero reveal">
-        <div class="badge-stats">Data Insights</div>
-        <h1>The Science of <span class="gradient-text">Gaming.</span></h1>
-        <p>How do we define the "Best Game"? Explore our dual-ranking system that combines professional critique with player passion.</p>
-        <div class="stats-cta">
-            <a href="#rankings" class="btn-primary">View Rankings</a>
-            <a href="#methodology" class="btn-secondary">Our Methodology</a>
+<main class="about-page">
+    <header class="about-hero reveal">
+        <div class="badge-stats">Our Journey</div>
+        <h1>The Vision behind <span class="gradient-text">MyGameList.</span></h1>
+        <p class="hero-lead">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis, pulvinar dapibus leo.
+        </p>
+    </header>
+
+    <section class="about-section glass reveal">
+        <div class="section-content">
+            <h2><i class="fa-solid fa-rocket"></i> Our Mission</h2>
+            <p>
+                <strong>[Hier erklären, warum die Seite existiert]</strong><br>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras interdum, nisl a varius eleifend, neque magna lacinia lacus, eu vulputate nisl tellus nec neque. Sed hendrerit felis ac sodales lobortis. 
+            </p>
         </div>
     </section>
 
-    <section id="rankings" class="stats-grid">
-        <div class="stats-card glass reveal">
-            <div class="card-icon">
-                <i class="fa-solid fa-users"></i>
-            </div>
-            <h3>Top Games: User Choice</h3>
-            <p>Ranked by thousands of players. This list represents what the community actually loves to play, regardless of marketing hype.</p>
-            <a href="./top-user.html" class="card-link">Explore Community Rankings →</a>
+    <section class="about-features-grid reveal">
+        <div class="feature-box glass">
+            <i class="fa-solid fa-microscope"></i>
+            <h4>Data Driven</h4>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt.</p>
         </div>
-
-        <div class="stats-card glass reveal">
-            <div class="card-icon">
-                <i class="fa-solid fa-masks-theater"></i>
-            </div>
-            <h3>Top Games: Metacritic</h3>
-            <p>The industry standard. A weighted average of reviews from the world's most respected gaming journalists and critics.</p>
-            <a href="./top-metacritic.html" class="card-link">Explore Critic Rankings →</a>
+        <div class="feature-box glass">
+            <i class="fa-solid fa-heart"></i>
+            <h4>Community First</h4>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt.</p>
+        </div>
+        <div class="feature-box glass">
+            <i class="fa-solid fa-code-branch"></i>
+            <h4>Open Future</h4>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt.</p>
         </div>
     </section>
 
-    <section id="methodology" class="method-section glass reveal">
-        <h2>How we calculate the scores</h2>
-        <div class="method-grid">
-            <div class="method-item">
-                <h4>1. User Scoring (The Pulse)</h4>
-                <p>Every rating on MyGameList is weighted by user activity. To prevent "review bombing," our algorithm prioritizes users with a verified backlog and consistent rating history.</p>
-            </div>
-            <div class="method-item">
-                <h4>2. Metacritic Integration</h4>
-                <p>We pull real-time data from global critic aggregates. This provides a baseline of quality from a technical and narrative perspective, as seen by professionals.</p>
-            </div>
-            <div class="method-item">
-                <h4>3. The Comparison Logic</h4>
-                <p>The magic happens when we compare both. We highlight "Hidden Gems" (high User, low Meta) and "Overhyped Titles" (high Meta, low User).</p>
-            </div>
+    <section class="about-section glass reveal">
+        <div class="section-content">
+            <h2><i class="fa-solid fa-timeline"></i> Project Milestones</h2>
+            <ul class="milestone-list">
+                <li><strong>2025:</strong> Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
+                <li><strong>2026:</strong> Initial Alpha Launch of the Statistics Engine.</li>
+                <li><strong>Future:</strong> Expansion to mobile platforms and global database sync.</li>
+            </ul>
         </div>
-        
-        <div class="data-visual-placeholder">
-            <div class="data-visual-placeholder">
-                <div class="bar" style="height: 80%;"><span>User</span></div>
-                <div class="bar" style="height: 60%;"><span>Critic</span></div>
-                <div class="bar" style="height: 95%;"><span>Global</span></div>
-            </div>
+    </section>
+
+    <section class="about-section glass reveal">
+        <div class="section-content">
+            <h2><i class="fa-solid fa-layer-group"></i> How it's built</h2>
+            <p>
+                MyGameList is built with modern web technologies to ensure speed and reliability. 
+                Currently using <strong>HTML5, CSS3 (Modern Grid/Flexbox) and Vanilla JavaScript</strong> for maximum performance.
+            </p>
         </div>
+    </section>
+
+    <section class="staff-redirect glass reveal">
+        <h3><i class="fa-solid fa-users-gear"></i> Meet the Architects</h3>
+        <p>Curious about the people writing the code and testing the features?</p>
+        <a href="./staff.html" class="card-link">View Staff Profiles →</a>
     </section>
 </main>
 
