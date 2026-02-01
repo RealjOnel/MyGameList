@@ -791,3 +791,173 @@ button {
 @keyframes blink {
     50% { opacity: 0; }
 }
+
+/* ==========================================================================
+   STATISTICS PAGE
+   ========================================================================== */
+
+.stats-page {
+    padding: 6rem 10%;
+    background: #f8fafc;
+}
+
+.stats-hero {
+    text-align: center;
+    margin-bottom: 6rem;
+}
+
+.stats-hero p {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.stats-hero h1 {
+    line-height: 1.2;
+    margin-top: 1rem;
+}
+
+.stats-cta {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+}
+
+.stats-cta a {
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-weight: 700;
+    text-decoration: none !important;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: white !important;
+    border: none;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    background: #2563eb; 
+}
+
+.btn-secondary {
+    background: white;
+    color: #1e293b !important;
+    border: 1px solid #e2e8f0;
+}
+
+.btn-secondary:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+}
+
+.badge-stats {
+    background: #e0e7ff;
+    color: var(--accent);
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: inline-block;
+    margin-bottom: 1.5rem;
+}
+
+/* Grid für die Weiterleitungen */
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+    margin-bottom: 8rem;
+}
+
+.stats-card {
+    padding: 3rem;
+    border-radius: 30px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.stats-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.1);
+}
+
+.card-icon { font-size: 3rem; margin-bottom: 1.5rem; }
+
+.card-link {
+    display: inline-block;
+    margin-top: 2rem;
+    color: var(--accent);
+    font-weight: 700;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: border 0.3s;
+}
+
+.card-link:hover { border-color: var(--accent); }
+
+/* Methodik Sektion */
+.method-section {
+    padding: 5rem;
+    border-radius: 40px;
+    background: white;
+}
+
+.method-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3rem;
+    margin-top: 3rem;
+    text-align: left;
+}
+
+.method-item h4 {
+    color: var(--accent);
+    margin-bottom: 1rem;
+}
+
+.data-visual-placeholder {
+    width: 100%;
+    height: 350px; 
+    display: flex;
+    justify-content: center; 
+    align-items: flex-end;  
+    gap: 5rem;               
+    margin-top: 4rem;
+    padding-bottom: 60px;   
+    position: relative;
+}
+
+.bar {
+    width: 65px;
+    background: linear-gradient(to top, var(--accent), #8b5cf6);
+    border-radius: 12px 12px 0 0;
+    position: relative; 
+    display: flex;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+.bar:hover {
+    transform: scaleX(1.1); 
+}
+
+.bar span {
+    position: absolute;
+    bottom: -40px; 
+    white-space: nowrap; 
+    color: #475569;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+}
+
+@keyframes growUp {
+    from { height: 0; }
+}
