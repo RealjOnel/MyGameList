@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyGameList | Explore</title>
+    <title>MyGameList | Support</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../style.css">
 </head>
 <body>
@@ -48,70 +49,45 @@
     </div>
 </nav>
 
-<main class="explore-container reveal">
-    <header class="explore-header">
-        <h2>Explore <span class="gradient-text">Trending Games</span></h2>
-        <div class="search-filter-bar">
-            <input type="text" placeholder="Search for games..." class="search-input">
-            <select class="filter-select">
-                <option value="all">All Genres</option>
-                <option value="rpg">RPG</option>
-                <option value="action adventure">Action Adventure</option>
-                <option value="indie">Indie</option>
-                <option value="jump n run">Jump ’n’ Run</option>
-                <option value="open world">Open World</option>
-            </select>
-        </div>
+<main class="support-page">
+    <header class="support-header reveal">
+        <div class="badge-stats">System Maintenance</div>
+        <h1>Technical <span class="gradient-text">Armory.</span></h1>
+        <p class="hero-lead">Found a bug can't access your list or got any other problem? Let's get it fixed!</p>
     </header>
 
-    <div class="game-grid">
-        <div class="game-card reveal" data-genre="jump n run">
-            <div class="game-cover">
-                <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co498s.jpg" alt="Donkey Kong Land">
-                <div class="game-badge">7.9</div>
-            </div>
-            <div class="game-info">
-                <h4>Donkey Kong Land</h4>
-                <p>Jump ’n’ Run • Rare</p>
-                <button class="btn-add">+ Add to List</button>
-            </div>
+    <section class="support-grid">
+        <div class="support-card glass reveal">
+            <div class="support-icon"><i class="fa-solid fa-bug-slash"></i></div>
+            <h3>Report a Bug</h3>
+            <p><strong>TEAM-INFO:</strong> Schreibt hier rein, wie man einen Bug meldet (z.B. über Discord oder ein Formular). Erwähnt, dass Screenshots helfen!</p>
+            <a href="#" class="support-btn">Open Ticket</a>
         </div>
 
-        <div class="game-card reveal" data-genre="action adventure">
-            <div class="game-cover">
-                <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co5s5v.jpg" alt="God of War">
-                <span class="game-badge ">9.8</span>
-            </div>
-            <div class="game-info">
-                <h4>God of War Ragnarök</h4>
-                <p>Action Adventure • Sony Santa Monica</p>
-                <button class="btn-add">+ Add to List</button>
-            </div>
+        <div class="support-card glass reveal">
+            <div class="support-icon"><i class="fa-solid fa-user-shield"></i></div>
+            <h3>Account Recovery</h3>
+            <p><strong>TEAM-INFO:</strong> Erklärt hier, was zu tun ist, wenn man sein Passwort vergessen hat oder der Login "laggt".</p>
+            <a href="#" class="support-btn">Reset Password</a>
         </div>
 
-        <div class="game-card reveal" data-genre="open world">
-            <div class="game-cover">
-                <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co2lbd.jpg" alt="GTA V">
-                <span class="game-badge">9.0</span>
-            </div>
-            <div class="game-info">
-                <h4>GTA V</h4>
-                <p>Open World • Rockstar Games</p>
-                <button class="btn-add">+ Add to List</button>
+        <div class="support-card glass reveal">
+            <div class="support-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+            <h3>Request a Feature</h3>
+            <p><strong>TEAM-INFO:</strong> Motiviert die User, Ideen für neue Statistiken oder Listen-Funktionen einzureichen. Wir hören auf die Community!</p>
+            <a href="#" class="support-btn">Submit Idea</a>
+        </div>
+    </section>
+
+    <section class="emergency-box glass reveal">
+        <div class="emergency-content">
+            <i class="fa-brands fa-discord"></i>
+            <div>
+                <h4>Direct Support Channel</h4>
+                <p><strong>TEAM-INFO:</strong> Hier verlinken wir dann unseren zukünfitgen Discord oder so. Schreibt dazu, wie schnell wir normalerweise antworten (z.B. "Within 24 hours").</p>
             </div>
         </div>
-        <div class="game-card reveal" data-genre="action adventure">
-            <div class="game-cover">
-                <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co252x.jpg" alt="Yakuza 0">
-                <span class="game-badge">9.7</span>
-            </div>
-            <div class="game-info">
-                <h4>Yakuza 0</h4>
-                <p>Action Adventure • Sega</p>
-                <button class="btn-add">+ Add to List</button>
-            </div>
-        </div>
-    </div>
+    </section>
 </main>
 
 <footer class="main-footer">
@@ -124,7 +100,7 @@
         <div class="footer-links">
             <div class="link-group">
                 <h4>Platform</h4>
-                <a href="./explore.html">Explore</a>
+                <a href="#">Explore</a>
                 <a href="#">Top Games</a>
                 <a href="#">Statistics</a>
             </div>
@@ -154,9 +130,9 @@
     </div>
 </footer>
 
-<script src="../js/global/reveal.js"></script>
-<script src="../js/ExplorePage/filter.js"></script>
-<script src="../js/global/active.js"></script>
+    <script src="../js/global/reveal.js"></script>
+    <script src="../js/global/active.js"></script>
+    <script src="../js/FAQ/aufklappen.js"></script>
 
 </body>
 </html>
