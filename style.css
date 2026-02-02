@@ -1501,3 +1501,140 @@ button {
     font-size: 1.4rem;
     margin-bottom: 0.5rem;
 }
+
+/* ==========================================================================
+   HELP - STAFF
+   ========================================================================== */
+
+.staff-page {
+    padding: 8rem 10% 4rem;
+    min-height: 100vh;
+}
+
+.staff-hero {
+    text-align: center;
+    margin-bottom: 5rem;
+}
+
+.staff-section {
+    margin-bottom: 5rem;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.section-title h2 {
+    font-size: 1.8rem;
+    color: var(--primary);
+    white-space: nowrap;
+}
+
+.section-title h2 i {
+    color: var(--accent);
+    margin-right: 10px;
+}
+
+.section-title .line {
+    width: 100%;
+    height: 1px;
+    background: rgba(0,0,0,0.1);
+}
+
+.staff-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2.5rem;
+}
+
+.staff-grid.centered {
+    display: flex;
+    justify-content: center;
+}
+
+.staff-card {
+    padding: 2.5rem 2rem;
+    text-align: center;
+    border-radius: 30px;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%; 
+}
+
+.staff-card:hover {
+    transform: translateY(-10px);
+    border-color: var(--accent);
+}
+
+.avatar-placeholder {
+    width: 100px;
+    height: 100px;
+    background: #e2e8f0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    font-size: 2.5rem;
+    color: var(--text-muted);
+    border: 4px solid white;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.avatar-placeholder.main-dev {
+    background: linear-gradient(135deg, var(--accent), #60a5fa);
+    color: white;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    letter-spacing: 1px;
+}
+
+.role-badge.dev { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+.role-badge.helper { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+.role-badge.tester { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+
+.staff-info h3 {
+    margin-bottom: 0.8rem;
+    font-size: 1.4rem;
+}
+
+.staff-info .bio {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.fav-game {
+    margin-top: auto; 
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    width: 100%;
+    font-size: 0.9rem;
+}
+
+.fav-game span {
+    color: var(--text-muted);
+    margin-right: 5px;
+}
+
+.join-team {
+    text-align: center;
+    margin-top: 4rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
