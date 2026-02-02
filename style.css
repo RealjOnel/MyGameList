@@ -1638,3 +1638,7 @@ button {
     font-weight: 600;
     color: var(--text-muted);
 }
+
+.join-team a {
+    text-decoration: none;
+}
