@@ -51,7 +51,7 @@
 
 <main class="method-page">
     <header class="method-header reveal">
-        <div class="badge-stats">The Science of Gaming</div>
+        <div class="badge-stats">Methodology</div>
         <h1>Our <span class="gradient-text">Algorithm.</span></h1>
         <p class="hero-lead">Transparency is our weapon. Here is exactly how we calculate the truth behind the hype.</p>
     </header>
@@ -112,25 +112,25 @@
             <h2><i class="fa-solid fa-ruler-combined"></i> Decoding the Scale</h2>
             <p><strong>TEAM-INFO:</strong> Hier definiert ihr, was die Zahlen bedeuten. Das hilft Usern, fair zu bewerten. Passt die Texte an euren Stil an.</p>
             
-            <div class="scale-list">
-                <div class="scale-item">
-                    <span class="scale-num high">10</span>
-                    <div class="scale-desc"><strong>Masterpiece.</strong> A genre-defining experience. (Not perfect, but legendary).</div>
-                </div>
-                <div class="scale-item">
-                    <span class="scale-num good">7-9</span>
-                    <div class="scale-desc"><strong>Great to Amazing.</strong> Highly recommended, worth your time and money.</div>
-                </div>
-                <div class="scale-item">
-                    <span class="scale-num mid">4-6</span>
-                    <div class="scale-desc"><strong>Average / Mediocre.</strong> Has moments of fun, but major flaws or just generic.</div>
-                </div>
-                <div class="scale-item">
-                    <span class="scale-num low">1-3</span>
-                    <div class="scale-desc"><strong>Broken / Unplayable.</strong> Technical disaster or fundamentally flawed design.</div>
+        <div class="simulator-box glass" id="simBox">
+            <div class="sim-header">
+                <h3><i class="fa-solid fa-gamepad"></i> Score Simulator</h3>
+                <p>Drag the slider to see how we define each number.</p>
+            </div>
+
+            <div class="sim-display">
+                <span id="scoreValue" class="huge-number score-high">10</span>
+                <div id="scoreText" class="sim-label">Masterpiece</div>
+            </div>
+
+            <div class="slider-container">
+                <input type="range" min="1" max="10" value="10" class="tech-slider" id="scoreRange">
+                <div class="slider-track-marks">
+                    <span>1 (Broken)</span><span>10 (Legendary)</span>
                 </div>
             </div>
         </div>
+            
     </section>
 
     <section class="method-section glass reveal">
@@ -188,6 +188,7 @@
 
     <script src="../js/global/reveal.js"></script>
     <script src="../js/global/active.js"></script>
+    <script src="../js/MethodologyPage/rating.js"></script>
 
 </body>
 </html>
