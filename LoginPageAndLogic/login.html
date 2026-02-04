@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyGameList | Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body class="auth-page">
+
+<nav class="navbar">
+    <div class="logo">
+        <a href="../index.html">MY<span class="accent">GAMELIST</span></a>
+    </div>
+    <div class="nav-links">
+        <a href="../OtherPages/features.html" class="nav-item">Features</a>
+    
+        <div class="nav-item dropdown">
+            <a href="./explore.html">Explore</a>
+            <ul class="dropdown-menu">
+                <li><a href="#">Upcoming Games</a></li>
+                <li><a href="#">New Releases</a></li>
+            </ul>
+        </div>
+
+        <div class="nav-item dropdown">
+            <a href="../OtherPages/statistics.html">Statistics</a>
+            <ul class="dropdown-menu">
+                <li><a href="methodology.html">Our Methodology</a></li>
+                <li><a href="#">Top Games</a></li>
+                <li><a href="#">Hidden Gems</a></li>
+                <li><a href="#">Overhyped Titles</a></li>
+            </ul>
+        </div>
+
+        <div class="nav-item dropdown">
+            <a href="../OtherPages/help.html">Help</a>
+            <ul class="dropdown-menu">
+                <li><a href="../OtherPages/about.html">About</a></li>
+                <li><a href="../OtherPages/faq.html">FAQ</a></li>
+                <li><a href="../OtherPages/support.html">Support</a></li>
+                <li><a href="../OtherPages/staff.html">Staff</a></li>
+            </ul>
+        </div>
+
+        <button class="btn-login">LOGIN</button>
+    </div>
+</nav>
+
+<main class="auth-container">
+    <div class="auth-overlay"></div>
+
+    <div class="auth-bg-gallery">
+        <div class="gallery-track">
+            <div class="gallery-item" style="background-image: url('https://images.igdb.com/igdb/image/upload/t_1080p/sc6idm.jpg')"></div>
+            <div class="gallery-item" style="background-image: url('https://images.igdb.com/igdb/image/upload/t_1080p/sc8696.jpg')"></div>
+            <div class="gallery-item" style="background-image: url('https://images.igdb.com/igdb/image/upload/t_1080p/sc6649.jpg')"></div>
+            <div class="gallery-item" style="background-image: url('https://images.igdb.com/igdb/image/upload/t_1080p/sc6ldp.jpg')"></div>
+            <div class="gallery-item" style="background-image: url('https://images.igdb.com/igdb/image/upload/t_1080p/sc6khs.jpg')"></div>
+            <div class="gallery-item" style="background-image: url('https://images.igdb.com/igdb/image/upload/t_1080p/sc5y9u.jpg')"></div>
+            
+            <div class="gallery-item" style="background-image: url('https://images.igdb.com/igdb/image/upload/t_1080p/sc6idm.jpg')"></div>
+            <div class="gallery-item" style="background-image: url('https://images.igdb.com/igdb/image/upload/t_1080p/sc8696.jpg')"></div>
+            <div class="gallery-item" style="background-image: url('https://images.igdb.com/igdb/image/upload/t_1080p/sc6649.jpg')"></div>
+            <div class="gallery-item" style="background-image: url('https://images.igdb.com/igdb/image/upload/t_1080p/sc6ldp.jpg')"></div>
+            <div class="gallery-item" style="background-image: url('https://images.igdb.com/igdb/image/upload/t_1080p/sc6khs.jpg')"></div>
+            <div class="gallery-item" style="background-image: url('https://images.igdb.com/igdb/image/upload/t_1080p/sc5y9u.jpg')"></div>
+        </div>
+    </div>
+
+    <div class="auth-deco-line">
+        <span class="line-text">SYSTEM STATUS: READY</span>
+        <div class="line"></div>
+    </div>
+
+    <div class="auth-box glass reveal">
+        <div class="auth-header">
+            <h2 id="auth-title">Welcome <span class="gradient-text">Back!</span></h2>
+            <p id="auth-subtitle">Get back to track your Gaming History.</p>
+        </div>
+
+        <div class="auth-tabs">
+            <button class="tab-btn active" onclick="switchAuth('login')">Login</button>
+            <button class="tab-btn" onclick="switchAuth('register')">Register</button>
+        </div>
+
+        <form id="auth-form">
+            <div class="input-group">
+                <i class="fa-solid fa-user"></i>
+                <input type="text" placeholder="Username" required>
+            </div>
+            
+            <div class="input-group" id="email-group" style="display: none;">
+                <i class="fa-solid fa-envelope"></i>
+                <input type="email" placeholder="Email Address">
+            </div>
+
+            <div class="input-group">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" placeholder="Password" required>
+            </div>
+
+            <button type="submit" class="btn-primary auth-submit">
+                <span id="submit-text">Login</span>
+                <i class="fa-solid fa-arrow-right-to-bracket"></i>
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            <a href="#" class="forgot-link">Request password reset</a>
+        </div>
+    </div>
+
+</main>
+
+    <script src="../js/global/reveal.js"></script>
+    <script src="../js/global/active.js"></script>
+    <script src="./loginregisterswitch.js"></script>
+
+</body>
+</html>
