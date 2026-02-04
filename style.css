@@ -2162,3 +2162,53 @@ button {
     height: 2px;
     background: linear-gradient(to left, var(--accent), transparent);
 }
+
+/* ==========================================================================
+   Imprint Page
+   ========================================================================== */
+
+   .legal-lead {
+    font-size: 1.25rem;
+    color: var(--text-muted);
+    max-width: 700px;
+    margin: 1.5rem auto;
+    line-height: 1.6;
+}
+
+.legal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 2.5rem;
+    width: 100%;
+    margin-top: 2rem;
+    grid-template-columns: repeat(3, 290px);
+    justify-content: center;
+}
+
+.legal-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    border: 1px solid #f1f5f9;
+    text-align: left;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.legal-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 25px rgba(0,0,0,0.08);
+}
+
+.legal-lead a {
+    color: #3b82f6;
+    text-decoration: none; 
+}
+
+.legal-lead a:hover {
+    text-decoration: underline; 
+}
