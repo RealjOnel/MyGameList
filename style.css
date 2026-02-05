@@ -11,6 +11,11 @@
     --radius: 20px;
 }
 
+.dark-mode {
+    background-color: black;
+    color: white;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 .gradient-text {
@@ -277,7 +282,7 @@ button {
 
 .reveal {
     opacity: 0;
-    transform: translateY(50px);
+    transform: translateY(30px);
     transition: opacity 1.5s cubic-bezier(0.22, 1, 0.36, 1), 
                 transform 1.5s cubic-bezier(0.22, 1, 0.36, 1);
     will-change: transform, opacity;
