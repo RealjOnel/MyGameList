@@ -61,7 +61,7 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
         <div class="footer-links">
             <div class="link-group">
                 <h4>Platform</h4>
-                <a href="#">Explore</a>
+                <a href="./OtherPages/explore.html">Explore</a>
                 <a href="#">Top Games</a>
                 <a href="#">Statistics</a>
             </div>
@@ -73,8 +73,9 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
             </div>
             <div class="link-group">
                 <h4>Legal</h4>
+                <a href="OtherPages/imprint.html">Imprint</a>
                 <a href="#">Privacy Policy</a>
-                <a href="#">Terms of Service</a>
+                <a href="OtherPages/terms_of_service.html">Terms of Service</a>
                 <a href="#">Cookie Policy</a>
             </div>
             <div class="link-group">
@@ -91,6 +92,7 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
     </div>
 </footer>
 
+    <script src="./js/HomePage/mouseeffect.js"></script>
     <script src="./js/global/reveal.js"></script>
     <script src="./js/global/active.js"></script>
 
