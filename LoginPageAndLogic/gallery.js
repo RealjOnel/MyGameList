@@ -1,6 +1,6 @@
 async function loadDynamicGallery() {
     try {
-        const response = await fetch('http://localhost:3000/api/trending-games');
+        const response = await fetch('https://mygamelist-omhm.onrender.com');
         const games = await response.json();
         
         const track = document.querySelector('.gallery-track');
