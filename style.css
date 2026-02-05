@@ -2167,7 +2167,12 @@ button {
    Imprint Page
    ========================================================================== */
 
-   .legal-lead {
+.imprint-hero {
+    text-align: center;
+    margin-top: 4.5rem;
+}
+
+.legal-lead {
     font-size: 1.25rem;
     color: var(--text-muted);
     max-width: 700px;
@@ -2216,6 +2221,12 @@ button {
 /* ==========================================================================
    Terms of Service Page
    ========================================================================== */
+   
+.tos-hero {
+    text-align: center;
+    margin-top: 4.5rem;
+}
+
 .tof-lead {
     color: #3b82f6;
     text-decoration: none; 
