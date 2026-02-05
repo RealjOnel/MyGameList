@@ -3,17 +3,28 @@
    ========================================================================== */
 
 :root {
-    --primary: #0f172a;
-    --accent: #3b82f6;
-    --text-main: #1e293b;
-    --text-muted: #64748b;
+    /* --- LIGHT MODE (Standard) --- */
     --bg-body: #ffffff;
-    --radius: 20px;
+    --bg-card: #f8fafc; 
+    --bg-nav: rgba(255, 255, 255, 0.9);
+    --text-main: #0f172a; 
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --accent: #3b82f6;
+    --radius: 20px
 }
 
-.dark-mode {
-    background-color: black;
-    color: white;
+/* --- DARK MODE OVERRIDES --- */
+body.dark-mode {
+    --bg-body: #0f172a; 
+    --bg-card: #1e293b; 
+    --bg-nav: rgba(15, 23, 42, 0.9);
+    --text-main: #f8fafc; 
+    --text-muted: #94a3b8;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    --accent: #60a5fa; 
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
