@@ -2292,5 +2292,6 @@ button {
     padding-left: 40px;
 }
 .privacy-paragraphes {
-    border: 2px #475569;
+    border-bottom: 1px solid #e4e4e4;      
+    padding: 1rem;      
 }
