@@ -1981,6 +1981,14 @@ button {
     background: #0f172a; 
 }
 
+.auth-page .logo {
+    color: white
+}
+
+.auth-header {
+    color: white
+}
+
 .auth-page .auth-overlay {
     position: absolute;
     inset: 0;
@@ -2136,6 +2144,10 @@ button {
 .auth-page .navbar .nav-item,
 .auth-page .navbar .nav-item a {
     color: white !important;
+}
+
+.auth-page .dropdown-menu {
+    background-color: #000;
 }
 
 .auth-page .auth-deco-line {
