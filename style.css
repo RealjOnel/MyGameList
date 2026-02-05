@@ -3,16 +3,12 @@
    ========================================================================== */
 
 :root {
-    /* --- LIGHT MODE (Standard) --- */
-    --bg-body: #ffffff;
-    --bg-card: #f8fafc; 
-    --bg-nav: rgba(255, 255, 255, 0.9);
-    --text-main: #0f172a; 
-    --text-muted: #64748b;
-    --border-color: #e2e8f0;
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --primary: #0f172a;
     --accent: #3b82f6;
-    --radius: 20px
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --bg-body: #ffffff;
+    --radius: 20px;
 }
 
 /* --- DARK MODE OVERRIDES --- */
@@ -2276,7 +2272,7 @@ button {
     line-height: 1.6;
 }
 /* ==========================================================================
-   Terms of Service Page
+   Privacy and Policy Page
    ========================================================================== */
 
 .privacy-lead {
