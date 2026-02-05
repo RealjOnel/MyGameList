@@ -20,8 +20,9 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
         <a href="#" class="nav-item">Features</a>
     
         <div class="nav-item dropdown">
-            <a href="./OtherPages/explore.html">Explore</a>
+            <a href="./OtherPages/explore.html">Games</a>
             <ul class="dropdown-menu">
+                <li><a href="#">Trending Games</a></li>
                 <li><a href="#">Upcoming Games</a></li>
                 <li><a href="#">New Releases</a></li>
             </ul>
