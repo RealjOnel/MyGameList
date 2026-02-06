@@ -63,56 +63,17 @@
                 <option value="open world">Open World</option>
             </select>
         </div>
+        <select id="sortSelect" class="filter-select">
+            <option value="name-asc">A–Z</option>
+            <option value="name-desc">Z–A</option>
+        </select>
     </header>
 
-    <div class="game-grid">
-        <div class="game-card reveal" data-genre="jump n run">
-            <div class="game-cover">
-                <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co498s.jpg" alt="Donkey Kong Land">
-                <div class="game-badge">7.9</div>
-            </div>
-            <div class="game-info">
-                <h4>Donkey Kong Land</h4>
-                <p>Jump ’n’ Run • Rare</p>
-                <button class="btn-add">+ Add to List</button>
-            </div>
-        </div>
+    <div class="game-grid" id="gameGrid"></div>
 
-        <div class="game-card reveal" data-genre="action adventure">
-            <div class="game-cover">
-                <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co5s5v.jpg" alt="God of War">
-                <span class="game-badge ">9.8</span>
-            </div>
-            <div class="game-info">
-                <h4>God of War Ragnarök</h4>
-                <p>Action Adventure • Sony Santa Monica</p>
-                <button class="btn-add">+ Add to List</button>
-            </div>
-        </div>
-
-        <div class="game-card reveal" data-genre="open world">
-            <div class="game-cover">
-                <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co2lbd.jpg" alt="GTA V">
-                <span class="game-badge">9.0</span>
-            </div>
-            <div class="game-info">
-                <h4>GTA V</h4>
-                <p>Open World • Rockstar Games</p>
-                <button class="btn-add">+ Add to List</button>
-            </div>
-        </div>
-        <div class="game-card reveal" data-genre="action adventure">
-            <div class="game-cover">
-                <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co252x.jpg" alt="Yakuza 0">
-                <span class="game-badge">9.7</span>
-            </div>
-            <div class="game-info">
-                <h4>Yakuza 0</h4>
-                <p>Action Adventure • Sega</p>
-                <button class="btn-add">+ Add to List</button>
-            </div>
-        </div>
-    </div>
+        <button id="loadMoreBtn" class="load-more-btn">
+            Load more games
+        </button>
 </main>
 
 <footer class="main-footer">
@@ -157,8 +118,8 @@
 </footer>
 
 <script src="../js/global/reveal.js"></script>
-<script src="../js/ExplorePage/filter.js"></script>
 <script src="../js/global/active.js"></script>
+<script src="../js/ExplorePage/explore.js"></script>
 
 </body>
 </html>

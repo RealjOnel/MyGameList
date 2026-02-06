@@ -669,6 +669,18 @@ button {
     color: white;
 }
 
+.load-more-btn {
+  margin: 3rem auto 0;
+  display: block;
+  padding: 0.8rem 2rem;
+  border-radius: 12px;
+  border: none;
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 /* Styling für die Filter-Auswahlbox */
 .filter-select {
     padding: 0.8rem 2.5rem 0.8rem 1.5rem; 
