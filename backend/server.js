@@ -1,43 +1,61 @@
-require('dotenv').config();
-const express = require('express');
-const axios = require('axios');
-const cors = require('cors');
+import dotenv from "dotenv";
+dotenv.config();
+
+import express from "express";
+import axios from "axios";
+import cors from "cors";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-let accessToken = '';
+let accessToken = null;
+let tokenExpiresAt = 0;
 
-// Funktion: Holt ein neues Token von Twitch
+// Token-Funktion
 async function getTwitchToken() {
-    try {
-        const response = await axios.post(`https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_CLIENT_ID}&client_secret=${process.env.TWITCH_CLIENT_SECRET}&grant_type=client_credentials`);
-        accessToken = response.data.access_token;
-        console.log("Neues Twitch-Token erhalten!");
-    } catch (error) {
-        console.error("Fehler beim Holen des Tokens:", error.response.data);
-    }
+  if (accessToken && Date.now() < tokenExpiresAt) {
+    return accessToken;
+  }
+
+  const response = await axios.post(
+    "https://id.twitch.tv/oauth2/token",
+    new URLSearchParams({
+      client_id: process.env.TWITCH_CLIENT_ID,
+      client_secret: process.env.TWITCH_CLIENT_SECRET,
+      grant_type: "client_credentials"
+    })
+  );
+
+  accessToken = response.data.access_token;
+  tokenExpiresAt = Date.now() + response.data.expires_in * 1000;
+
+  console.log("🟣 Twitch Token refreshed");
+  return accessToken;
 }
 
-app.get('/api/trending-games', async (req, res) => {
-    if (!accessToken) await getTwitchToken();
+// IGDB Route
+app.get("/api/trending-games", async (req, res) => {
+  try {
+    const token = await getTwitchToken();
 
-    try {
-        const response = await axios({
-            url: "https://api.igdb.com/v4/games",
-            method: 'POST',
-            headers: {
-                'Client-ID': process.env.TWITCH_CLIENT_ID,
-                'Authorization': `Bearer ${accessToken}`,
-            },
-            data: "fields name, cover.image_id, rating; where rating > 80 & cover != null; limit 12; sort rating desc;"
-        });
-        res.json(response.data);
-    } catch (error) {
-        res.status(500).json({ error: "IGDB Abfrage fehlgeschlagen" });
-    }
+    const response = await axios.post(
+      "https://api.igdb.com/v4/games",
+      "fields name, cover.image_id, rating; where rating > 80 & cover != null; limit 12; sort rating desc;",
+      {
+        headers: {
+          "Client-ID": process.env.TWITCH_CLIENT_ID,
+          "Authorization": `Bearer ${token}`
+        }
+      }
+    );
+
+    res.json(response.data);
+  } catch (err) {
+    res.status(500).json({ error: "IGDB Abfrage fehlgeschlagen" });
+  }
 });
 
-const PORT = 3000;
-app.listen(PORT, () => console.log(`Proxy-Server läuft auf http://localhost:${PORT}`));
+app.listen(3000, () =>
+  console.log("🚀 Server läuft auf http://localhost:3000")
+);
