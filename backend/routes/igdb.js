@@ -73,7 +73,7 @@ router.get("/games", async (req, res) => {
       {
         headers: {
           "Client-ID": process.env.TWITCH_CLIENT_ID,
-          Authorization: `Bearer ${token}`
+          "Authorization": `Bearer ${token}`
         }
       }
     );
