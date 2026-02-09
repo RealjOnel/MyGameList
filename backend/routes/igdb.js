@@ -47,8 +47,16 @@ router.get("/games", async (req, res) => {
     const search = req.query.search;
     const limit = 50;
     const offset = (page - 1) * limit;
-    let whereClause =
-      "cover != null & (category = 0 | category = 8 | category = 9 | category = null)";
+    let whereClause = `
+      cover != null
+      & (
+          category = 0
+          | category = 8
+          | category = 9
+          | version_parent != null
+        )
+      & parent_game = null
+    `;
 
     if (search) {
       whereClause += ` & name ~ *"${search}"*`;

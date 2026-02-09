@@ -12,6 +12,35 @@ const genreSelect = document.querySelector(".filter-select");
 
 let allLoadedGames = [];
 
+const bannedWords = [
+  "pack",
+  "dlc",
+  "costume",
+  "skin",
+  "character",
+  "expansion",
+  "season pass",
+  "bundle",
+  "collector",
+  "collector's",
+];
+
+function isRealGame(game) {
+  if (!game || !game.name) return false;
+
+  const name = game.name.toLowerCase();
+
+  if (bannedWords.some(word => name.includes(word))) {
+    return false;
+  }
+
+  if (!game.cover) {
+    return false;
+  }
+
+  return true;
+}
+
 function createGameCard(game) {
   const card = document.createElement("div");
   card.classList.add("game-card");
@@ -55,6 +84,8 @@ function renderGames() {
   const selectedGenre = genreSelect.value.toLowerCase();
 
   allLoadedGames
+    .filter(isRealGame)
+
     .filter(game => {
       const nameMatch = game.name
         .toLowerCase()
@@ -69,6 +100,7 @@ function renderGames() {
 
       return nameMatch && genreMatch;
     })
+
     .forEach(game => {
       gameGrid.appendChild(createGameCard(game));
     });
