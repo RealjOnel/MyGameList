@@ -69,11 +69,6 @@ function renderGames() {
 
       return nameMatch && genreMatch;
     })
-    .sort((a, b) =>
-      sortOrder === "asc"
-        ? a.name.localeCompare(b.name)
-        : b.name.localeCompare(a.name)
-    )
     .forEach(game => {
       gameGrid.appendChild(createGameCard(game));
     });
