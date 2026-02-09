@@ -48,35 +48,36 @@ router.get("/games", async (req, res) => {
     const limit = 50;
     const offset = (page - 1) * limit;
     let whereClause =
-      "cover != null & (category = 0 | category = 8 | category = 9)";
+      "cover != null & (category = 0 | category = 8 | category = 9 | category = null)";
 
     if (search) {
       whereClause += ` & name ~ *"${search}"*`;
     }
 
     const response = await axios.post(
-      "https://api.igdb.com/v4/games",
-      `
-        fields 
-            id, 
-            name, 
-            cover.image_id,
-            genres.name,
-            involved_companies.company.name,
-            involved_companies.developer,
-            involved_companies.publisher;
-        where ${whereClause};
-        sort ${sort} ${order};
-        limit ${limit};
-        offset ${offset};
-      `,
-      {
-        headers: {
-          "Client-ID": process.env.TWITCH_CLIENT_ID,
-          "Authorization": `Bearer ${token}`
-        }
-      }
-    );
+  "https://api.igdb.com/v4/games",
+  `
+    fields 
+      id,
+      name,
+      cover.image_id,
+      genres.name,
+      involved_companies.company.name,
+      involved_companies.developer,
+      involved_companies.publisher;
+    where ${whereClause};
+    sort ${sort} ${order};
+    limit ${limit};
+    offset ${offset};
+  `,
+  {
+    headers: {
+      "Client-ID": process.env.TWITCH_CLIENT_ID,
+      "Authorization": `Bearer ${token}`
+    }
+  }
+);
+
 
     res.json(response.data);
   } catch (err) {
