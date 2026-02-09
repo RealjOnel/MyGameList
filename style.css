@@ -2187,6 +2187,33 @@ button {
     background: linear-gradient(to left, var(--accent), transparent);
 }
 
+.error {
+    font-size: 0.9rem;
+    margin-bottom:5%;
+    text-align: center;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text; 
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+
+
+}
+/* Shake Animation */
+@keyframes shake {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+    100% { transform: translateX(0); }
+}
+
+.shake {
+    animation: shake 0.4s ease;
+}
+
 /* ==========================================================================
    Legal Notice Page
    ========================================================================== */
