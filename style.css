@@ -2329,6 +2329,7 @@ button {
     max-width: 700px;
     margin: 1.5rem auto;
     line-height: 1.6;
+    text-align: center;
 }
 
 .guidelines-lead {
