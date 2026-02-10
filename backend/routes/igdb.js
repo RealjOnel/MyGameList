@@ -5,6 +5,9 @@ import { getTwitchToken } from "../services/twitchToken.js";
 
 const router = express.Router();
 
+// How many games to return per Explore page
+const EXPLORE_LIMIT = 50;
+
 //  TRENDING GAMES (für Login-Galerie)
 router.get("/trending", async (req, res) => {
   try {
@@ -33,6 +36,9 @@ router.get("/trending", async (req, res) => {
 });
 
 //  EXPLORE GAMES (größere Liste)
+//  NOTE: keep this route SIMPLE and RELIABLE.
+//  We ask IGDB for games with a cover and then let the frontend
+//  filter out weird editions / DLC by name.
 router.get("/games", async (req, res) => {
   try {
     const token = await getTwitchToken();
@@ -40,52 +46,48 @@ router.get("/games", async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const allowedSorts = ["name"];
     const sort = allowedSorts.includes(req.query.sort)
-        ? req.query.sort
-        : "name";
+      ? req.query.sort
+      : "name";
 
     const order = req.query.order === "desc" ? "desc" : "asc";
     const search = req.query.search;
-    const limit = 50;
-    const offset = (page - 1) * limit;
-    let whereClause = `
-      cover != null
-      & (
-          category = 0
-          | category = 8
-          | category = 9
-          | version_parent != null
-        )
-      & parent_game = null
-    `;
 
+    const limit = EXPLORE_LIMIT;
+    const offset = (page - 1) * limit;
+
+    let whereClause = `cover != null`;
     if (search) {
-      whereClause += ` & name ~ *"${search}"*`;
+      const safeSearch = String(search).replaceAll('"', '\\"');
+      whereClause += ` & name ~ *"${safeSearch}"*`;
     }
 
     const response = await axios.post(
-  "https://api.igdb.com/v4/games",
-  `
-    fields 
-      id,
-      name,
-      cover.image_id,
-      genres.name,
-      involved_companies.company.name,
-      involved_companies.developer,
-      involved_companies.publisher;
-    where ${whereClause};
-    sort ${sort} ${order};
-    limit ${limit};
-    offset ${offset};
-  `,
-  {
-    headers: {
-      "Client-ID": process.env.TWITCH_CLIENT_ID,
-      "Authorization": `Bearer ${token}`
-    }
-  }
-);
-
+      "https://api.igdb.com/v4/games",
+      `
+        fields
+          id,
+          name,
+          category,
+          parent_game,
+          version_parent,
+          cover.image_id,
+          genres.name,
+          involved_companies.company.name,
+          involved_companies.developer,
+          involved_companies.publisher;
+        where ${whereClause};
+        sort ${sort} ${order};
+        limit ${limit};
+        offset ${offset};
+      `,
+      {
+        headers: {
+          "Client-ID": process.env.TWITCH_CLIENT_ID,
+          Authorization: `Bearer ${token}`,
+        },
+        timeout: 15000,
+      }
+    );
 
     res.json(response.data);
   } catch (err) {

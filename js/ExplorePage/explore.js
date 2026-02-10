@@ -12,33 +12,57 @@ const genreSelect = document.querySelector(".filter-select");
 
 let allLoadedGames = [];
 
-const bannedWords = [
-  "pack",
-  "dlc",
-  "costume",
-  "skin",
-  "character",
-  "expansion",
-  "season pass",
-  "bundle",
-  "collector",
-  "collector's",
+const bannedPatterns = [
+  /collector/i,
+  /collector's/i,
+  /soundtrack/i,
+  /artbook/i,
+  /case/i,
+  /steelbook/i,
+  /figurine/i,
+  /statue/i,
+  /\bpack\b/i,
+  /\bbundle\b/i,
+  /\bdlc\b/i,
+  /character pack/i,
+  /100%\s*orange juice/i,
+  /\bseason pass\b/i,
+  /\bgame of the year\b/i,
+  /\bgoty\b/i,
+  /\bultimate\b/i,
+  /\bcomplete( edition)?\b/i,
+  /\bdefinitive( edition)?\b/i,
+  /\bdeluxe( edition)?\b/i,
 ];
 
 function isRealGame(game) {
-  if (!game || !game.name) return false;
+  if (!game?.name) return false;
+  if (!game.cover) return false;
 
-  const name = game.name.toLowerCase();
+  // Use category only to filter out obvious DLC / expansions / episodes etc.
+  // IGDB categories (relevant ones):
+  // 0 = main game
+  // 1 = dlc/add-on
+  // 2 = expansion
+  // 3 = bundle
+  // 4 = standalone expansion
+  // 5 = mod
+  // 6 = episode
+  // 7 = season
+  // 8 = remake
+  // 9 = remaster
+  // 10 = expanded game
+  // 11 = port
+  // 12 = fork
 
-  if (bannedWords.some(word => name.includes(word))) {
-    return false;
-  }
+  // We only *exclude* the clearly non-main content categories if present;
+  // if category is missing/unknown, we keep the game.
+  const dlcLikeCategories = new Set([1, 2, 3, 4, 5, 6, 7]);
+  const cat = game.category;
+  if (dlcLikeCategories.has(cat)) return false;
 
-  if (!game.cover) {
-    return false;
-  }
-
-  return true;
+  // Finally, drop anything whose name clearly looks like an edition / pack.
+  return !bannedPatterns.some((rx) => rx.test(game.name));
 }
 
 function createGameCard(game) {
@@ -110,17 +134,32 @@ async function loadGames() {
   if (isLoading) return;
   isLoading = true;
 
-  const res = await fetch(
-  `http://localhost:4000/api/igdb/games?page=${currentPage}&sort=${sortBy}&order=${sortOrder}`
-);
+  try {
+    const res = await fetch(
+      `http://localhost:4000/api/igdb/games?page=${currentPage}&sort=${sortBy}&order=${sortOrder}`
+    );
 
-  const games = await res.json(); 
+    if (!res.ok) {
+      throw new Error(`Explore request failed (${res.status})`);
+    }
 
-  allLoadedGames.push(...games);
-  renderGames();
+    const games = await res.json();
+    if (!Array.isArray(games)) {
+      throw new Error("Explore response was not an array");
+    }
 
-  currentPage++;
-  isLoading = false;
+    allLoadedGames.push(...games);
+    renderGames();
+
+    // Only advance page if we actually got results.
+    if (games.length > 0) {
+      currentPage++;
+    }
+  } catch (err) {
+    console.error(err);
+  } finally {
+    isLoading = false;
+  }
 }
 
 sortSelect.addEventListener("change", e => {
