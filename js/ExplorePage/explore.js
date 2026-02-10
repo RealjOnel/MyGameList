@@ -13,6 +13,11 @@ const genreSelect = document.querySelector(".filter-select");
 
 let allLoadedGames = [];
 
+const API_BASE_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:4000"
+    : "https://mygamelist-omhm.onrender.com";
+
 const bannedPatterns = [
   /collector/i,
   /collector's/i,
@@ -20,6 +25,7 @@ const bannedPatterns = [
   /artbook/i,
   /case/i,
   /steelbook/i,
+  /special/i,
   /figurine/i,
   /statue/i,
   /\bpack\b/i,
@@ -34,6 +40,7 @@ const bannedPatterns = [
   /\bcomplete( edition)?\b/i,
   /\bdefinitive( edition)?\b/i,
   /\bdeluxe( edition)?\b/i,
+  /\bpremium( edition)?\b/i,
 ];
 
 function isRealGame(game) {
@@ -137,7 +144,7 @@ async function loadGames() {
 
   try {
     const res = await fetch(
-      `http://localhost:4000/api/igdb/games?page=${currentPage}&sort=${sortBy}&order=${sortOrder}`
+      `${API_BASE_URL}/api/igdb/games?page=${currentPage}&sort=${sortBy}&order=${sortOrder}`
     );
 
     if (!res.ok) {
