@@ -44,10 +44,13 @@ router.get("/games", async (req, res) => {
     const token = await getTwitchToken();
 
     const page = parseInt(req.query.page) || 1;
-    const allowedSorts = ["name"];
+    // IGDB does not support a 'popularity' field on /games,
+    // but it does support 'rating'. We treat 'rating' as our
+    // default "popularity" proxy.
+    const allowedSorts = ["name", "rating"];
     const sort = allowedSorts.includes(req.query.sort)
       ? req.query.sort
-      : "name";
+      : "rating";
 
     const order = req.query.order === "desc" ? "desc" : "asc";
     const search = req.query.search;

@@ -4,8 +4,9 @@ const sortSelect = document.getElementById("sortSelect");
 
 let currentPage = 1;
 let isLoading = false;
-let sortBy = "name";
-let sortOrder = "asc";
+// Default sort: highest rated games first (as a popularity proxy)
+let sortBy = "rating";
+let sortOrder = "desc";
 
 const searchInput = document.querySelector(".search-input");
 const genreSelect = document.querySelector(".filter-select");
