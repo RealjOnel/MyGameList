@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 // 1️⃣ Verbinde mit der DB
-const MONGO_URI = "DEINE_MONGO_URI_HIER"; // lokal oder Atlas
+const MONGO_URI = "mongodb+srv://myygameelistt_db_user:c9GuX30mBMPhKItc@userdb.f6mfzvy.mongodb.net/?appName=UserDB"; // lokal oder Atlas
 mongoose.connect(MONGO_URI)
   .then(() => console.log("✅ MongoDB connected"))
   .catch(err => {
