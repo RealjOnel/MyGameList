@@ -1,11 +1,19 @@
 import dotenv from "dotenv";
 dotenv.config();
-
+import mongoose from "mongoose"; // <-- hinzufügen
+import authRoutes from './routes/auth.js';
 import express from "express";
 import cors from "cors";
 import igdbRoutes from "./routes/igdb.js";
 
 const app = express();
+
+// MongoDB verbinden
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ MongoDB verbunden"))
+  .catch((err) => console.log("❌ MongoDB Fehler:", err));
+
+app.use('/api', authRoutes);
 
 app.get("/ping", (req, res) => {
   console.log("PING ROUTE HIT");
