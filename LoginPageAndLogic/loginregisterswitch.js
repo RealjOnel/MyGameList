@@ -20,3 +20,51 @@ function switchAuth(type) {
         submitText.textContent = 'Login';
     }
 }
+
+const form = document.getElementById('auth-form');
+const errorMsg = document.getElementById('error-msg');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  // Erkennen, ob Login oder Register
+  const isRegister = document.getElementById('submit-text').textContent === 'Register';
+
+  // Inputs auslesen
+  const username = form.querySelector('input[type="text"]').value;
+  const password = form.querySelector('input[type="password"]').value;
+  const emailInput = form.querySelector('input[type="email"]');
+  const email = isRegister ? emailInput.value : undefined;
+
+  // Validation
+  if (!username || !password || (isRegister && !email)) {
+    errorMsg.textContent = 'Please fill all required fields';
+    return;
+  }
+
+  // Endpoint wählen
+  const endpoint = isRegister ? '/api/register' : '/api/login';
+
+  try {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password, email })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      errorMsg.textContent = data.message || 'Something went wrong';
+    } else {
+      console.log('✅ Success:', data);
+      errorMsg.textContent = '';
+      // z.B. Token speichern und weiterleiten
+      localStorage.setItem('token', data.token);
+      window.location.href = '/'; // oder Dashboard
+    }
+  } catch (err) {
+    console.error(err);
+    errorMsg.textContent = 'Network error';
+  }
+});
