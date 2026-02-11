@@ -20,8 +20,4 @@ document.getElementById("auth-form").addEventListener("submit", function(e) {
 
         return;
     }
-
-    errorBox.style.display = "none";
-
-    alert("Login erfolgreich (Demo)");
 });
