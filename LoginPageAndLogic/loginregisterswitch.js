@@ -43,7 +43,11 @@ form.addEventListener('submit', async (e) => {
   }
 
   // Endpoint wählen
-  const endpoint = isRegister ? '/api/register' : '/api/login';
+    const BACKEND_URL = 'https://mygamelist-backend.onrender.com';
+    const endpoint = isRegister 
+        ? `${BACKEND_URL}/api/register` 
+        : `${BACKEND_URL}/api/login`;
+
 
   try {
     const res = await fetch(endpoint, {
