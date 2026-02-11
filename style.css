@@ -1618,6 +1618,7 @@ button {
 .role-badge.dev { background: rgba(16, 185, 129, 0.1); color: #10b981; }
 .role-badge.helper { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
 .role-badge.tester { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+.role-badge.designer { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
 
 .staff-info h3 {
     margin-bottom: 0.8rem;
