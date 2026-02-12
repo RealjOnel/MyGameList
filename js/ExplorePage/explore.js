@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../../backend/config.js";
 const gameGrid = document.getElementById("gameGrid");
 const loadMoreBtn = document.getElementById("loadMoreBtn");
 
@@ -12,11 +13,6 @@ let searchQuery = "";
 const searchInput = document.querySelector(".search-input");
 
 let allLoadedGames = [];
-
-const API_BASE_URL =
-  window.location.hostname === "localhost"
-    ? "http://localhost:4000"
-    : "https://mygamelist-omhm.onrender.com";
 
 const bannedPatterns = [
   /collector/i,
@@ -83,7 +79,7 @@ function createGameCard(game) {
 
   const genre =
   game.genres && game.genres.length > 0
-    ? game.genres.map(g => g.name).join(", ")
+    ? game.genres[0].name
     : "Unknown Genre";
 
   const studio = game.involved_companies
@@ -94,6 +90,17 @@ function createGameCard(game) {
         )
     : "Unknown Studio";
 
+  const platforms =
+  game.release_dates && game.release_dates.length > 0
+    ? [
+        ...new Set(
+          game.release_dates
+            .map(r => r.platform?.name)
+            .filter(Boolean)
+        )
+      ].join(", ")
+    : "Unknown Platform";
+
   card.innerHTML = `
     <div class="game-cover">
       <img src="${imageUrl}" alt="${game.name}">
@@ -101,7 +108,7 @@ function createGameCard(game) {
 
     <div class="game-info">
       <h4>${game.name}</h4>
-      <p>${genre} • ${studio}</p>
+      <p>${genre} • ${studio} • ${platforms}</p>
       <button class="btn-add">+ Add to List</button>
     </div>
   `;

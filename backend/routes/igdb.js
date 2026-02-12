@@ -93,6 +93,8 @@ router.get("/games", async (req, res) => {
           version_parent,
           cover.image_id,
           genres.name,
+          release_dates,
+          release_dates.platform.name,
           involved_companies.company.name,
           involved_companies.developer,
           involved_companies.publisher;
