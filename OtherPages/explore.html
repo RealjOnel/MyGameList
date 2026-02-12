@@ -50,21 +50,52 @@
 </nav>
 
 <main class="explore-container reveal">
-    <header class="explore-header">
-        <h2>Explore <span class="gradient-text">All Games</span></h2>
-        <div class="search-filter-bar">
-            <input type="text" placeholder="Search for games..." class="search-input">
-            <select class="filter-select">
-                <option value="all">All Genres</option>
-                <!-- hier weitere hinzufügen  <option value="MAPPINGVONIGDB">NAMEAUFSEITE</option>-->
-            </select>
-        </div>
-        <select id="sortSelect" class="filter-select">
-            <option value="rating-desc" selected>Popularity</option>
-            <option value="name-asc">A–Z</option>
-            <option value="name-desc">Z–A</option>
-        </select>
-    </header>
+<header class="explore-header">
+  <h2>Explore <span class="gradient-text">All Games</span></h2>
+
+  <div class="explore-controls">
+    <input
+      type="text"
+      placeholder="Search for games..."
+      class="search-input"
+    />
+
+    <!-- Genre Dropdown -->
+    <div class="custom-dropdown" id="genreDropdown">
+      <button class="dropdown-btn">
+        <span data-value="all">All Genres</span>
+        <svg class="chevron" viewBox="0 0 24 24">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
+      <ul class="custom-dropdown-menu">
+        <li data-value="all">All Genres</li>
+        <li data-value="rpg">RPG</li>
+        <li data-value="action">Action</li>
+        <li data-value="adventure">Adventure</li>
+        <li data-value="strategy">Strategy</li>
+        <li data-value="shooter">Shooter</li>
+      </ul>
+    </div>
+
+    <!-- Sort Dropdown -->
+    <div class="custom-dropdown" id="sortDropdown">
+      <button class="dropdown-btn">
+        <span data-value="rating-desc">Popularity</span>
+        <svg class="chevron" viewBox="0 0 24 24">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
+      <ul class="custom-dropdown-menu">
+        <li data-value="rating-desc">Popularity</li>
+        <li data-value="name-asc">A–Z</li>
+        <li data-value="name-desc">Z–A</li>
+      </ul>
+    </div>
+  </div>
+</header>
 
     <div class="game-grid" id="gameGrid"></div>
 

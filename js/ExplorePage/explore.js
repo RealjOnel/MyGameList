@@ -1,15 +1,14 @@
 const gameGrid = document.getElementById("gameGrid");
 const loadMoreBtn = document.getElementById("loadMoreBtn");
-const sortSelect = document.getElementById("sortSelect");
 
 let currentPage = 1;
 let isLoading = false;
 // Default sort: highest rated games first (as a popularity proxy)
 let sortBy = "rating";
 let sortOrder = "desc";
+let selectedGenre = "all";
 
 const searchInput = document.querySelector(".search-input");
-const genreSelect = document.querySelector(".filter-select");
 
 let allLoadedGames = [];
 
@@ -113,7 +112,7 @@ function renderGames() {
   gameGrid.innerHTML = "";
 
   const searchValue = searchInput.value.toLowerCase();
-  const selectedGenre = genreSelect.value.toLowerCase();
+  const genreValue = selectedGenre;
 
   allLoadedGames
     .filter(isRealGame)
@@ -124,11 +123,11 @@ function renderGames() {
         .includes(searchValue);
 
       const genreMatch =
-        selectedGenre === "all" ||
-        (game.genres &&
+        genreValue === "all" ||
+          (game.genres &&
           game.genres.some(g =>
-            g.name.toLowerCase().includes(selectedGenre)
-          ));
+          g.name.toLowerCase().includes(genreValue)
+      ));
 
       return nameMatch && genreMatch;
     })
@@ -170,12 +169,41 @@ async function loadGames() {
   }
 }
 
-sortSelect.addEventListener("change", e => {
-  const [sort, order] = e.target.value.split("-");
+function setupDropdown(dropdownId, onSelect) {
+  const dropdown = document.getElementById(dropdownId);
+  const button = dropdown.querySelector(".dropdown-btn span");
+  const items = dropdown.querySelectorAll(".custom-dropdown-menu li");
 
+  dropdown.querySelector(".dropdown-btn").addEventListener("click", () => {
+    dropdown.classList.toggle("open");
+  });
+
+  items.forEach(item => {
+    item.addEventListener("click", () => {
+      const value = item.dataset.value;
+      button.textContent = item.textContent;
+      button.dataset.value = value;
+      dropdown.classList.remove("open");
+      onSelect(value);
+    });
+  });
+
+  document.addEventListener("click", e => {
+    if (!dropdown.contains(e.target)) {
+      dropdown.classList.remove("open");
+    }
+  });
+}
+
+setupDropdown("genreDropdown", value => {
+  selectedGenre = value;
+  renderGames();
+});
+
+setupDropdown("sortDropdown", value => {
+  const [sort, order] = value.split("-");
   sortBy = sort;
   sortOrder = order;
-
   currentPage = 1;
   allLoadedGames = [];
   gameGrid.innerHTML = "";
@@ -186,4 +214,3 @@ loadGames();
 
 loadMoreBtn.addEventListener("click", loadGames);
 searchInput.addEventListener("input", renderGames);
-genreSelect.addEventListener("change", renderGames);
