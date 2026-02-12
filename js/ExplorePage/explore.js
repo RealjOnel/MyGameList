@@ -109,42 +109,31 @@ function createGameCard(game) {
   return card;
 }
 
-function renderGames() {
-  gameGrid.innerHTML = "";
+function renderGames(games) {
+  if (currentPage === 1) {
+    gameGrid.innerHTML = "";
+  }
 
-  const searchValue = searchInput.value.toLowerCase();
-  const genreValue = selectedGenre;
+  const validGames = games.filter(isRealGame);
 
-  allLoadedGames
-    .filter(isRealGame)
+  if (validGames.length === 0 && currentPage === 1) {
+    gameGrid.innerHTML = `<p class="no-results">No games found</p>`;
+    return;
+  }
 
-    .filter(game => {
-      const nameMatch = game.name
-        .toLowerCase()
-        .includes(searchValue);
-
-      const genreMatch =
-        genreValue === "all" ||
-          (game.genres &&
-          game.genres.some(g =>
-          g.name.toLowerCase().includes(genreValue)
-      ));
-
-      return nameMatch && genreMatch;
-    })
-
-    .forEach(game => {
-      gameGrid.appendChild(createGameCard(game));
-    });
-    
-    if (gameGrid.children.length === 0) {
-        gameGrid.innerHTML = `<p class="no-results">No games found</p>`;
-      }
+  validGames.forEach(game => {
+    gameGrid.appendChild(createGameCard(game));
+  });
 }
 
-async function loadGames() {
+async function loadGames(reset = false) {
   if (isLoading) return;
   isLoading = true;
+
+  if (reset) {
+    currentPage = 1;
+    gameGrid.innerHTML = "";
+  }
 
   try {
     const params = new URLSearchParams({
@@ -153,30 +142,26 @@ async function loadGames() {
       order: sortOrder
     });
 
-    if (searchQuery.trim() !== "") {
-      params.append("search", searchQuery.trim());
+    if (searchInput.value.trim()) {
+      params.append("search", searchInput.value.trim());
+    }
+
+    if (selectedGenre !== "all") {
+      params.append("genre", selectedGenre);
     }
 
     const res = await fetch(
       `${API_BASE_URL}/api/igdb/games?${params.toString()}`
     );
 
-    if (!res.ok) {
-      throw new Error(`Explore request failed (${res.status})`);
-    }
-
     const games = await res.json();
-    if (!Array.isArray(games)) {
-      throw new Error("Explore response was not an array");
-    }
 
-    allLoadedGames.push(...games);
-    renderGames();
+    renderGames(games);
 
-    // Only advance page if we actually got results.
     if (games.length > 0) {
       currentPage++;
     }
+
   } catch (err) {
     console.error(err);
   } finally {
@@ -212,33 +197,27 @@ function setupDropdown(dropdownId, onSelect) {
 
 setupDropdown("genreDropdown", value => {
   selectedGenre = value;
-  renderGames();
+  loadGames(true);
 });
 
 setupDropdown("sortDropdown", value => {
   const [sort, order] = value.split("-");
   sortBy = sort;
   sortOrder = order;
-  currentPage = 1;
-  allLoadedGames = [];
-  gameGrid.innerHTML = "";
-  loadGames();
+  loadGames(true);
 });
 
-loadGames();
+loadGames(true);
 
-loadMoreBtn.addEventListener("click", loadGames);
+loadMoreBtn.addEventListener("click", () => {
+  loadGames();
+});
 
 let searchTimeout;
 
 searchInput.addEventListener("input", () => {
   clearTimeout(searchTimeout);
-
   searchTimeout = setTimeout(() => {
-    searchQuery = searchInput.value;
-    currentPage = 1;
-    allLoadedGames = [];
-    gameGrid.innerHTML = "";
-    loadGames();
-  }, 300); // Debounce
+    loadGames(true);
+  }, 300);
 });

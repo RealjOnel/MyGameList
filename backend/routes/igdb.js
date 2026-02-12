@@ -8,6 +8,18 @@ const router = express.Router();
 // How many games to return per Explore page
 const EXPLORE_LIMIT = 50;
 
+const GENRE_MAP = {
+  all: null,
+  shooter: 5,
+  rpg: 12,
+  adventure: 31,
+  action: 4,
+  strategy: 15,
+  sports: 14,
+  racing: 10,
+  indie: 32,
+};
+
 //  TRENDING GAMES (für Login-Galerie)
 router.get("/trending", async (req, res) => {
   try {
@@ -40,6 +52,7 @@ router.get("/trending", async (req, res) => {
 //  We ask IGDB for games with a cover and then let the frontend
 //  filter out weird editions / DLC by name.
 router.get("/games", async (req, res) => {
+  console.log("🔥 /games ROUTE HIT", req.query);
   try {
     const token = await getTwitchToken();
 
@@ -52,8 +65,9 @@ router.get("/games", async (req, res) => {
       ? req.query.sort
       : "rating";
 
-    const order = req.query.order === "desc" ? "desc" : "asc";
+    const order = sort === "rating" ? "desc" : "asc";
     const search = req.query.search;
+    const genre = req.query.genre?.toLowerCase();
 
     const limit = EXPLORE_LIMIT;
     const offset = (page - 1) * limit;
@@ -63,6 +77,10 @@ router.get("/games", async (req, res) => {
       const safeSearch = String(search).replaceAll('"', '\\"');
       whereClause += ` & name ~ *"${safeSearch}"*`;
     }
+
+    if (genre && GENRE_MAP[genre]) {
+      whereClause += ` & genres = (${GENRE_MAP[genre]})`;
+  }
 
     const response = await axios.post(
       "https://api.igdb.com/v4/games",
@@ -99,8 +117,8 @@ router.get("/games", async (req, res) => {
   }
 });
 
-export default router;
-
 router.get("/", (req, res) => {
   res.send("IGDB ROUTER WORKS");
 });
+
+export default router;
