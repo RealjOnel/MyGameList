@@ -7,6 +7,7 @@ let isLoading = false;
 let sortBy = "rating";
 let sortOrder = "desc";
 let selectedGenre = "all";
+let searchQuery = "";
 
 const searchInput = document.querySelector(".search-input");
 
@@ -135,6 +136,10 @@ function renderGames() {
     .forEach(game => {
       gameGrid.appendChild(createGameCard(game));
     });
+    
+    if (gameGrid.children.length === 0) {
+        gameGrid.innerHTML = `<p class="no-results">No games found</p>`;
+      }
 }
 
 async function loadGames() {
@@ -142,8 +147,18 @@ async function loadGames() {
   isLoading = true;
 
   try {
+    const params = new URLSearchParams({
+      page: currentPage,
+      sort: sortBy,
+      order: sortOrder
+    });
+
+    if (searchQuery.trim() !== "") {
+      params.append("search", searchQuery.trim());
+    }
+
     const res = await fetch(
-      `${API_BASE_URL}/api/igdb/games?page=${currentPage}&sort=${sortBy}&order=${sortOrder}`
+      `${API_BASE_URL}/api/igdb/games?${params.toString()}`
     );
 
     if (!res.ok) {
@@ -213,4 +228,17 @@ setupDropdown("sortDropdown", value => {
 loadGames();
 
 loadMoreBtn.addEventListener("click", loadGames);
-searchInput.addEventListener("input", renderGames);
+
+let searchTimeout;
+
+searchInput.addEventListener("input", () => {
+  clearTimeout(searchTimeout);
+
+  searchTimeout = setTimeout(() => {
+    searchQuery = searchInput.value;
+    currentPage = 1;
+    allLoadedGames = [];
+    gameGrid.innerHTML = "";
+    loadGames();
+  }, 300); // Debounce
+});
