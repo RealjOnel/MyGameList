@@ -8,11 +8,8 @@ let isLoading = false;
 let sortBy = "rating";
 let sortOrder = "desc";
 let selectedGenre = "all";
-let searchQuery = "";
 
 const searchInput = document.querySelector(".search-input");
-
-let allLoadedGames = [];
 
 const bannedPatterns = [
   /collector/i,
