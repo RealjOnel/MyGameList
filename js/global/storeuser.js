@@ -1,3 +1,9 @@
+function getHomeUrl() {
+  const baseMeta = document.querySelector('meta[name="app-base"]');
+  const base = (baseMeta?.content || "/").replace(/\/?$/, "/"); // trailing slash
+  return new URL("index.html", window.location.origin + base).toString();
+}
+
 function setDropdownOpen(dropdown, open) {
   if (!dropdown) return;
   dropdown.classList.toggle("open", open);
@@ -59,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.removeItem("token");
       setDropdownOpen(dropdown, false);
       updateNavbarAuth();
-      window.location.href = "./index.html";
+      window.location.href = getHomeUrl();
     });
   }
 });

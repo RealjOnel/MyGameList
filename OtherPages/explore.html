@@ -45,7 +45,20 @@
             </ul>
         </div>
 
-        <button class="btn-login" onclick="window.location.href='../LoginPageAndLogic/login.html'">LOGIN</button>
+        <button id="loginBtn" class="btn-login" onclick="window.location.href='../LoginPageAndLogic/login.html'">LOGIN</button>
+
+        <div id="userMenu" class="user-menu" style="display:none;">
+        <img id="userIcon" src="../assets/User/Default_User_Icon.png" alt="User" class="user-icon">
+
+        <div id="userDropdown" class="user-dropdown" aria-hidden="true">
+            <a class="dropdown-item" href="./OtherPages/profile.html">Profile</a>
+            <a class="dropdown-item" href="./OtherPages/settings.html">Settings</a>
+
+            <div class="dropdown-divider"></div>
+
+            <button id="logoutBtn" class="dropdown-item danger" type="button">Logout</button>
+        </div>
+        </div>
     </div>
 </nav>
 
@@ -148,6 +161,7 @@
 <script src="../js/global/reveal.js"></script>
 <script src="../js/global/active.js"></script>
 <script type="module" src="../js/ExplorePage/explore.js"></script>
+<script src="../js/global/storeuser.js"></script>
 
 </body>
 </html>
