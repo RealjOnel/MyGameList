@@ -273,6 +273,77 @@ button {
     font-size: 0.85rem;
 }
 
+/* User Dropdown */
+
+.user-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.user-icon {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%) translateY(8px);
+  transform-origin: top center;
+  min-width: 220px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(20, 20, 25, 0.95);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 160ms ease, transform 160ms ease, visibility 0s linear 160ms;
+}
+
+.user-dropdown.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+  transition: opacity 160ms ease, transform 160ms ease, visibility 0s;
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #fff;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.dropdown-item:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.dropdown-divider {
+  height: 1px;
+  margin: 8px 0;
+  background: rgba(255,255,255,0.12);
+}
+
+.dropdown-item.danger {
+  color: #ffb4b4;
+}
+
 /* Reveal Animation */
 
 .reveal {

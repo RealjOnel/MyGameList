@@ -65,7 +65,7 @@ form.addEventListener('submit', async (e) => {
       errorMsg.textContent = '';
       // z.B. Token speichern und weiterleiten
       localStorage.setItem('token', data.token);
-      window.location.href = '/'; // oder Dashboard
+      window.location.href = '../index.html'; 
     }
   } catch (err) {
     console.error(err);
