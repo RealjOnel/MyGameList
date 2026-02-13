@@ -1,8 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-auth="loading">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+    (function () {
+        try {
+        const token = localStorage.getItem("token");
+        document.documentElement.dataset.auth = token ? "in" : "out";
+        } catch (e) {
+        document.documentElement.dataset.auth = "out";
+        }
+    })();
+    </script>
     <title>MyGameList | Staff</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -48,7 +58,7 @@
 
         <button id="loginBtn" class="btn-login" onclick="window.location.href='../LoginPageAndLogic/login.html'">LOGIN</button>
 
-        <div id="userMenu" class="user-menu" style="display:none;">
+        <div id="userMenu" class="user-menu">
         <img id="userIcon" src="../assets/User/Default_User_Icon.png" alt="User" class="user-icon">
 
         <div id="userDropdown" class="user-dropdown" aria-hidden="true">

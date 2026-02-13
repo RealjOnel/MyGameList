@@ -28,6 +28,23 @@ body {
     -webkit-font-smoothing: antialiased; /* Macht die Schrift auf Macs noch cleaner */
 }
 
+/* Default: shows nothing until decided */
+#loginBtn,
+#userMenu {
+  display: none;
+}
+
+/* Logged out: show login */
+html[data-auth="out"] #loginBtn {
+  display: inline-block;
+}
+
+/* Logged in: show user */
+html[data-auth="in"] #userMenu {
+  display: inline-flex;
+  align-items: center;
+}
+
 .navbar {
     display: flex;
     justify-content: space-between;
