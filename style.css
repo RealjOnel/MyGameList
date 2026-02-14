@@ -749,6 +749,30 @@ button {
   font-weight: 600;
 }
 
+/* 2 Rows Dropdown for genre */
+#genreDropdown .custom-dropdown-menu{
+  width: max-content;
+  min-width: 360px;       
+  max-width: 520px;
+  column-count: 2;
+  column-gap: 12px;
+  padding: 0.6rem;
+  left: 50%;
+  right: auto;
+  transform: translate(-50%, -10px);
+}
+
+#genreDropdown.custom-dropdown.open .custom-dropdown-menu{
+  transform: translate(-50%, 0);
+}
+
+#genreDropdown .custom-dropdown-menu li{
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  width: 100%;
+  display: block;
+}
+
 .search-filter-bar {
     display: flex;
     gap: 1rem;

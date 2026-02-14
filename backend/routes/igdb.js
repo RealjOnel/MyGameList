@@ -10,14 +10,29 @@ const EXPLORE_LIMIT = 50;
 
 const GENRE_MAP = {
   all: null,
+  pointandclick: 2,
+  fighting: 4,
   shooter: 5,
-  rpg: 12,
-  adventure: 31,
-  action: 4,
-  strategy: 15,
-  sports: 14,
+  music: 7,
+  platform: 8,
+  puzzle: 9,
   racing: 10,
+  rts: 11,              // Real Time Strategy (RTS)
+  rpg: 12,              // Role-playing (RPG)
+  simulator: 13,
+  sport: 14,
+  strategy: 15,
+  tbs: 16,              // Turn-based strategy (TBS)
+  tactical: 24,
+  hackandslash: 25,     // Hack and slash/Beat 'em up
+  quiz: 26,             // Quiz/Trivia
+  pinball: 30,
+  adventure: 31,
   indie: 32,
+  arcade: 33,
+  visualnovel: 34,
+  cardandboard: 35,     // Card & Board Game
+  moba: 36
 };
 
 //  TRENDING GAMES (für Login-Galerie)
