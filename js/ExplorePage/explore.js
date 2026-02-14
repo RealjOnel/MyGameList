@@ -66,6 +66,54 @@ function isRealGame(game) {
   return !bannedPatterns.some((rx) => rx.test(game.name));
 }
 
+function getPrimaryPlatformName(game) {
+  const names =
+    game.release_dates?.map(r => r.platform?.name).filter(Boolean) || [];
+  return names[0] || null; // "first" = Main Platform
+}
+
+function platformToIconInfo(platformName) {
+  if (!platformName) return null;
+  const p = platformName.toLowerCase();
+
+  // SONY
+  if (p.includes("playstation 5") || p.includes("ps5")) return { src: "../assets/platforms/sony/ps5.svg", brand: "sony" };
+  if (p.includes("playstation 4") || p.includes("ps4")) return { src: "../assets/platforms/sony/ps4.svg", brand: "sony", key: "ps4" };
+  if (p.includes("playstation 3") || p.includes("ps3")) return { src: "../assets/platforms/sony/ps3.svg", brand: "sony" };
+  if (p.includes("playstation 2") || p.includes("ps2")) return { src: "../assets/platforms/sony/ps2.svg", brand: "sony", key:"ps2" };
+  if (p.includes("playstation") || p.includes("ps1") || p.includes("psx")) return { src: "../assets/platforms/sony/ps1.svg", brand: "sony", key: "ps1"};
+  if (p.includes("playstation portable") || p.includes("psp")) return { src: "../assets/platforms/sony/psp.svg", brand: "sony" };
+  if (p.includes("playstation vita") || p.includes("ps vita") || p.includes("psvita")) return { src: "../assets/platforms/sony/psvita.svg", brand: "sony" };
+
+  // MICROSOFT
+  if (p.includes("xbox series") || p.includes("series x") || p.includes("series s")) return { src: "../assets/platforms/microsoft/xboxseries.svg", brand: "microsoft" };
+  if (p.includes("xbox one")) return { src: "../assets/platforms/microsoft/xboxone.svg", brand: "microsoft" };
+  if (p.includes("xbox 360")) return { src: "../assets/platforms/microsoft/xbox360.svg", brand: "microsoft" };
+  if (p.includes("xbox")) return { src: "../assets/platforms/microsoft/xbox.svg", brand: "microsoft" };
+
+  // NINTENDO
+  if (p.includes("switch")) return { src: "../assets/platforms/nintendo/switch1.svg", brand: "nintendo" };
+  if (p.includes("wii u")) return { src: "../assets/platforms/nintendo/wiiu.svg", brand: "nintendo" };
+  if (p.includes("wii")) return { src: "../assets/platforms/nintendo/wii.svg", brand: "nintendo" };
+  if (p.includes("virtual boy")) return { src: "../assets/platforms/nintendo/virtualboy.svg", brand: "nintendo" };
+  if (p.includes("nintendo 64") || p.includes("n64")) return { src: "../assets/platforms/nintendo/n64.svg", brand: "nintendo" };
+  if (p.includes("gamecube")) return { src: "../assets/platforms/nintendo/gcn.svg", brand: "nintendo" };
+  if (p.includes("super nintendo") || p.includes("snes")) return { src: "../assets/platforms/nintendo/snes.svg", brand: "nintendo", key: "snes" };
+  if (p.includes("nes") || p.includes("nintendo entertainment system")) return { src: "../assets/platforms/nintendo/nes.svg", brand: "nintendo", key: "nes" };
+  if (p.includes("game boy advance") || p.includes("gba")) return { src: "../assets/platforms/nintendo/gba.svg", brand: "nintendo" };
+  if (p.includes("game boy color") || p.includes("gbc")) return { src: "../assets/platforms/nintendo/gbcolor.svg", brand: "nintendo" };
+  if (p.includes("game boy")) return { src: "../assets/platforms/nintendo/gameboy.svg", brand: "nintendo" };
+  if (p.includes("nintendo ds") || p.includes("nds") || p === "ds") return { src: "../assets/platforms/nintendo/ds.svg", brand: "nintendo" };
+  if (p.includes("nintendo 3ds") || p.includes("3ds")) return { src: "../assets/platforms/nintendo/3ds.svg", brand: "nintendo" };
+
+  // PC (muss noch PC bild reinmachen)
+  if (p.includes("pc") || p.includes("windows") || p.includes("steam")) {
+    return { src: "../assets/platforms/pc/pc.svg", brand: "pc" }; // <- anpassen, falls anders
+  }
+
+  return null;
+}
+
 function createGameCard(game) {
   const card = document.createElement("div");
   card.classList.add("game-card");
@@ -87,28 +135,27 @@ function createGameCard(game) {
         )
     : "Unknown Studio";
 
-  const platforms =
-  game.release_dates && game.release_dates.length > 0
-    ? [
-        ...new Set(
-          game.release_dates
-            .map(r => r.platform?.name)
-            .filter(Boolean)
-        )
-      ].join(", ")
-    : "Unknown Platform";
+const primaryPlatform = getPrimaryPlatformName(game);
+const iconInfo = platformToIconInfo(primaryPlatform); // { src, brand } or null
 
-  card.innerHTML = `
-    <div class="game-cover">
-      <img src="${imageUrl}" alt="${game.name}">
-    </div>
+card.innerHTML = `
+  <div class="game-cover">
+    <img class="game-cover-img" src="${imageUrl}" alt="${game.name}">
+    ${
+      iconInfo
+        ? `<div class="platform-badge platform-${iconInfo.brand} platform-${iconInfo.key}" title="${primaryPlatform}">
+             <img src="${iconInfo.src}" alt="${primaryPlatform}">
+           </div>`
+        : ``
+    }
+  </div>
 
-    <div class="game-info">
-      <h4>${game.name}</h4>
-      <p>${genre} • ${studio} • ${platforms}</p>
-      <button class="btn-add">+ Add to List</button>
-    </div>
-  `;
+  <div class="game-info">
+    <h4>${game.name}</h4>
+    <p>${genre} • ${studio}</p>
+    <button class="btn-add">+ Add to List</button>
+  </div>
+`;
 
   return card;
 }

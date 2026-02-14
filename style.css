@@ -28,6 +28,23 @@ body {
     -webkit-font-smoothing: antialiased; /* Macht die Schrift auf Macs noch cleaner */
 }
 
+/* Default: shows nothing until decided */
+#loginBtn,
+#userMenu {
+  display: none;
+}
+
+/* Logged out: show login */
+html[data-auth="out"] #loginBtn {
+  display: inline-block;
+}
+
+/* Logged in: show user */
+html[data-auth="in"] #userMenu {
+  display: inline-flex;
+  align-items: center;
+}
+
 .navbar {
     display: flex;
     justify-content: space-between;
@@ -271,6 +288,77 @@ button {
     color: white;
     padding: 0.6rem 1.4rem;
     font-size: 0.85rem;
+}
+
+/* User Dropdown */
+
+.user-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.user-icon {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%) translateY(8px);
+  transform-origin: top center;
+  min-width: 220px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(20, 20, 25, 0.95);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 160ms ease, transform 160ms ease, visibility 0s linear 160ms;
+}
+
+.user-dropdown.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+  transition: opacity 160ms ease, transform 160ms ease, visibility 0s;
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #fff;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.dropdown-item:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.dropdown-divider {
+  height: 1px;
+  margin: 8px 0;
+  background: rgba(255,255,255,0.12);
+}
+
+.dropdown-item.danger {
+  color: #ffb4b4;
 }
 
 /* Reveal Animation */
@@ -707,15 +795,12 @@ button {
     transform: translateY(-10px);
 }
 
-.game-cover {
-    position: relative;
-    height: 280px;
-}
-
-.game-cover img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.game-cover { position: relative; }
+.game-cover-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
 }
 
 .game-badge {
@@ -728,6 +813,122 @@ button {
     border-radius: 8px;
     font-weight: 800;
     font-size: 0.8rem;
+}
+
+/* Badge */
+.platform-badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+
+  width: 52px;      
+  height: 52px;     
+  padding: 9px;    
+
+  border-radius: 16px;
+
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(10px);
+
+  border: 1px solid rgba(255,255,255,0.35);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.platform-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.35));
+  transform: scale(1);
+  transform-origin: center;
+}
+
+/* Brand specific */
+.platform-microsoft img {
+  transform: scale(1.35);
+  filter: drop-shadow(0 8px 16px rgba(0,0,0,0.55)) contrast(1.25) saturate(1.15);
+}
+.platform-sony img { transform: scale(1.10); }
+.platform-ps1 img { transform: scale(1.5); }
+.platform-ps2 img { transform: scale(1.5); }
+.platform-ps4 img{
+  filter:
+    drop-shadow(0 8px 16px rgba(0,0,0,0.55))
+    brightness(1.35)
+    contrast(1.1)
+    saturate(1.15);
+}
+.platform-nintendo img  { transform: scale(1.00); } 
+.platform-nes img {
+  transform: scale(1.45); 
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,0.45)) contrast(1.15);
+}
+.platform-snes img {
+  transform: scale(1.28); 
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,0.45)) contrast(1.15);
+}  
+.platform-pc img        { transform: scale(1.08); }
+
+.platform-badge::before {
+  content: "";
+  position: absolute;
+  inset: -10px;            
+  border-radius: 22px;
+  z-index: -1;
+  opacity: 0.85;
+  filter: blur(14px);
+}
+
+/* Company glow */
+
+/* SONY */
+.platform-sony {
+  box-shadow:
+    0 0 0 2px rgba(90, 140, 255, 0.58),
+    0 0 22px rgba(90, 140, 255, 0.55),
+    0 0 60px rgba(90, 140, 255, 0.20);
+  border-color: rgba(90, 140, 255, 0.58);
+}
+.platform-sony::before { background: rgba(90, 140, 255, 0.38); }
+
+/* MICROSOFT */
+.platform-microsoft {
+  box-shadow:
+    0 0 0 2px rgba(0, 255, 140, 0.55),
+    0 0 22px rgba(0, 255, 140, 0.55),
+    0 0 60px rgba(0, 255, 140, 0.20);
+  border-color: rgba(0, 255, 140, 0.55);
+}
+.platform-microsoft::before { background: rgba(0, 255, 140, 0.38); }
+
+/* NINTENDO */
+.platform-nintendo {
+  box-shadow:
+    0 0 0 2px rgba(255, 60, 60, 0.60),
+    0 0 22px rgba(255, 60, 60, 0.55),
+    0 0 60px rgba(255, 60, 60, 0.22);
+  border-color: rgba(255, 60, 60, 0.60);
+}
+.platform-nintendo::before { background: rgba(255, 60, 60, 0.40); }
+
+/* PC */
+.platform-pc {
+  box-shadow:
+    0 0 0 2px rgba(200, 200, 220, 0.55),
+    0 0 22px rgba(200, 200, 220, 0.50),
+    0 0 60px rgba(200, 200, 220, 0.18);
+  border-color: rgba(200, 200, 220, 0.55);
+}
+.platform-pc::before { background: rgba(200, 200, 220, 0.32); }
+
+.game-card:hover .platform-badge {
+  transform: translateY(-1px) scale(1.03);
 }
 
 .game-info {
