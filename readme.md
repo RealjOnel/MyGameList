@@ -1,6 +1,7 @@
 PLATZHALTER HTML FÜR NAVBAR UND FOOTER
 
-```<!DOCTYPE html>
+```
+<!DOCTYPE html>
 <html lang="en" data-auth="loading">
 <head>
     <meta charset="UTF-8">
