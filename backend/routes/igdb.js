@@ -82,7 +82,8 @@ router.get("/games", async (req, res) => {
 
     const order = sort === "rating" ? "desc" : "asc";
     const search = req.query.search;
-    const genre = req.query.genre?.toLowerCase();
+    const genreKey = String(req.query.genre || "all").toLowerCase();
+    const genreId = GENRE_MAP[genreKey];
 
     const limit = EXPLORE_LIMIT;
     const offset = (page - 1) * limit;
@@ -93,9 +94,11 @@ router.get("/games", async (req, res) => {
       whereClause += ` & name ~ *"${safeSearch}"*`;
     }
 
-    if (genre && GENRE_MAP[genre]) {
-      whereClause += ` & genres = (${GENRE_MAP[genre]})`;
-  }
+    if (genreId != null) {
+      whereClause += ` & genres = (${genreId})`;
+    } else if (genreKey !== "all") {
+      console.warn("⚠️ Unknown genre key:", genreKey);
+    }
 
     const response = await axios.post(
       "https://api.igdb.com/v4/games",
