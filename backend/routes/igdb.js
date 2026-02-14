@@ -10,14 +10,29 @@ const EXPLORE_LIMIT = 50;
 
 const GENRE_MAP = {
   all: null,
+  pointandclick: 2,
+  fighting: 4,
   shooter: 5,
-  rpg: 12,
-  adventure: 31,
-  action: 4,
-  strategy: 15,
-  sports: 14,
+  music: 7,
+  platform: 8,
+  puzzle: 9,
   racing: 10,
+  rts: 11,              // Real Time Strategy (RTS)
+  rpg: 12,              // Role-playing (RPG)
+  simulator: 13,
+  sport: 14,
+  strategy: 15,
+  tbs: 16,              // Turn-based strategy (TBS)
+  tactical: 24,
+  hackandslash: 25,     // Hack and slash/Beat 'em up
+  quiz: 26,             // Quiz/Trivia
+  pinball: 30,
+  adventure: 31,
   indie: 32,
+  arcade: 33,
+  visualnovel: 34,
+  cardandboard: 35,     // Card & Board Game
+  moba: 36
 };
 
 //  TRENDING GAMES (für Login-Galerie)
@@ -67,7 +82,8 @@ router.get("/games", async (req, res) => {
 
     const order = sort === "rating" ? "desc" : "asc";
     const search = req.query.search;
-    const genre = req.query.genre?.toLowerCase();
+    const genreKey = String(req.query.genre || "all").toLowerCase();
+    const genreId = GENRE_MAP[genreKey];
 
     const limit = EXPLORE_LIMIT;
     const offset = (page - 1) * limit;
@@ -78,9 +94,11 @@ router.get("/games", async (req, res) => {
       whereClause += ` & name ~ *"${safeSearch}"*`;
     }
 
-    if (genre && GENRE_MAP[genre]) {
-      whereClause += ` & genres = (${GENRE_MAP[genre]})`;
-  }
+    if (genreId != null) {
+      whereClause += ` & genres = (${genreId})`;
+    } else if (genreKey !== "all") {
+      console.warn("⚠️ Unknown genre key:", genreKey);
+    }
 
     const response = await axios.post(
       "https://api.igdb.com/v4/games",
