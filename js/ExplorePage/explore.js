@@ -29,7 +29,7 @@ const bannedPatterns = [
   /\bseason pass\b/i,
   /\bgame of the year\b/i,
   /\bgoty\b/i,
-  /\bultimate\b/i,
+  /\bultimate( edition)\b/i,
   /\bcomplete( edition)?\b/i,
   /\bdefinitive( edition)?\b/i,
   /\bdeluxe( edition)?\b/i,
@@ -66,10 +66,29 @@ function isRealGame(game) {
   return !bannedPatterns.some((rx) => rx.test(game.name));
 }
 
-function getPrimaryPlatformName(game) {
-  const names =
-    game.release_dates?.map(r => r.platform?.name).filter(Boolean) || [];
-  return names[0] || null; // "first" = Main Platform
+function getOriginalPlatformName(game) {
+  const rds = game.release_dates || [];
+  if (!Array.isArray(rds) || rds.length === 0) return null;
+
+  // nur Einträge mit Plattform
+  const usable = rds
+    .filter(r => r?.platform?.name)
+    .map(r => ({
+      name: r.platform.name,
+      date: typeof r.date === "number" ? r.date : Infinity
+    }));
+
+  if (usable.length === 0) return null;
+
+  // wenn wir Datumswerte haben: frühestes Datum gewinnt
+  const withDates = usable.filter(x => x.date !== Infinity);
+  if (withDates.length > 0) {
+    withDates.sort((a, b) => a.date - b.date);
+    return withDates[0].name;
+  }
+
+  // fallback: wenn IGDB keine dates liefert
+  return usable[0].name;
 }
 
 function platformToIconInfo(platformName) {
@@ -135,7 +154,7 @@ function createGameCard(game) {
         )
     : "Unknown Studio";
 
-const primaryPlatform = getPrimaryPlatformName(game);
+const primaryPlatform = getOriginalPlatformName(game);
 const iconInfo = platformToIconInfo(primaryPlatform); // { src, brand } or null
 
 card.innerHTML = `
