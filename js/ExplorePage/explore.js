@@ -126,10 +126,23 @@ function platformToIconInfo(platformName) {
   if (p.includes("nintendo ds") || p.includes("nds") || p === "ds") return { src: "../assets/platforms/nintendo/ds.svg", brand: "nintendo" };
   if (p.includes("nintendo 3ds") || p.includes("3ds")) return { src: "../assets/platforms/nintendo/3ds.svg", brand: "nintendo" };
 
-  // PC (muss noch PC bild reinmachen)
-  if (p.includes("pc") || p.includes("windows") || p.includes("steam")) {
-    return { src: "../assets/platforms/pc/pc.svg", brand: "pc" }; // <- anpassen, falls anders
-  }
+   // MOBILE (BRAUCHT NOCH EIGENE BRAND FÜR CSS)
+  if (p.includes("android")) return { src: "../assets/platforms/mobile/android.svg", brand: "mobile", key: "android" };
+  if (/\bios\b/.test(p) || p.includes("iphone os") || /\biphone\b/.test(p) || /\bipad\b/.test(p)) return { src: "../assets/platforms/mobile/ios.svg", brand: "mobile", key: "ios" };
+
+  // PC (also pc related stuff)
+  if (p.includes("pc") || p.includes("windows") || /\bsteam\b/.test(p)) return { src: "../assets/platforms/pc/pc.svg", brand: "pc", key: "pc" };
+  if (p.includes("linux")) return { src: "../assets/platforms/pc/linux.svg", brand: "pc", key: "linux" }
+
+  // VR [BRAUCHT NOCH EIGENE BRAND FÜR CSS])
+  if (p.includes("meta quest 3") || /\bquest\s*3\b/.test(p)) return { src: "../assets/platforms/vr/quest3.svg", brand: "vr", key: "quest3" };
+  if (p.includes("meta quest 2") || /\bquest\s*2\b/.test(p)) return { src: "../assets/platforms/vr/quest2.svg", brand: "vr", key: "quest2" };
+  if (p.includes("oculus quest") || /\bquest\b/.test(p)) return { src: "../assets/platforms/vr/quest1.svg", brand: "vr", key: "quest1" };
+  if (p.includes("oculus go") || /\bgo\b/.test(p)) return { src: "../assets/platforms/vr/oculusgo.svg", brand: "vr", key: "oculusgo" };
+  if (p.includes("oculus rift") || p.includes("oculus vr") || /\brift\b/.test(p)) return { src: "../assets/platforms/vr/rift.svg", brand: "vr", key: "rift" };
+  if (p.includes("steamvr") || /steam\s*vr/.test(p)) return { src: "../assets/platforms/vr/steamvr.svg", brand: "vr", key: "steamvr" };
+
+  // OTHER (STUFF WITHOUT BRANDING [STILL NEEDS CSS])
 
   return null;
 }
