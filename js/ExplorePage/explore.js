@@ -112,7 +112,7 @@ function platformToIconInfo(platformName) {
 
   // NINTENDO
   if (p.includes("nintendo switch 2") || /\bswitch\s*2\b/.test(p) || p.includes("switch2")) return { src: "../assets/platforms/nintendo/switch2.svg", brand: "nintendo", key: "switch2" };
-  if (p.includes("switch")) return { src: "../assets/platforms/nintendo/switch1.svg", brand: "nintendo" };
+  if (p.includes("switch" || /\bswitch\s*1\b/.test(p) )) return { src: "../assets/platforms/nintendo/switch1.svg", brand: "nintendo" };
   if (p.includes("wii u")) return { src: "../assets/platforms/nintendo/wiiu.svg", brand: "nintendo" };
   if (p.includes("wii")) return { src: "../assets/platforms/nintendo/wii.svg", brand: "nintendo" };
   if (p.includes("virtual boy")) return { src: "../assets/platforms/nintendo/virtualboy.svg", brand: "nintendo" };
@@ -135,11 +135,9 @@ function platformToIconInfo(platformName) {
   if (p.includes("linux")) return { src: "../assets/platforms/pc/linux.svg", brand: "pc", key: "linux" }
 
   // VR [BRAUCHT NOCH EIGENE BRAND FÜR CSS])
-  if (p.includes("meta quest 3") || /\bquest\s*3\b/.test(p)) return { src: "../assets/platforms/vr/quest3.svg", brand: "vr", key: "quest3" };
-  if (p.includes("meta quest 2") || /\bquest\s*2\b/.test(p)) return { src: "../assets/platforms/vr/quest2.svg", brand: "vr", key: "quest2" };
-  if (p.includes("oculus quest") || /\bquest\b/.test(p)) return { src: "../assets/platforms/vr/quest1.svg", brand: "vr", key: "quest1" };
-  if (p.includes("oculus go") || /\bgo\b/.test(p)) return { src: "../assets/platforms/vr/oculusgo.svg", brand: "vr", key: "oculusgo" };
-  if (p.includes("oculus rift") || p.includes("oculus vr") || /\brift\b/.test(p)) return { src: "../assets/platforms/vr/rift.svg", brand: "vr", key: "rift" };
+  if (p.includes("meta quest 3") || /\bquest\s*3\b/.test(p) || p.includes("meta quest 2") || /\bquest\s*2\b/.test(p)
+      || p.includes("oculus quest") || /\bquest\b/.test(p)) return { src: "../assets/platforms/vr/metaquest.svg", brand: "vr", key: "quest" };
+  if (p.includes("oculus go") || /\bgo\b/.test(p) || p.includes("oculus rift") || p.includes("oculus vr") || /\brift\b/.test(p)) return { src: "../assets/platforms/vr/oculus.svg", brand: "vr", key: "oculus" };
   if (p.includes("steamvr") || /steam\s*vr/.test(p)) return { src: "../assets/platforms/vr/steamvr.svg", brand: "vr", key: "steamvr" };
 
   // OTHER (STUFF WITHOUT BRANDING [STILL NEEDS CSS])
