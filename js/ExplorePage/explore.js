@@ -96,13 +96,13 @@ function platformToIconInfo(platformName) {
   const p = platformName.toLowerCase();
 
   // SONY
+  if (p.includes("playstation vita") || p.includes("ps vita") || p.includes("psvita")) return { src: "../assets/platforms/sony/psvita.svg", brand: "sony" };
+  if (p.includes("playstation portable") || p.includes("psp")) return { src: "../assets/platforms/sony/psp.svg", brand: "sony" };
   if (p.includes("playstation 5") || p.includes("ps5")) return { src: "../assets/platforms/sony/ps5.svg", brand: "sony" };
   if (p.includes("playstation 4") || p.includes("ps4")) return { src: "../assets/platforms/sony/ps4.svg", brand: "sony", key: "ps4" };
   if (p.includes("playstation 3") || p.includes("ps3")) return { src: "../assets/platforms/sony/ps3.svg", brand: "sony" };
   if (p.includes("playstation 2") || p.includes("ps2")) return { src: "../assets/platforms/sony/ps2.svg", brand: "sony", key:"ps2" };
   if (p.includes("playstation") || p.includes("ps1") || p.includes("psx")) return { src: "../assets/platforms/sony/ps1.svg", brand: "sony", key: "ps1"};
-  if (p.includes("playstation portable") || p.includes("psp")) return { src: "../assets/platforms/sony/psp.svg", brand: "sony" };
-  if (p.includes("playstation vita") || p.includes("ps vita") || p.includes("psvita")) return { src: "../assets/platforms/sony/psvita.svg", brand: "sony" };
 
   // MICROSOFT
   if (p.includes("xbox series") || p.includes("series x") || p.includes("series s")) return { src: "../assets/platforms/microsoft/xboxseries.svg", brand: "microsoft" };
