@@ -118,7 +118,7 @@ function platformToIconInfo(platformName) {
   if (p.includes("virtual boy")) return { src: "../assets/platforms/nintendo/virtualboy.svg", brand: "nintendo" };
   if (p.includes("nintendo 64") || p.includes("n64")) return { src: "../assets/platforms/nintendo/n64.svg", brand: "nintendo" };
   if (p.includes("gamecube")) return { src: "../assets/platforms/nintendo/gcn.svg", brand: "nintendo" };
-  if (p.includes("nintendo entertainment system") || p.includes("famicom") || p.includes("family computer")) {return { src: "../assets/platforms/nintendo/nes.svg", brand: "nintendo", key: "nes" };}
+  if (p.includes("nintendo entertainment system") || p.includes("famicom") || /\bnes\b/.test(p) || p.includes("family computer")) {return { src: "../assets/platforms/nintendo/nes.svg", brand: "nintendo", key: "nes" };}
   if (p.includes("super nintendo entertainment system") || p.includes("super nintendo") || p.includes("snes") || p.includes("super famicom")) return { src: "../assets/platforms/nintendo/snes.svg", brand: "nintendo", key: "snes" };
   if (p.includes("game boy advance") || p.includes("gba")) return { src: "../assets/platforms/nintendo/gba.svg", brand: "nintendo" };
   if (p.includes("game boy color") || p.includes("gbc")) return { src: "../assets/platforms/nintendo/gbcolor.svg", brand: "nintendo" };
