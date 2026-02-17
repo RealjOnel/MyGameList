@@ -110,6 +110,18 @@ function platformToIconInfo(platformName) {
   if (p.includes("xbox 360")) return { src: "../assets/platforms/microsoft/xbox360.svg", brand: "microsoft" };
   if (p.includes("xbox")) return { src: "../assets/platforms/microsoft/xbox.svg", brand: "microsoft" };
 
+  // SEGA
+  if (p.includes("sega sg-1000") || p.includes("sg-1000") || p.includes("sg1000")) return { src: "../assets/platforms/sega/sg1000.svg", brand: "sega", key: "sg1000" };
+  if (p.includes("sega master system") || p.includes("master system") || p.includes("sega mark iii") || p.includes("mark iii")) return { src: "../assets/platforms/sega/mastersystem.svg", brand: "sega", key: "mastersystem" };
+  if (p.includes("game gear") || p.includes("sega game gear")) return { src: "../assets/platforms/sega/gamegear.svg", brand: "sega", key: "gamegear" };
+  if (p.includes("sega genesis") || p.includes("genesis") || p.includes("sega mega drive") || p.includes("mega drive") || p.includes("megadrive")) return { src: "../assets/platforms/sega/megadrive.svg", brand: "sega", key: "megadrive" };
+  if (p.includes("sega cd") || (p.includes("mega") && p.includes("cd")) || p.includes("mega-cd") || p.includes("megacd")) return { src: "../assets/platforms/sega/segacd.svg", brand: "sega", key: "segacd" };
+  if (p.includes("32x") || p.includes("sega 32x")) return { src: "../assets/platforms/sega/sega32x.svg", brand: "sega", key: "sega32x" };
+  if (p.includes("sega saturn") || p.includes("saturn")) return { src: "../assets/platforms/sega/saturn.svg", brand: "sega", key: "saturn" };
+  if (p.includes("dreamcast") || p.includes("sega dreamcast")) return { src: "../assets/platforms/sega/dreamcast.svg", brand: "sega", key: "dreamcast" };
+  if (p.includes("sega pico") || /\bpico\b/.test(p)) return { src: "../assets/platforms/sega/pico.svg", brand: "sega", key: "pico" };
+  if (p.includes("sega nomad") || /\bnomad\b/.test(p)) return { src: "../assets/platforms/sega/nomad.svg", brand: "sega", key: "nomad" };
+
   // NINTENDO
   if (p.includes("nintendo switch 2") || /\bswitch\s*2\b/.test(p) || p.includes("switch2")) return { src: "../assets/platforms/nintendo/switch2.svg", brand: "nintendo", key: "switch2" };
   if (p.includes("switch") || /\bswitch\s*1\b/.test(p)) return { src: "../assets/platforms/nintendo/switch1.svg", brand: "nintendo" };
@@ -126,9 +138,13 @@ function platformToIconInfo(platformName) {
   if (p.includes("nintendo ds") || p.includes("nds") || p === "ds") return { src: "../assets/platforms/nintendo/ds.svg", brand: "nintendo" };
   if (p.includes("nintendo 3ds") || p.includes("3ds")) return { src: "../assets/platforms/nintendo/3ds.svg", brand: "nintendo" };
 
-   // MOBILE (BRAUCHT NOCH EIGENE BRAND FÜR CSS)
+  // MOBILE (BRAUCHT NOCH EIGENE BRAND FÜR CSS)
   if (p.includes("android")) return { src: "../assets/platforms/mobile/android.svg", brand: "mobile", key: "android" };
   if (/\bios\b/.test(p) || p.includes("iphone os") || /\biphone\b/.test(p) || /\bipad\b/.test(p)) return { src: "../assets/platforms/mobile/ios.svg", brand: "mobile", key: "ios" };
+
+  // OTHER (STUFF WITHOUT BRANDING [STILL NEEDS CSS])
+  if (p.includes("amstrad cpc") || /\bcpc\b/.test(p)) return { src: "../assets/platforms/other/cpc.svg", brand: "other", key: "cpc" };
+  if (p.includes("amiga") && !p.includes("amigaos")) return { src: "../assets/platforms/other/amiga.svg", brand: "other", key: "amiga" };
 
   // PC (also pc related stuff)
   if (p.includes("pc") || p.includes("windows") || /\bsteam\b/.test(p)) return { src: "../assets/platforms/pc/pc.svg", brand: "pc", key: "pc" };
@@ -139,8 +155,6 @@ function platformToIconInfo(platformName) {
       || p.includes("oculus quest") || /\bquest\b/.test(p)) return { src: "../assets/platforms/vr/metaquest.svg", brand: "vr", key: "quest" };
   if (p.includes("oculus go") || /\bgo\b/.test(p) || p.includes("oculus rift") || p.includes("oculus vr") || /\brift\b/.test(p)) return { src: "../assets/platforms/vr/oculus.svg", brand: "vr", key: "oculus" };
   if (p.includes("steamvr") || /steam\s*vr/.test(p)) return { src: "../assets/platforms/vr/steamvr.svg", brand: "vr", key: "steamvr" };
-
-  // OTHER (STUFF WITHOUT BRANDING [STILL NEEDS CSS])
 
   return null;
 }
