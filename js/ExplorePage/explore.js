@@ -139,14 +139,14 @@ function platformToIconInfo(platformName) {
   if (p.includes("nintendo 3ds") || p.includes("3ds")) return { src: "../assets/platforms/nintendo/3ds.svg", brand: "nintendo" };
 
   // MOBILE (BRAUCHT NOCH EIGENE BRAND FÜR CSS)
-  if (p.includes("android")) return { src: "../assets/platforms/mobile/android.svg", brand: "mobile", key: "android" };
-  if (/\bios\b/.test(p) || p.includes("iphone os") || /\biphone\b/.test(p) || /\bipad\b/.test(p)) return { src: "../assets/platforms/mobile/ios.svg", brand: "mobile", key: "ios" };
+  if (p.includes("android") || /\bios\b/.test(p) || p.includes("iphone os") || /\biphone\b/.test(p) || /\bipad\b/.test(p)) return { src: "../assets/platforms/mobile/mobile.svg", brand: "mobile", key: "android" };
 
   // OTHER (STUFF WITHOUT BRANDING [STILL NEEDS CSS])
   if (p.includes("amstrad cpc") || /\bcpc\b/.test(p)) return { src: "../assets/platforms/other/cpc.svg", brand: "other", key: "cpc" };
   if (p.includes("amiga") && !p.includes("amigaos")) return { src: "../assets/platforms/other/amiga.svg", brand: "other", key: "amiga" };
 
   // PC (also pc related stuff)
+  if (p.includes("web browser")) return { src: "../assets/platforms/pc/webbrowser.svg", brand: "pc", key: "webbrowser" };
   if (p.includes("pc") || p.includes("windows") || /\bsteam\b/.test(p)) return { src: "../assets/platforms/pc/pc.svg", brand: "pc", key: "pc" };
   if (p.includes("linux")) return { src: "../assets/platforms/pc/linux.svg", brand: "pc", key: "linux" }
 
