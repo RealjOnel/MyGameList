@@ -689,7 +689,7 @@ button {
   z-index: 2;
 }
 
-.no-results-icon{
+.no-results-icon {
   width: 74px;
   height: 74px;
   border-radius: 18px;
@@ -706,7 +706,7 @@ button {
     0 0 26px rgba(37, 99, 235, 0.14);
 }
 
-.no-results-svg{
+.no-results-svg {
   width: 46px;
   height: 46px;
   color: #2563eb;

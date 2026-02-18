@@ -153,7 +153,7 @@ function platformToIconInfo(platformName) {
 
   // OTHER (STUFF WITHOUT BRANDING [STILL NEEDS CSS])
   if (p.includes("amstrad cpc") || /\bcpc\b/.test(p)) return { src: "../assets/platforms/other/cpc.svg", brand: "other", key: "cpc" };
-  if (p.includes("amiga") && !p.includes("amigaos")) return { src: "../assets/platforms/other/amiga.svg", brand: "other", key: "amiga" };
+  if (p.includes("amiga") || p.includes("commodore amiga") && !p.includes("amigaos")) return { src: "../assets/platforms/other/amiga.svg", brand: "other", key: "amiga" };
 
   // PC (also pc related stuff)
   if (p.includes("web browser")) return { src: "../assets/platforms/pc/webbrowser.svg", brand: "pc", key: "webbrowser" };
