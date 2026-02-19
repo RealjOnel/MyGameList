@@ -45,5 +45,5 @@ router.post('/login', async (req, res) => {
   res.json({ token });
 });
 
-// ✅ WICHTIG: export default router für server.js
+// export default router for server.js
 export default router;

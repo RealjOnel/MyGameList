@@ -27,10 +27,10 @@ const errorMsg = document.getElementById('error-msg');
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  // Erkennen, ob Login oder Register
+  // Detect if register or login
   const isRegister = document.getElementById('submit-text').textContent === 'Register';
 
-  // Inputs auslesen
+  // Read Inputs 
   const username = form.querySelector('input[type="text"]').value;
   const password = form.querySelector('input[type="password"]').value;
   const emailInput = form.querySelector('input[type="email"]');
@@ -42,7 +42,7 @@ form.addEventListener('submit', async (e) => {
     return;
   }
 
-  // Endpoint wählen
+  // Choose Endpoint
     const BACKEND_URL = 'https://mygamelist-omhm.onrender.com';
     const endpoint = isRegister 
         ? `${BACKEND_URL}/api/register` 

@@ -1,5 +1,5 @@
 /* =========================================
-   FORM VALIDATION (NEU)
+   FORM VALIDATION (NEW)
    ========================================= */
 
 document.getElementById("auth-form").addEventListener("submit", function(e) {
@@ -13,7 +13,7 @@ document.getElementById("auth-form").addEventListener("submit", function(e) {
         errorBox.style.display = "block";
         errorBox.textContent = "All fields are required!";
 
-        // Animation neu triggern
+        // retrigger animation
         errorBox.classList.remove("shake");
         void errorBox.offsetWidth; // force reflow
         errorBox.classList.add("shake");

@@ -35,7 +35,7 @@ const GENRE_MAP = {
   moba: 36
 };
 
-//  TRENDING GAMES (für Login-Galerie)
+//  TRENDING GAMES (for Login Gallery)
 router.get("/trending", async (req, res) => {
   try {
     const token = await getTwitchToken();
@@ -62,7 +62,7 @@ router.get("/trending", async (req, res) => {
   }
 });
 
-//  EXPLORE GAMES (größere Liste)
+//  EXPLORE GAMES
 //  NOTE: keep this route SIMPLE and RELIABLE.
 //  We ask IGDB for games with a cover and then let the frontend
 //  filter out weird editions / DLC by name.

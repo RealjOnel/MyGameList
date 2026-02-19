@@ -23,7 +23,7 @@ async function loadDynamicGallery() {
         track.innerHTML += items;
 
     } catch (error) {
-        console.error("Konnte Galerie nicht laden:", error);
+        console.error("Couldnt load gallery:", error);
     }
 }
 

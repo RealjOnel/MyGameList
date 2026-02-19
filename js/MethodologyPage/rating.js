@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const displayText = document.getElementById('scoreText');
     const simBox = document.getElementById('simBox');
 
-    // Die Definitionen für jeden Score
+    // definitions for every score
     const definitions = {
         1: "Unplayable. Broken mechanics or technical disaster.",
         2: "Terrible. Fundamental flaws, barely functional.",
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         simBox.style.borderColor = 'rgba(255,255,255,0.1)'; 
 
         if (val <= 4) {
-            // LOW SCORE (Rot)
+            // LOW SCORE (Red)
             displayValue.classList.add('score-low');
             slider.style.color = '#ff4757'; 
             simBox.style.background = 'var(--sim-bg-low)';
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
             simBox.style.background = 'var(--sim-bg-mid)';
             simBox.style.borderColor = 'rgba(255, 165, 2, 0.3)';
         } else {
-            // HIGH SCORE (Grün)
+            // HIGH SCORE (Green)
             displayValue.classList.add('score-high');
             slider.style.color = '#2ed573';
             simBox.style.background = 'var(--sim-bg-high)';

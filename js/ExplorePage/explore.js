@@ -80,7 +80,7 @@ function getOriginalPlatformName(game) {
   const rds = game.release_dates || [];
   if (!Array.isArray(rds) || rds.length === 0) return null;
 
-  // nur Einträge mit Plattform
+  // only entries with a platform
   const usable = rds
     .filter(r => r?.platform?.name)
     .map(r => ({
@@ -90,14 +90,14 @@ function getOriginalPlatformName(game) {
 
   if (usable.length === 0) return null;
 
-  // wenn wir Datumswerte haben: frühestes Datum gewinnt
+  // if we have date values: pick the earliest
   const withDates = usable.filter(x => x.date !== Infinity);
   if (withDates.length > 0) {
     withDates.sort((a, b) => a.date - b.date);
     return withDates[0].name;
   }
 
-  // fallback: wenn IGDB keine dates liefert
+  // fallback: if IGDB doesnt give dates
   return usable[0].name;
 }
 
@@ -148,7 +148,7 @@ function platformToIconInfo(platformName) {
   if (p.includes("nintendo ds") || p.includes("nds") || p === "ds") return { src: "../assets/platforms/nintendo/ds.svg", brand: "nintendo" };
   if (p.includes("nintendo 3ds") || p.includes("3ds")) return { src: "../assets/platforms/nintendo/3ds.svg", brand: "nintendo" };
 
-  // MOBILE (BRAUCHT NOCH EIGENE BRAND FÜR CSS)
+  // MOBILE (STILL NEEDS OWN BRAND FOR CSS)
   if (p.includes("android") || /\bios\b/.test(p) || p.includes("iphone os") || /\biphone\b/.test(p) || /\bipad\b/.test(p)) return { src: "../assets/platforms/mobile/mobile.svg", brand: "mobile", key: "android" };
 
   // OTHER (STUFF WITHOUT BRANDING [STILL NEEDS CSS])
@@ -160,7 +160,7 @@ function platformToIconInfo(platformName) {
   if (p.includes("pc") || p.includes("windows") || /\bsteam\b/.test(p)) return { src: "../assets/platforms/pc/pc.svg", brand: "pc", key: "pc" };
   if (p.includes("linux")) return { src: "../assets/platforms/pc/linux.svg", brand: "pc", key: "linux" }
 
-  // VR [BRAUCHT NOCH EIGENE BRAND FÜR CSS])
+  // VR (STILL NEEDS OWN BRAND FOR CSS)
   if (p.includes("meta quest 3") || /\bquest\s*3\b/.test(p) || p.includes("meta quest 2") || /\bquest\s*2\b/.test(p)
       || p.includes("oculus quest") || /\bquest\b/.test(p)) return { src: "../assets/platforms/vr/metaquest.svg", brand: "vr", key: "quest" };
   if (p.includes("oculus go") || /\bgo\b/.test(p) || p.includes("oculus rift") || p.includes("oculus vr") || /\brift\b/.test(p)) return { src: "../assets/platforms/vr/oculus.svg", brand: "vr", key: "oculus" };
