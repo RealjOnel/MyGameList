@@ -14,8 +14,8 @@ app.use(express.json());
 
 // connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB verbunden"))
-  .catch((err) => console.log("❌ MongoDB Fehler:", err));
+  .then(() => console.log("✅ MongoDB Connected"))
+  .catch((err) => console.log("❌ MongoDB Error:", err));
 
 app.get("/ping", (req, res) => {
   console.log("PING ROUTE HIT");
@@ -28,5 +28,5 @@ app.use("/api/igdb", igdbRoutes);
 const PORT = 4000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server läuft auf http://localhost:${PORT}`);
+  console.log(`🚀 Server runs on http://localhost:${PORT}`);
 });
