@@ -75,12 +75,18 @@ router.get("/games", async (req, res) => {
     // IGDB does not support a 'popularity' field on /games,
     // but it does support 'rating'. We treat 'rating' as our
     // default "popularity" proxy.
+
+    // sort logic
     const allowedSorts = ["name", "rating"];
-    const sort = allowedSorts.includes(req.query.sort)
-      ? req.query.sort
+    const sort = allowedSorts.includes(String(req.query.sort))
+      ? String(req.query.sort)
       : "rating";
 
-    const order = sort === "rating" ? "desc" : "asc";
+    const requestedOrder = String(req.query.order || "").toLowerCase();
+    const order = ["asc", "desc"].includes(requestedOrder)
+      ? requestedOrder
+      : (sort === "rating" ? "desc" : "asc");
+
     const search = req.query.search;
     const genreKey = String(req.query.genre || "all").toLowerCase();
     const genreId = GENRE_MAP[genreKey];
