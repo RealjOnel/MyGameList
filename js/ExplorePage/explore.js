@@ -129,7 +129,7 @@ function platformToIconInfo(platformName) {
   if (p.includes("32x") || p.includes("sega 32x")) return { src: "../assets/platforms/sega/sega32x.svg", brand: "sega", key: "sega32x" };
   if (p.includes("sega saturn") || p.includes("saturn")) return { src: "../assets/platforms/sega/saturn.svg", brand: "sega", key: "saturn" };
   if (p.includes("dreamcast") || p.includes("sega dreamcast")) return { src: "../assets/platforms/sega/dreamcast.svg", brand: "sega", key: "dreamcast" };
-  if (p.includes("sega pico") || /\bpico\b/.test(p)) return { src: "../assets/platforms/sega/pico.svg", brand: "sega", key: "pico" };
+  if (p.includes("sega pico") || /\bpico\b/.test(p)) return { src: "../assets/platforms/sega/pico.png", brand: "sega", key: "pico" };
   if (p.includes("sega nomad") || /\bnomad\b/.test(p)) return { src: "../assets/platforms/sega/nomad.svg", brand: "sega", key: "nomad" };
 
   // NINTENDO

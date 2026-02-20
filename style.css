@@ -1032,7 +1032,16 @@ button {
   transform: scale(1.28); 
   filter: drop-shadow(0 6px 14px rgba(0,0,0,0.45)) contrast(1.15);
 }  
-.platform-pc img        { transform: scale(1.08); }
+.platform-pc img { transform: scale(1.08); }
+
+.platform-sega img {
+  transform: scale(1.12);
+  filter: drop-shadow(0 7px 16px rgba(0,0,0,0.50)) contrast(1.18) saturate(1.25);
+}
+.platform-mastersystem img {
+    transform: scale(1.45);
+    filter: drop-shadow(0 6px 14px rgba(0,0,0,0.45)) contrast(1.15);
+}
 
 .platform-badge::before {
   content: "";
@@ -1085,6 +1094,16 @@ button {
   border-color: rgba(200, 200, 220, 0.55);
 }
 .platform-pc::before { background: rgba(200, 200, 220, 0.32); }
+
+/* SEGA */
+.platform-sega{
+  box-shadow:
+    0 0 0 2px rgba(0, 190, 255, 0.62),   
+    0 0 22px rgba(0, 190, 255, 0.52),   
+    0 0 60px rgba(0, 190, 255, 0.18);   
+  border-color: rgba(0, 190, 255, 0.62);
+}
+.platform-sega::before{ background: rgba(0, 190, 255, 0.36); }
 
 .game-card:hover .platform-badge {
   transform: translateY(-1px) scale(1.03);
