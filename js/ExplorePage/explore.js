@@ -106,6 +106,7 @@ function platformToIconInfo(platformName) {
   const p = platformName.toLowerCase();
 
   // SONY
+  if (p.includes("playstation vr2") || p.includes("playstation vr 2") || p.includes("ps vr2") || p.includes("psvr2") || p.includes("ps vr 2") || /\bps\s*vr\s*2\b/.test(p) || /\bpsvr\s*2\b/.test(p) || p.includes("playstation vr") || p.includes("ps vr") || p.includes("psvr") || /\bps\s*vr\b/.test(p) || /\bpsvr\b/.test(p)) return { src: "../assets/platforms/sony/psvr.svg", brand: "sony", key: "psvr" };
   if (p.includes("playstation vita") || p.includes("ps vita") || p.includes("psvita")) return { src: "../assets/platforms/sony/psvita.svg", brand: "sony" };
   if (p.includes("playstation portable") || p.includes("psp")) return { src: "../assets/platforms/sony/psp.svg", brand: "sony" };
   if (p.includes("playstation 5") || p.includes("ps5")) return { src: "../assets/platforms/sony/ps5.svg", brand: "sony" };
