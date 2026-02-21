@@ -177,8 +177,6 @@ router.get("/games", async (req, res) => {
       console.warn("⚠️ Unknown genre key:", genreKey);
     }
 
-    console.log("platformKey:", platformKey, "platformValue:", PLATFORM_MAP[platformKey]);
-
     if (platformId != null) {
       whereClause += ` & platforms = (${platformId})`;
     } else if (platformKey !== "all") {

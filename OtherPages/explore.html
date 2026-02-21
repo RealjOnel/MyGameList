@@ -93,7 +93,9 @@
       </button>
 
       <ul class="custom-dropdown-menu">
-        <li data-value="all">All Genres</li>
+        <li class="dropdown-main" data-value="all">
+            <span class="main-title">All Genres</span>
+        </li>
 
         <li data-value="pointandclick">Point-and-click</li>
         <li data-value="fighting">Fighting</li>
@@ -131,68 +133,161 @@
         </button>
 
         <ul class="custom-dropdown-menu">
-            <li data-value="all">All Platforms</li>
+            <li class="platform-option opt-other dropdown-main" data-value="all" data-label="All Platforms">
+           <!-- IF WE USE AN ICON FOR "ALL" => <img class="platform-option-icon" src="../assets/platforms/other/all.svg" alt=""> --> 
+            <span class="main-title">All Platforms</span>
+            </li>
 
-            <!-- Sony -->
-            <li data-value="ps5">PlayStation 5</li>
-            <li data-value="ps4">PlayStation 4</li>
-            <li data-value="ps3">PlayStation 3</li>
-            <li data-value="ps2">PlayStation 2</li>
-            <li data-value="ps1">PlayStation 1</li>
-            <li data-value="psp">PSP</li>
-            <li data-value="psvita">PS Vita</li>
-            <li data-value="psvr">PlayStation VR</li>
+        <!-- Sony -->
+        <li class="platform-option opt-sony" data-value="ps5" data-label="PlayStation 5">
+            <img class="platform-option-icon" src="../assets/platforms/sony/ps5.svg" alt="">PlayStation 5
+        </li>
+        <li class="platform-option opt-sony" data-value="ps4" data-label="PlayStation 4">
+        <img class="platform-option-icon" src="../assets/platforms/sony/ps4.svg" alt="">PlayStation 4
+        </li>
+        <li class="platform-option opt-sony" data-value="ps3" data-label="PlayStation 3">
+            <img class="platform-option-icon" src="../assets/platforms/sony/ps3.svg" alt="">PlayStation 3
+        </li>
+        <li class="platform-option opt-sony" data-value="ps2" data-label="PlayStation 2">
+            <img class="platform-option-icon" src="../assets/platforms/sony/ps2.svg" alt="">PlayStation 2
+        </li>
+        <li class="platform-option opt-sony" data-value="ps1" data-label="PlayStation 1">
+            <img class="platform-option-icon" src="../assets/platforms/sony/ps1.svg" alt="">PlayStation 1
+        </li>
+        <li class="platform-option opt-sony" data-value="psp" data-label="PSP">
+            <img class="platform-option-icon" src="../assets/platforms/sony/psp.svg" alt="">PSP
+        </li>
+        <li class="platform-option opt-sony" data-value="psvita" data-label="PS Vita">
+            <img class="platform-option-icon" src="../assets/platforms/sony/psvita.svg" alt="">PS Vita
+        </li>
+        <li class="platform-option opt-sony" data-value="psvr" data-label="PlayStation VR">
+            <img class="platform-option-icon" src="../assets/platforms/sony/psvr.svg" alt="">PlayStation VR
+        </li>
 
-            <!-- Microsoft -->
-            <li data-value="xboxseries">Xbox Series X|S</li>
-            <li data-value="xboxone">Xbox One</li>
-            <li data-value="xbox360">Xbox 360</li>
-            <li data-value="xbox">Xbox</li>
+        <!-- Microsoft -->
+        <li class="platform-option opt-microsoft" data-value="xboxseries" data-label="Xbox Series X|S">
+            <img class="platform-option-icon" src="../assets/platforms/microsoft/xboxseries.svg" alt="">Xbox Series X|S
+        </li>
+        <li class="platform-option opt-microsoft" data-value="xboxone" data-label="Xbox One">
+            <img class="platform-option-icon" src="../assets/platforms/microsoft/xboxone.svg" alt="">Xbox One
+        </li>
+        <li class="platform-option opt-microsoft" data-value="xbox360" data-label="Xbox 360">
+            <img class="platform-option-icon" src="../assets/platforms/microsoft/xbox360.svg" alt="">Xbox 360
+        </li>
+        <li class="platform-option opt-microsoft" data-value="xbox" data-label="Xbox">
+            <img class="platform-option-icon" src="../assets/platforms/microsoft/xbox.svg" alt="">Xbox
+        </li>
 
-            <!-- Nintendo -->
-            <li data-value="switch2">Nintendo Switch 2</li>
-            <li data-value="switch">Nintendo Switch</li>
-            <li data-value="wiiu">Wii U</li>
-            <li data-value="wii">Wii</li>
-            <li data-value="n64">Nintendo 64</li>
-            <li data-value="gcn">GameCube</li>
-            <li data-value="virtualboy">Virtual Boy</li>
-            <li data-value="snes">SNES</li>
-            <li data-value="nes">NES</li>
-            <li data-value="n3ds">Nintendo 3DS</li>
-            <li data-value="ds">Nintendo DS</li>
-            <li data-value="gba">Game Boy Advance</li>
-            <li data-value="gbc">Game Boy Color</li>
-            <li data-value="gb">Game Boy</li>
+        <!-- Nintendo -->
+        <li class="platform-option opt-nintendo" data-value="switch2" data-label="Nintendo Switch 2">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/switch2.svg" alt="">Nintendo Switch 2
+        </li>
+        <li class="platform-option opt-nintendo" data-value="switch" data-label="Nintendo Switch">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/switch1.svg" alt="">Nintendo Switch
+        </li>
+        <li class="platform-option opt-nintendo" data-value="wiiu" data-label="Wii U">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/wiiu.svg" alt="">Wii U
+        </li>
+        <li class="platform-option opt-nintendo" data-value="wii" data-label="Wii">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/wii.svg" alt="">Wii
+        </li>
+        <li class="platform-option opt-nintendo" data-value="n64" data-label="Nintendo 64">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/n64.svg" alt="">Nintendo 64
+        </li>
+        <li class="platform-option opt-nintendo" data-value="gcn" data-label="GameCube">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/gcn.svg" alt="">GameCube
+        </li>
+        <li class="platform-option opt-nintendo" data-value="virtualboy" data-label="Virtual Boy">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/virtualboy.svg" alt="">Virtual Boy
+        </li>
+        <li class="platform-option opt-nintendo" data-value="snes" data-label="SNES">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/snes.svg" alt="">SNES
+        </li>
+        <li class="platform-option opt-nintendo" data-value="nes" data-label="NES">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/nes.svg" alt="">NES
+        </li>
+        <li class="platform-option opt-nintendo" data-value="n3ds" data-label="Nintendo 3DS">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/3ds.svg" alt="">Nintendo 3DS
+        </li>
+        <li class="platform-option opt-nintendo" data-value="ds" data-label="Nintendo DS">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/ds.svg" alt="">Nintendo DS
+        </li>
+        <li class="platform-option opt-nintendo" data-value="gba" data-label="Game Boy Advance">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/gba.svg" alt="">Game Boy Advance
+        </li>
+        <li class="platform-option opt-nintendo" data-value="gbc" data-label="Game Boy Color">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/gbcolor.svg" alt="">Game Boy Color
+        </li>
+        <li class="platform-option opt-nintendo" data-value="gb" data-label="Game Boy">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/gameboy.svg" alt="">Game Boy
+        </li>
 
-            <!-- Sega -->
-            <li data-value="dreamcast">Dreamcast</li>
-            <li data-value="saturn">Saturn</li>
-            <li data-value="sega32x">Sega 32X</li>
-            <li data-value="segacd">Sega CD</li>
-            <li data-value="megadrive">Mega Drive / Genesis</li>
-            <li data-value="gamegear">Game Gear</li>
-            <li data-value="mastersystem">Master System</li>
-            <li data-value="sg1000">SG-1000</li>
-            <li data-value="pico">Sega Pico</li>
-            <li data-value="nomad">Sega Nomad</li>
+        <!-- Sega -->
+        <li class="platform-option opt-sega" data-value="dreamcast" data-label="Dreamcast">
+            <img class="platform-option-icon" src="../assets/platforms/sega/dreamcast.svg" alt="">Dreamcast
+        </li>
+        <li class="platform-option opt-sega" data-value="saturn" data-label="Saturn">
+            <img class="platform-option-icon" src="../assets/platforms/sega/saturn.svg" alt="">Saturn
+        </li>
+        <li class="platform-option opt-sega" data-value="sega32x" data-label="Sega 32X">
+            <img class="platform-option-icon" src="../assets/platforms/sega/sega32x.svg" alt="">Sega 32X
+        </li>
+        <li class="platform-option opt-sega" data-value="segacd" data-label="Sega CD">
+            <img class="platform-option-icon" src="../assets/platforms/sega/segacd.svg" alt="">Sega CD
+        </li>
+        <li class="platform-option opt-sega" data-value="megadrive" data-label="Mega Drive / Genesis">
+            <img class="platform-option-icon" src="../assets/platforms/sega/megadrive.svg" alt="">Mega Drive / Genesis
+        </li>
+        <li class="platform-option opt-sega" data-value="gamegear" data-label="Game Gear">
+            <img class="platform-option-icon" src="../assets/platforms/sega/gamegear.svg" alt="">Game Gear
+        </li>
+        <li class="platform-option opt-sega" data-value="mastersystem" data-label="Master System">
+            <img class="platform-option-icon" src="../assets/platforms/sega/mastersystem.svg" alt="">Master System
+        </li>
+        <li class="platform-option opt-sega" data-value="sg1000" data-label="SG-1000">
+            <img class="platform-option-icon" src="../assets/platforms/sega/sg1000.svg" alt="">SG-1000
+        </li>
+        <li class="platform-option opt-sega" data-value="pico" data-label="Sega Pico">
+            <img class="platform-option-icon" src="../assets/platforms/sega/pico.png" alt="">Sega Pico
+        </li>
+        <li class="platform-option opt-sega" data-value="nomad" data-label="Sega Nomad">
+            <img class="platform-option-icon" src="../assets/platforms/sega/nomad.svg" alt="">Sega Nomad
+        </li>
 
-            <!-- PC / Web -->
-            <li data-value="windows">PC (Windows)</li>
-            <li data-value="linux">Linux</li>
-            <li data-value="webbrowser">Web Browser</li>
+        <!-- PC / Web -->
+        <li class="platform-option opt-pc" data-value="windows" data-label="PC (Windows)">
+            <img class="platform-option-icon" src="../assets/platforms/pc/pc.svg" alt="">PC (Windows)
+        </li>
+        <li class="platform-option opt-pc" data-value="linux" data-label="Linux">
+            <img class="platform-option-icon" src="../assets/platforms/pc/linux.svg" alt="">Linux
+        </li>
+        <li class="platform-option opt-pc" data-value="webbrowser" data-label="Web Browser">
+            <img class="platform-option-icon" src="../assets/platforms/pc/webbrowser.png" alt="">Web Browser
+        </li>
 
-            <!-- Mobile -->
-            <li data-value="mobile">Mobile (Android &amp; iOS)</li>
+        <!-- Mobile -->
+        <li class="platform-option opt-mobile" data-value="mobile" data-label="Mobile (Android & iOS)">
+            <img class="platform-option-icon" src="../assets/platforms/mobile/mobile.svg" alt="">Mobile (Android &amp; iOS)
+        </li>
 
-            <!-- VR -->
-            <li data-value="steamvr">SteamVR</li>
-            <li data-value="oculusvr">Oculus VR</li>
-            <li data-value="metaquest">Meta Quest</li>
+        <!-- VR -->
+        <li class="platform-option opt-vr" data-value="steamvr" data-label="SteamVR">
+            <img class="platform-option-icon" src="../assets/platforms/vr/steamvr.svg" alt="">SteamVR
+        </li>
+        <li class="platform-option opt-vr" data-value="oculusvr" data-label="Oculus VR">
+            <img class="platform-option-icon" src="../assets/platforms/vr/oculus.svg" alt="">Oculus VR
+        </li>
+        <li class="platform-option opt-vr" data-value="metaquest" data-label="Meta Quest">
+            <img class="platform-option-icon" src="../assets/platforms/vr/metaquest.svg" alt="">Meta Quest
+        </li>
 
-            <!-- Retro / Other -->
-            <li data-value="amiga">Amiga</li>
-            <li data-value="cpc">Amstrad CPC</li>
+        <!-- Other -->
+        <li class="platform-option opt-other" data-value="amiga" data-label="Amiga">
+            <img class="platform-option-icon" src="../assets/platforms/other/amiga.svg" alt="">Amiga
+        </li>
+        <li class="platform-option opt-other" data-value="cpc" data-label="Amstrad CPC">
+            <img class="platform-option-icon" src="../assets/platforms/other/cpc.svg" alt="">Amstrad CPC
+        </li>
         </ul>
     </div>
 

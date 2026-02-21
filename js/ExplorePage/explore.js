@@ -150,7 +150,7 @@ function platformToIconInfo(platformName) {
   if (p.includes("nintendo ds") || p.includes("nds") || p === "ds") return { src: "../assets/platforms/nintendo/ds.svg", brand: "nintendo" };
   if (p.includes("nintendo 3ds") || p.includes("3ds")) return { src: "../assets/platforms/nintendo/3ds.svg", brand: "nintendo" };
 
-  // MOBILE (STILL NEEDS OWN BRAND FOR CSS)
+  // MOBILE
   if (p.includes("android") || /\bios\b/.test(p) || p.includes("iphone os") || /\biphone\b/.test(p) || /\bipad\b/.test(p)) return { src: "../assets/platforms/mobile/mobile.svg", brand: "mobile" };
 
   // OTHER (STUFF WITHOUT BRANDING [STILL NEEDS CSS])
@@ -359,7 +359,8 @@ function setupDropdown(dropdownId, onSelect) {
   items.forEach(item => {
     item.addEventListener("click", () => {
       const value = item.dataset.value;
-      button.textContent = item.textContent;
+      const label = item.dataset.label || item.textContent.trim();
+      button.textContent = label;
       button.dataset.value = value;
       dropdown.classList.remove("open");
       onSelect(value);
