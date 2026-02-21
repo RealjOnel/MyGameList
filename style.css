@@ -1419,6 +1419,73 @@ transform: none !important;
     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
 }
 
+/* ===== Platform Theme Background ===== */
+
+/* Background SVG positioning */
+.theme-bg{
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+
+/* content above bg */
+.navbar, footer{ position: relative; z-index: 1; }
+
+/* show bg when not neutral */
+html[data-theme]:not([data-theme="neutral"]) .theme-bg{ opacity: 1; }
+
+/* OLD + NEW colors read from CSS vars on the SVG element */
+.theme-bg{
+  --tint-old: var(--tint, 255,255,255);
+  --tint-new: var(--tint, 255,255,255);
+}
+
+.theme-bg .bg-old-base   { fill: rgba(var(--tint-old), 0.06); }
+.theme-bg .bg-old-stripe { fill: rgba(var(--tint-old), 0.14); }
+
+.theme-bg .bg-new-base   { fill: rgba(var(--tint-new), 0.06); }
+.theme-bg .bg-new-stripe { fill: rgba(var(--tint-new), 0.14); }
+
+/* Wipe animation */
+.theme-bg .wipe-reveal,
+.theme-bg .wipe-hide{
+  transform-box: fill-box;
+  transform-origin: 0% 50%;
+  transform: scaleX(0);
+}
+
+.theme-bg.is-wiping .wipe-reveal,
+.theme-bg.is-wiping .wipe-hide{
+  animation: wipeX 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes wipeX{
+  0%   { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce){
+  .theme-bg.is-wiping .wipe-rect{ animation: none; transform: scaleX(1); }
+  .theme-bg feTurbulence animate{ display:none; }
+}
+
+/* Theme colors */
+html[data-theme="nintendo"]{ --tint: 255, 60, 60; }
+html[data-theme="sony"]{     --tint: 90, 140, 255; }
+html[data-theme="microsoft"]{--tint: 0, 255, 140; }
+html[data-theme="sega"]{     --tint: 0, 190, 255; }
+html[data-theme="pc"]{       --tint: 200, 200, 220; }
+html[data-theme="mobile"]{   --tint: 0, 225, 190; }
+html[data-theme="vr"]{       --tint: 168, 85, 247; }
+html[data-theme="other"]{    --tint: 148, 163, 184; }
+html[data-theme="neutral"]{  --tint: 255, 255, 255; }
+
 /* ==========================================================================
    Features Page
    ========================================================================== */

@@ -47,6 +47,102 @@ function escapeHtml(str) {
   }[m]));
 }
 
+const THEME_TINT = {
+  neutral: "255,255,255",
+  nintendo: "255,60,60",
+  sony: "90,140,255",
+  microsoft: "0,255,140",
+  sega: "0,190,255",
+  pc: "200,200,220",
+  mobile: "0,225,190",
+  vr: "168,85,247",
+  other: "148,163,184",
+};
+
+function initBgTints(){
+  const root = document.documentElement;
+  const svg = document.querySelector(".theme-bg");
+  if (!svg) return;
+  const t = THEME_TINT[root.dataset.theme || "neutral"] || THEME_TINT.neutral;
+  svg.style.setProperty("--tint-old", t);
+  svg.style.setProperty("--tint-new", t);
+}
+
+document.addEventListener("DOMContentLoaded", initBgTints);
+
+function setThemeWithWipe(nextTheme) {
+  const root = document.documentElement;
+  const svg = document.querySelector(".theme-bg");
+  if (!svg) {
+    root.dataset.theme = nextTheme;
+    return;
+  }
+
+  const currentTheme = root.dataset.theme || "neutral";
+  if (currentTheme === nextTheme) return;
+
+  // If neutral involved: just switch (no wipe), keeps it clean.
+    if (currentTheme === "neutral" || nextTheme === "neutral") {
+      const tint = THEME_TINT[nextTheme] || THEME_TINT.neutral;
+
+      svg.style.setProperty("--tint-old", tint);
+      svg.style.setProperty("--tint-new", tint);
+      svg.classList.remove("is-wiping");
+
+      root.dataset.theme = nextTheme;
+      return;
+    }
+
+  // Prepare old/new tints for the SVG
+  svg.style.setProperty("--tint-old", THEME_TINT[currentTheme] || THEME_TINT.neutral);
+    svg.style.setProperty("--tint-new", THEME_TINT[nextTheme] || THEME_TINT.neutral);
+
+    root.dataset.theme = nextTheme;
+
+    svg.classList.remove("is-wiping");
+    void svg.getBoundingClientRect();
+    svg.classList.add("is-wiping");
+
+    setTimeout(() => {
+      svg.classList.remove("is-wiping");
+      svg.style.setProperty("--tint-old", THEME_TINT[nextTheme] || THEME_TINT.neutral);
+    }, 700); }
+
+function platformKeyToTheme(key){
+  const map = {
+    // Sony
+    ps1:"sony", ps2:"sony", ps3:"sony", ps4:"sony", ps5:"sony", psp:"sony", psvita:"sony", psvr:"sony",
+
+    // Microsoft
+    xbox:"microsoft", xbox360:"microsoft", xboxone:"microsoft", xboxseries:"microsoft",
+
+    // Nintendo
+    switch:"nintendo", switch2:"nintendo", wii:"nintendo", wiiu:"nintendo", n64:"nintendo", gcn:"nintendo",
+    virtualboy:"nintendo", nes:"nintendo", snes:"nintendo", ds:"nintendo", n3ds:"nintendo", gba:"nintendo", gbc:"nintendo", gb:"nintendo",
+
+    // Sega
+    dreamcast:"sega", saturn:"sega", sega32x:"sega", segacd:"sega", megadrive:"sega", gamegear:"sega", mastersystem:"sega", sg1000:"sega", pico:"sega", nomad:"sega",
+
+    // PC/Web
+    windows:"pc", linux:"pc", webbrowser:"pc",
+
+    // Mobile
+    mobile:"mobile",
+
+    // VR
+    steamvr:"vr", oculusvr:"vr", metaquest:"vr",
+
+    // Other
+    amiga:"other", cpc:"other"
+  };
+  return map[key] || "neutral";
+}
+
+function applyPlatformTheme(){
+  const theme = selectedPlatform === "all" ? "neutral" : platformKeyToTheme(selectedPlatform);
+  document.documentElement.dataset.theme = theme;
+}
+
 function isRealGame(game) {
   if (!game?.name) return false;
   if (!game.cover) return false;
@@ -153,7 +249,7 @@ function platformToIconInfo(platformName) {
   // MOBILE
   if (p.includes("android") || /\bios\b/.test(p) || p.includes("iphone os") || /\biphone\b/.test(p) || /\bipad\b/.test(p)) return { src: "../assets/platforms/mobile/mobile.svg", brand: "mobile" };
 
-  // OTHER (STUFF WITHOUT BRANDING [STILL NEEDS CSS])
+  // OTHER (STUFF WITHOUT BRANDING)
   if (p.includes("amstrad cpc") || /\bcpc\b/.test(p)) return { src: "../assets/platforms/other/cpc.svg", brand: "other", key: "cpc" };
   if (p.includes("amiga") || p.includes("commodore amiga") && !p.includes("amigaos")) return { src: "../assets/platforms/other/amiga.svg", brand: "other", key: "amiga" };
 
@@ -162,7 +258,7 @@ function platformToIconInfo(platformName) {
   if (p.includes("pc") || p.includes("windows") || /\bsteam\b/.test(p)) return { src: "../assets/platforms/pc/pc.svg", brand: "pc", key: "pc" };
   if (p.includes("linux")) return { src: "../assets/platforms/pc/linux.svg", brand: "pc", key: "linux" }
 
-  // VR (STILL NEEDS OWN BRAND FOR CSS)
+  // VR
   if (p.includes("meta quest 3") || /\bquest\s*3\b/.test(p) || p.includes("meta quest 2") || /\bquest\s*2\b/.test(p)
       || p.includes("oculus quest") || /\bquest\b/.test(p)) return { src: "../assets/platforms/vr/metaquest.svg", brand: "vr", key: "quest" };
   if (p.includes("oculus go") || /\bgo\b/.test(p) || p.includes("oculus rift") || p.includes("oculus vr") || /\brift\b/.test(p)) return { src: "../assets/platforms/vr/oculus.svg", brand: "vr", key: "oculus" };
@@ -381,6 +477,8 @@ setupDropdown("genreDropdown", value => {
 
 setupDropdown("platformDropdown", value => {
   selectedPlatform = value;
+  const theme = selectedPlatform === "all" ? "neutral" : platformKeyToTheme(selectedPlatform);
+  setThemeWithWipe(theme);
   loadGames(true);
 });
 
@@ -404,4 +502,8 @@ searchInput.addEventListener("input", () => {
   searchTimeout = setTimeout(() => {
     loadGames(true);
   }, 300);
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  applyPlatformTheme();
 });

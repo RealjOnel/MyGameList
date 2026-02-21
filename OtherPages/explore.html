@@ -19,6 +19,57 @@
 </head>
 <body>
 
+<svg class="theme-bg" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true">
+  <defs>
+    <!-- OLD stripes -->
+    <pattern id="bgStripesOld" width="120" height="120" patternUnits="userSpaceOnUse" patternTransform="rotate(25)">
+      <rect class="bg-old-base" width="120" height="120"></rect>
+      <rect class="bg-old-stripe" x="0" y="0" width="56" height="120"></rect>
+    </pattern>
+
+    <!-- NEW stripes -->
+    <pattern id="bgStripesNew" width="120" height="120" patternUnits="userSpaceOnUse" patternTransform="rotate(25)">
+      <rect class="bg-new-base" width="120" height="120"></rect>
+      <rect class="bg-new-stripe" x="0" y="0" width="56" height="120"></rect>
+    </pattern>
+
+    <!-- NEW mask (reveal from left) -->
+    <mask id="wipeReveal">
+        <rect x="0" y="0" width="100%" height="100%" fill="black"></rect>
+        <rect class="wipe-reveal" x="0" y="0" width="100%" height="100%" fill="white"></rect>
+    </mask>
+
+    <!-- OLD mask (hide from left) -->
+    <mask id="wipeHide">
+        <rect x="0" y="0" width="100%" height="100%" fill="white"></rect>
+        <rect class="wipe-hide" x="0" y="0" width="100%" height="100%" fill="black"></rect>
+    </mask>
+
+    <!-- Warp filter -->
+    <filter id="bgWarp" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="2" seed="3" result="noise">
+        <animate attributeName="baseFrequency"
+                 dur="10s"
+                 values="0.012 0.02; 0.016 0.018; 0.012 0.02"
+                 repeatCount="indefinite"/>
+      </feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="32" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#bgWarp)">
+    <!-- OLD layer (masked: disappears left->right) -->
+    <g mask="url(#wipeHide)">
+        <rect width="100%" height="100%" fill="url(#bgStripesOld)"></rect>
+    </g>
+
+    <!-- NEW layer (masked: appears left->right) -->
+    <g mask="url(#wipeReveal)">
+        <rect width="100%" height="100%" fill="url(#bgStripesNew)"></rect>
+    </g>
+  </g>
+</svg>
+
 <nav class="navbar">
     <div class="logo">
         <a href="../index.html">MY<span class="accent">GAMELIST</span></a>
