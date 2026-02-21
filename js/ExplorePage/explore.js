@@ -8,6 +8,7 @@ let isLoading = false;
 let sortBy = "rating";
 let sortOrder = "desc";
 let selectedGenre = "all";
+let selectedPlatform = "all";
 
 const searchInput = document.querySelector(".search-input");
 
@@ -323,6 +324,10 @@ async function loadGames(reset = false) {
       params.append("genre", selectedGenre);
     }
 
+    if (selectedPlatform !== "all") {
+      params.append("platform", selectedPlatform);
+    }   
+
     const res = await fetch(
       `${API_BASE_URL}/api/igdb/games?${params.toString()}`
     );
@@ -370,6 +375,11 @@ function setupDropdown(dropdownId, onSelect) {
 
 setupDropdown("genreDropdown", value => {
   selectedGenre = value;
+  loadGames(true);
+});
+
+setupDropdown("platformDropdown", value => {
+  selectedPlatform = value;
   loadGames(true);
 });
 

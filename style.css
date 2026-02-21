@@ -908,6 +908,50 @@ button {
   display: block;
 }
 
+#platformDropdown .custom-dropdown-menu{
+  width: max-content;
+  min-width: 420px;      
+  max-width: 560px;
+  column-count: 2;
+  column-gap: 12px;
+  padding: 0.6rem;
+  left: 50%;
+  right: auto;
+  transform: translate(-50%, -10px);
+}
+
+#platformDropdown.custom-dropdown.open .custom-dropdown-menu{
+  transform: translate(-50%, 0);
+}
+
+#platformDropdown .custom-dropdown-menu li{
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  width: 100%;
+  display: block;
+}
+
+.explore-controls .dropdown-btn{
+  width: 190px;              
+  min-width: 190px;
+}
+
+.explore-controls .dropdown-btn span{
+  display: inline-block;
+  max-width: 130px;          
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 640px){
+  #platformDropdown .custom-dropdown-menu{
+    column-count: 1;
+    min-width: 240px;
+    max-width: 90vw;
+  }
+}
+
 .search-filter-bar {
     display: flex;
     gap: 1rem;

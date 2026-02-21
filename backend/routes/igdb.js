@@ -35,6 +35,70 @@ const GENRE_MAP = {
   moba: 36
 };
 
+const PLATFORM_MAP = {
+  all: null,
+
+  // SONY
+  ps1: 7,
+  ps2: 8,
+  ps3: 9,
+  ps4: 48,
+  ps5: 167,
+  psp: 38,
+  psvita: 46,
+  psvr: 165,
+  psvr2: 390,
+
+  // MICROSOFT
+  xbox: 11,
+  xbox360: 12,
+  xboxone: 49,
+  xboxseries: 169,
+
+  // SEGA
+  sg1000: 84,
+  mastersystem: 64,
+  gamegear: 35,
+  megadrive: 29,     // Mega Drive / Genesis
+  segacd: 78,
+  sega32x: 30,
+  saturn: 32,
+  dreamcast: 23,
+  pico: 339,
+  nomad: 29,         // IGDB: Nomad is "version" of Genesis → only filterable by "Genesis"
+
+  // NINTENDO
+  switch: 130,
+  switch2: 508,
+  wii: 5,
+  wiiu: 41,
+  virtualboy: 87,
+  n64: 4,
+  gcn: 21,
+  nes: 18,
+  snes: 19,
+  gba: 24,
+  gbc: 22,
+  gb: 33,
+  ds: 20,
+  n3ds: 37,
+
+  // PC / WEB / OTHER
+  windows: 6,
+  linux: 3,
+  webbrowser: 82,
+  amiga: 16,
+  cpc: 25,
+
+  // MOBILE
+  mobile: [34, 39],  // Android + iOS
+
+  // VR
+  steamvr: 163,
+  oculusvr: 162,     // "Oculus VR" (Rift/PC-VR)
+  metaquest: [384, 386, 471], // Oculus Quest + Meta Quest 2 + Meta Quest 3
+};
+
 //  TRENDING GAMES (for Login Gallery)
 router.get("/trending", async (req, res) => {
   try {
@@ -87,9 +151,16 @@ router.get("/games", async (req, res) => {
       ? requestedOrder
       : (sort === "rating" ? "desc" : "asc");
 
+    // Search logic
     const search = req.query.search;
+
+    // Sort by Genre logic
     const genreKey = String(req.query.genre || "all").toLowerCase();
     const genreId = GENRE_MAP[genreKey];
+
+    // Sort by Platform logic
+    const platformKey = String(req.query.platform || "all").toLowerCase();
+    const platformId = PLATFORM_MAP[platformKey];
 
     const limit = EXPLORE_LIMIT;
     const offset = (page - 1) * limit;
@@ -104,6 +175,14 @@ router.get("/games", async (req, res) => {
       whereClause += ` & genres = (${genreId})`;
     } else if (genreKey !== "all") {
       console.warn("⚠️ Unknown genre key:", genreKey);
+    }
+
+    console.log("platformKey:", platformKey, "platformValue:", PLATFORM_MAP[platformKey]);
+
+    if (platformId != null) {
+      whereClause += ` & platforms = (${platformId})`;
+    } else if (platformKey !== "all") {
+      console.warn("⚠️ Unknown platform key:", platformKey);
     }
 
     const response = await axios.post(
