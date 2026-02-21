@@ -47,25 +47,45 @@ function escapeHtml(str) {
   }[m]));
 }
 
-const THEME_TINT = {
-  neutral: "255,255,255",
-  nintendo: "255,60,60",
-  sony: "90,140,255",
-  microsoft: "0,255,140",
-  sega: "0,190,255",
-  pc: "200,200,220",
-  mobile: "0,225,190",
-  vr: "168,85,247",
-  other: "148,163,184",
+const THEME_COLORS = {
+  // Default Brand
+  mgl:      { base: "255,255,255", stripeA: "59,130,246", stripeB: "168,85,247" },
+
+  // Brands
+  nintendo: { base: "255,60,60",   stripeA: "255,60,60",   stripeB: "255,60,60" },
+  sony:     { base: "90,140,255",  stripeA: "90,140,255",  stripeB: "90,140,255" },
+  microsoft:{ base: "0,255,140",   stripeA: "0,255,140",   stripeB: "0,255,140" },
+  sega:     { base: "0,190,255",   stripeA: "0,190,255",   stripeB: "0,190,255" },
+  pc:       { base: "200,200,220", stripeA: "200,200,220", stripeB: "200,200,220" },
+  mobile:   { base: "0,225,190",   stripeA: "0,225,190",   stripeB: "0,225,190" },
+  vr:       { base: "168,85,247",  stripeA: "168,85,247",  stripeB: "168,85,247" },
+  other:    { base: "148,163,184", stripeA: "148,163,184", stripeB: "148,163,184" },
 };
+
+function applyBgVars(svg, fromTheme, toTheme){
+  const from = THEME_COLORS[fromTheme] || THEME_COLORS.mgl;
+  const to   = THEME_COLORS[toTheme]   || THEME_COLORS.mgl;
+
+  svg.style.setProperty("--base-old", from.base);
+  svg.style.setProperty("--base-new", to.base);
+
+  svg.style.setProperty("--stripeA-old", from.stripeA);
+  svg.style.setProperty("--stripeB-old", from.stripeB);
+
+  svg.style.setProperty("--stripeA-new", to.stripeA);
+  svg.style.setProperty("--stripeB-new", to.stripeB);
+}
 
 function initBgTints(){
   const root = document.documentElement;
   const svg = document.querySelector(".theme-bg");
   if (!svg) return;
-  const t = THEME_TINT[root.dataset.theme || "neutral"] || THEME_TINT.neutral;
-  svg.style.setProperty("--tint-old", t);
-  svg.style.setProperty("--tint-new", t);
+
+  if (!root.dataset.theme || root.dataset.theme === "neutral") {
+    root.dataset.theme = "mgl";
+  }
+
+  applyBgVars(svg, root.dataset.theme, root.dataset.theme);
 }
 
 document.addEventListener("DOMContentLoaded", initBgTints);
@@ -73,40 +93,32 @@ document.addEventListener("DOMContentLoaded", initBgTints);
 function setThemeWithWipe(nextTheme) {
   const root = document.documentElement;
   const svg = document.querySelector(".theme-bg");
+
   if (!svg) {
     root.dataset.theme = nextTheme;
     return;
   }
 
-  const currentTheme = root.dataset.theme || "neutral";
+  const currentTheme = root.dataset.theme || "mgl";
   if (currentTheme === nextTheme) return;
 
-  // If neutral involved: just switch (no wipe), keeps it clean.
-    if (currentTheme === "neutral" || nextTheme === "neutral") {
-      const tint = THEME_TINT[nextTheme] || THEME_TINT.neutral;
+  // prepare variables
+  applyBgVars(svg, currentTheme, nextTheme);
 
-      svg.style.setProperty("--tint-old", tint);
-      svg.style.setProperty("--tint-new", tint);
-      svg.classList.remove("is-wiping");
+  // Theme set
+  root.dataset.theme = nextTheme;
 
-      root.dataset.theme = nextTheme;
-      return;
-    }
+  // start wipe
+  svg.classList.remove("is-wiping");
+  void svg.getBoundingClientRect();
+  svg.classList.add("is-wiping");
 
-  // Prepare old/new tints for the SVG
-  svg.style.setProperty("--tint-old", THEME_TINT[currentTheme] || THEME_TINT.neutral);
-    svg.style.setProperty("--tint-new", THEME_TINT[nextTheme] || THEME_TINT.neutral);
-
-    root.dataset.theme = nextTheme;
-
+  // after wipe: stabilize
+  setTimeout(() => {
     svg.classList.remove("is-wiping");
-    void svg.getBoundingClientRect();
-    svg.classList.add("is-wiping");
-
-    setTimeout(() => {
-      svg.classList.remove("is-wiping");
-      svg.style.setProperty("--tint-old", THEME_TINT[nextTheme] || THEME_TINT.neutral);
-    }, 700); }
+    applyBgVars(svg, nextTheme, nextTheme);
+  }, 700);
+}
 
 function platformKeyToTheme(key){
   const map = {
@@ -135,12 +147,16 @@ function platformKeyToTheme(key){
     // Other
     amiga:"other", cpc:"other"
   };
-  return map[key] || "neutral";
+  return map[key] || "mgl";
 }
 
-function applyPlatformTheme(){
-  const theme = selectedPlatform === "all" ? "neutral" : platformKeyToTheme(selectedPlatform);
-  document.documentElement.dataset.theme = theme;
+function computeTheme(){
+  // Chose Plattform => Brand Theme
+  if (selectedPlatform && selectedPlatform !== "all"){
+    return platformKeyToTheme(selectedPlatform);
+  }
+  // Default => MyGameList
+  return "mgl";
 }
 
 function isRealGame(game) {
@@ -477,8 +493,7 @@ setupDropdown("genreDropdown", value => {
 
 setupDropdown("platformDropdown", value => {
   selectedPlatform = value;
-  const theme = selectedPlatform === "all" ? "neutral" : platformKeyToTheme(selectedPlatform);
-  setThemeWithWipe(theme);
+  setThemeWithWipe(computeTheme());
   loadGames(true);
 });
 
@@ -502,8 +517,4 @@ searchInput.addEventListener("input", () => {
   searchTimeout = setTimeout(() => {
     loadGames(true);
   }, 300);
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  applyPlatformTheme();
 });

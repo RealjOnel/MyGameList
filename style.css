@@ -1437,19 +1437,26 @@ transform: none !important;
 .navbar, footer{ position: relative; z-index: 1; }
 
 /* show bg when not neutral */
+html[data-theme="neutral"] .theme-bg{ opacity: 0; }
 html[data-theme]:not([data-theme="neutral"]) .theme-bg{ opacity: 1; }
 
 /* OLD + NEW colors read from CSS vars on the SVG element */
 .theme-bg{
-  --tint-old: var(--tint, 255,255,255);
-  --tint-new: var(--tint, 255,255,255);
+  --base-old: 255,255,255;
+  --stripe-old: 255,255,255;
+  --base-new: 255,255,255;
+  --stripe-new: 255,255,255;
 }
 
-.theme-bg .bg-old-base   { fill: rgba(var(--tint-old), 0.06); }
-.theme-bg .bg-old-stripe { fill: rgba(var(--tint-old), 0.14); }
+.theme-bg{ filter: saturate(1.05); }
 
-.theme-bg .bg-new-base   { fill: rgba(var(--tint-new), 0.06); }
-.theme-bg .bg-new-stripe { fill: rgba(var(--tint-new), 0.14); }
+/* Base: einfarbig + subtil */
+.theme-bg .bg-old-base { fill: rgb(var(--base-old)); opacity: 0.06; }
+.theme-bg .bg-new-base { fill: rgb(var(--base-new)); opacity: 0.06; }
+
+/* Stripes: kommen aus dem Gradient-Fill im SVG, Stärke hier */
+.theme-bg .bg-old-stripe,
+.theme-bg .bg-new-stripe { opacity: 0.14; }
 
 /* Wipe animation */
 .theme-bg .wipe-reveal,
@@ -1471,7 +1478,8 @@ html[data-theme]:not([data-theme="neutral"]) .theme-bg{ opacity: 1; }
 
 /* Reduce motion */
 @media (prefers-reduced-motion: reduce){
-  .theme-bg.is-wiping .wipe-rect{ animation: none; transform: scaleX(1); }
+  .theme-bg.is-wiping .wipe-reveal,
+  .theme-bg.is-wiping .wipe-hide{ animation: none; transform: scaleX(1); }
   .theme-bg feTurbulence animate{ display:none; }
 }
 
@@ -1485,6 +1493,15 @@ html[data-theme="mobile"]{   --tint: 0, 225, 190; }
 html[data-theme="vr"]{       --tint: 168, 85, 247; }
 html[data-theme="other"]{    --tint: 148, 163, 184; }
 html[data-theme="neutral"]{  --tint: 255, 255, 255; }
+/* boost only for MyGameList default theme */
+html[data-theme="mgl"] .theme-bg .bg-old-base,
+html[data-theme="mgl"] .theme-bg .bg-new-base{
+  opacity: 0.11;
+}
+html[data-theme="mgl"] .theme-bg .bg-old-stripe,
+html[data-theme="mgl"] .theme-bg .bg-new-stripe{
+  opacity: 0.35;  
+}
 
 /* ==========================================================================
    Features Page
