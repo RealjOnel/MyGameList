@@ -373,9 +373,18 @@
 
     <div class="game-grid" id="gameGrid"></div>
 
-        <button id="loadMoreBtn" class="load-more-btn">
-            Load more games
-        </button>
+    <div id="infiniteSentinel" class="infinite-sentinel" aria-hidden="true"></div>
+
+    <div id="infiniteLoader" class="infinite-loader" aria-live="polite" aria-busy="false" hidden>
+    <div class="spinner"></div>
+        <span>Loading more games…</span>
+    </div>
+
+    <div id="endOfList" class="end-of-list" hidden>
+        No More games here (If you have any filters on, try removing them)
+    </div>
+
+
 </main>
 
 <footer class="main-footer">

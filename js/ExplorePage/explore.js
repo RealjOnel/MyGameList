@@ -1,6 +1,12 @@
 import { API_BASE_URL } from "../../backend/config.js";
 const gameGrid = document.getElementById("gameGrid");
-const loadMoreBtn = document.getElementById("loadMoreBtn");
+const sentinel = document.getElementById("infiniteSentinel");
+const loaderEl = document.getElementById("infiniteLoader");
+const endEl = document.getElementById("endOfList");
+
+const PAGE_SIZE = 50; // HAS to be the same as the limit on IGDB.js
+let hasMore = true;
+let observer = null;
 
 let currentPage = 1;
 let isLoading = false;
@@ -45,6 +51,18 @@ function escapeHtml(str) {
     '"': "&quot;",
     "'": "&#039;",
   }[m]));
+}
+
+// Load more function
+
+function setLoadingUI(on){
+  if (!loaderEl) return;
+  loaderEl.hidden = !on;
+  loaderEl.setAttribute("aria-busy", on ? "true" : "false");
+}
+
+function setEndUI(on){
+  if (endEl) endEl.hidden = !on;
 }
 
 const THEME_COLORS = {
@@ -421,6 +439,11 @@ async function loadGames(reset = false) {
     gameGrid.innerHTML = "";
   }
 
+  if (reset) {
+    hasMore = true;
+    setEndUI(false);
+  }
+
   try {
     const params = new URLSearchParams({
       page: currentPage,
@@ -438,13 +461,17 @@ async function loadGames(reset = false) {
 
     if (selectedPlatform !== "all") {
       params.append("platform", selectedPlatform);
-    }   
+    }
+    
+    setLoadingUI(true);
 
     const res = await fetch(
       `${API_BASE_URL}/api/igdb/games?${params.toString()}`
     );
 
     const games = await res.json();
+    hasMore = Array.isArray(games) && games.length === PAGE_SIZE;
+    if (!hasMore) setEndUI(true);
 
     renderGames(games);
 
@@ -456,6 +483,7 @@ async function loadGames(reset = false) {
     console.error(err);
   } finally {
     isLoading = false;
+    setLoadingUI(false);
   }
 }
 
@@ -506,11 +534,30 @@ setupDropdown("sortDropdown", value => {
 
 loadGames(true);
 
-loadMoreBtn.addEventListener("click", () => {
-  loadGames();
-});
-
 let searchTimeout;
+
+function setupInfiniteScroll(){
+  if (!sentinel) return;
+
+  if (observer) observer.disconnect();
+
+  observer = new IntersectionObserver((entries) => {
+    const entry = entries[0];
+    if (!entry?.isIntersecting) return;
+    if (isLoading) return;
+    if (!hasMore) return;
+
+    loadGames(false);
+  }, {
+    root: null,
+    rootMargin: "900px 0px", // loads more right before the end
+    threshold: 0
+  });
+
+  observer.observe(sentinel);
+}
+
+document.addEventListener("DOMContentLoaded", setupInfiniteScroll);
 
 searchInput.addEventListener("input", () => {
   clearTimeout(searchTimeout);
