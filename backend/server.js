@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
-import mongoose from "mongoose"; // <-- hinzufügen
+import mongoose from "mongoose"; // <-- add
 import authRoutes from './routes/auth.js';
 import express from "express";
 import cors from "cors";
@@ -12,28 +12,21 @@ app.use(cors());
 app.use(express.json());
 
 
-// MongoDB verbinden
+// connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB verbunden"))
-  .catch((err) => console.log("❌ MongoDB Fehler:", err));
-
-
-
+  .then(() => console.log("✅ MongoDB Connected"))
+  .catch((err) => console.log("❌ MongoDB Error:", err));
 
 app.get("/ping", (req, res) => {
   console.log("PING ROUTE HIT");
   res.send("SERVER PING OK");
 });
 
-
-
 app.use('/api', authRoutes);
 app.use("/api/igdb", igdbRoutes);
 
-const PORT = 4000;
+const PORT = 5500;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server läuft auf http://localhost:${PORT}`);
-
-  
+  console.log(`🚀 Server runs on http://localhost:${PORT}`);
 });

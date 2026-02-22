@@ -19,6 +19,68 @@
 </head>
 <body>
 
+<svg class="theme-bg" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true">
+  <defs>
+
+    <linearGradient id="stripeGradOld" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%"  stop-color="rgb(var(--stripeA-old, 59,130,246))"/>
+        <stop offset="100%" stop-color="rgb(var(--stripeB-old, 168,85,247))"/>
+    </linearGradient>
+
+    <linearGradient id="stripeGradNew" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%"  stop-color="rgb(var(--stripeA-new, 59,130,246))"/>
+        <stop offset="100%" stop-color="rgb(var(--stripeB-new, 168,85,247))"/>
+    </linearGradient>
+
+    <!-- OLD stripes -->
+    <pattern id="bgStripesOld" width="120" height="120" patternUnits="userSpaceOnUse" patternTransform="rotate(25)">
+      <rect class="bg-old-base" width="120" height="120"></rect>
+      <rect class="bg-old-stripe" x="0" y="0" width="56" height="120" fill="url(#stripeGradOld)"></rect>
+    </pattern>
+
+    <!-- NEW stripes -->
+    <pattern id="bgStripesNew" width="120" height="120" patternUnits="userSpaceOnUse" patternTransform="rotate(25)">
+      <rect class="bg-new-base" width="120" height="120"></rect>
+      <rect class="bg-new-stripe" x="0" y="0" width="56" height="120" fill="url(#stripeGradNew)"></rect>
+    </pattern>
+
+    <!-- NEW mask (reveal from left) -->
+    <mask id="wipeReveal">
+        <rect x="0" y="0" width="100%" height="100%" fill="black"></rect>
+        <rect class="wipe-reveal" x="0" y="0" width="100%" height="100%" fill="white"></rect>
+    </mask>
+
+    <!-- OLD mask (hide from left) -->
+    <mask id="wipeHide">
+        <rect x="0" y="0" width="100%" height="100%" fill="white"></rect>
+        <rect class="wipe-hide" x="0" y="0" width="100%" height="100%" fill="black"></rect>
+    </mask>
+
+    <!-- Warp filter -->
+    <filter id="bgWarp" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="2" seed="3" result="noise">
+        <animate attributeName="baseFrequency"
+                 dur="10s"
+                 values="0.012 0.02; 0.016 0.018; 0.012 0.02"
+                 repeatCount="indefinite"/>
+      </feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="32" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#bgWarp)">
+    <!-- OLD layer (masked: disappears left->right) -->
+    <g mask="url(#wipeHide)">
+        <rect width="100%" height="100%" fill="url(#bgStripesOld)"></rect>
+    </g>
+
+    <!-- NEW layer (masked: appears left->right) -->
+    <g mask="url(#wipeReveal)">
+        <rect width="100%" height="100%" fill="url(#bgStripesNew)"></rect>
+    </g>
+  </g>
+</svg>
+
 <nav class="navbar">
     <div class="logo">
         <a href="../index.html">MY<span class="accent">GAMELIST</span></a>
@@ -93,7 +155,9 @@
       </button>
 
       <ul class="custom-dropdown-menu">
-        <li data-value="all">All Genres</li>
+        <li class="dropdown-main" data-value="all">
+            <span class="main-title">All Genres</span>
+        </li>
 
         <li data-value="pointandclick">Point-and-click</li>
         <li data-value="fighting">Fighting</li>
@@ -121,6 +185,174 @@
     </ul>
     </div>
 
+    <!-- Platform Dropdown -->
+    <div class="custom-dropdown" id="platformDropdown">
+        <button class="dropdown-btn">
+            <span data-value="all">All Platforms</span>
+            <svg class="chevron" viewBox="0 0 24 24">
+                <path d="M6 9l6 6 6-6" />
+            </svg>
+        </button>
+
+        <ul class="custom-dropdown-menu">
+            <li class="platform-option opt-other dropdown-main" data-value="all" data-label="All Platforms">
+           <!-- IF WE USE AN ICON FOR "ALL" => <img class="platform-option-icon" src="../assets/platforms/other/all.svg" alt=""> --> 
+            <span class="main-title">All Platforms</span>
+            </li>
+
+        <!-- Sony -->
+        <li class="platform-option opt-sony" data-value="ps5" data-label="PlayStation 5">
+            <img class="platform-option-icon" src="../assets/platforms/sony/ps5.svg" alt="">PlayStation 5
+        </li>
+        <li class="platform-option opt-sony" data-value="ps4" data-label="PlayStation 4">
+        <img class="platform-option-icon" src="../assets/platforms/sony/ps4.svg" alt="">PlayStation 4
+        </li>
+        <li class="platform-option opt-sony" data-value="ps3" data-label="PlayStation 3">
+            <img class="platform-option-icon" src="../assets/platforms/sony/ps3.svg" alt="">PlayStation 3
+        </li>
+        <li class="platform-option opt-sony" data-value="ps2" data-label="PlayStation 2">
+            <img class="platform-option-icon" src="../assets/platforms/sony/ps2.svg" alt="">PlayStation 2
+        </li>
+        <li class="platform-option opt-sony" data-value="ps1" data-label="PlayStation 1">
+            <img class="platform-option-icon" src="../assets/platforms/sony/ps1.svg" alt="">PlayStation 1
+        </li>
+        <li class="platform-option opt-sony" data-value="psp" data-label="PSP">
+            <img class="platform-option-icon" src="../assets/platforms/sony/psp.svg" alt="">PSP
+        </li>
+        <li class="platform-option opt-sony" data-value="psvita" data-label="PS Vita">
+            <img class="platform-option-icon" src="../assets/platforms/sony/psvita.svg" alt="">PS Vita
+        </li>
+        <li class="platform-option opt-sony" data-value="psvr" data-label="PlayStation VR">
+            <img class="platform-option-icon" src="../assets/platforms/sony/psvr.svg" alt="">PlayStation VR
+        </li>
+
+        <!-- Microsoft -->
+        <li class="platform-option opt-microsoft" data-value="xboxseries" data-label="Xbox Series X|S">
+            <img class="platform-option-icon" src="../assets/platforms/microsoft/xboxseries.svg" alt="">Xbox Series X|S
+        </li>
+        <li class="platform-option opt-microsoft" data-value="xboxone" data-label="Xbox One">
+            <img class="platform-option-icon" src="../assets/platforms/microsoft/xboxone.svg" alt="">Xbox One
+        </li>
+        <li class="platform-option opt-microsoft" data-value="xbox360" data-label="Xbox 360">
+            <img class="platform-option-icon" src="../assets/platforms/microsoft/xbox360.svg" alt="">Xbox 360
+        </li>
+        <li class="platform-option opt-microsoft" data-value="xbox" data-label="Xbox">
+            <img class="platform-option-icon" src="../assets/platforms/microsoft/xbox.svg" alt="">Xbox
+        </li>
+
+        <!-- Nintendo -->
+        <li class="platform-option opt-nintendo" data-value="switch2" data-label="Nintendo Switch 2">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/switch2.svg" alt="">Nintendo Switch 2
+        </li>
+        <li class="platform-option opt-nintendo" data-value="switch" data-label="Nintendo Switch">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/switch1.svg" alt="">Nintendo Switch
+        </li>
+        <li class="platform-option opt-nintendo" data-value="wiiu" data-label="Wii U">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/wiiu.svg" alt="">Wii U
+        </li>
+        <li class="platform-option opt-nintendo" data-value="wii" data-label="Wii">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/wii.svg" alt="">Wii
+        </li>
+        <li class="platform-option opt-nintendo" data-value="n64" data-label="Nintendo 64">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/n64.svg" alt="">Nintendo 64
+        </li>
+        <li class="platform-option opt-nintendo" data-value="gcn" data-label="GameCube">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/gcn.svg" alt="">GameCube
+        </li>
+        <li class="platform-option opt-nintendo" data-value="virtualboy" data-label="Virtual Boy">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/virtualboy.svg" alt="">Virtual Boy
+        </li>
+        <li class="platform-option opt-nintendo" data-value="snes" data-label="SNES">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/snes.svg" alt="">SNES
+        </li>
+        <li class="platform-option opt-nintendo" data-value="nes" data-label="NES">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/nes.svg" alt="">NES
+        </li>
+        <li class="platform-option opt-nintendo" data-value="n3ds" data-label="Nintendo 3DS">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/3ds.svg" alt="">Nintendo 3DS
+        </li>
+        <li class="platform-option opt-nintendo" data-value="ds" data-label="Nintendo DS">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/ds.svg" alt="">Nintendo DS
+        </li>
+        <li class="platform-option opt-nintendo" data-value="gba" data-label="Game Boy Advance">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/gba.svg" alt="">Game Boy Advance
+        </li>
+        <li class="platform-option opt-nintendo" data-value="gbc" data-label="Game Boy Color">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/gbcolor.svg" alt="">Game Boy Color
+        </li>
+        <li class="platform-option opt-nintendo" data-value="gb" data-label="Game Boy">
+            <img class="platform-option-icon" src="../assets/platforms/nintendo/gameboy.svg" alt="">Game Boy
+        </li>
+
+        <!-- Sega -->
+        <li class="platform-option opt-sega" data-value="dreamcast" data-label="Dreamcast">
+            <img class="platform-option-icon" src="../assets/platforms/sega/dreamcast.svg" alt="">Dreamcast
+        </li>
+        <li class="platform-option opt-sega" data-value="saturn" data-label="Saturn">
+            <img class="platform-option-icon" src="../assets/platforms/sega/saturn.svg" alt="">Saturn
+        </li>
+        <li class="platform-option opt-sega" data-value="sega32x" data-label="Sega 32X">
+            <img class="platform-option-icon" src="../assets/platforms/sega/sega32x.svg" alt="">Sega 32X
+        </li>
+        <li class="platform-option opt-sega" data-value="segacd" data-label="Sega CD">
+            <img class="platform-option-icon" src="../assets/platforms/sega/segacd.svg" alt="">Sega CD
+        </li>
+        <li class="platform-option opt-sega" data-value="megadrive" data-label="Mega Drive / Genesis">
+            <img class="platform-option-icon" src="../assets/platforms/sega/megadrive.svg" alt="">Mega Drive / Genesis
+        </li>
+        <li class="platform-option opt-sega" data-value="gamegear" data-label="Game Gear">
+            <img class="platform-option-icon" src="../assets/platforms/sega/gamegear.svg" alt="">Game Gear
+        </li>
+        <li class="platform-option opt-sega" data-value="mastersystem" data-label="Master System">
+            <img class="platform-option-icon" src="../assets/platforms/sega/mastersystem.svg" alt="">Master System
+        </li>
+        <li class="platform-option opt-sega" data-value="sg1000" data-label="SG-1000">
+            <img class="platform-option-icon" src="../assets/platforms/sega/sg1000.svg" alt="">SG-1000
+        </li>
+        <li class="platform-option opt-sega" data-value="pico" data-label="Sega Pico">
+            <img class="platform-option-icon" src="../assets/platforms/sega/pico.png" alt="">Sega Pico
+        </li>
+        <li class="platform-option opt-sega" data-value="nomad" data-label="Sega Nomad">
+            <img class="platform-option-icon" src="../assets/platforms/sega/nomad.svg" alt="">Sega Nomad
+        </li>
+
+        <!-- PC / Web -->
+        <li class="platform-option opt-pc" data-value="windows" data-label="PC (Windows)">
+            <img class="platform-option-icon" src="../assets/platforms/pc/pc.svg" alt="">PC (Windows)
+        </li>
+        <li class="platform-option opt-pc" data-value="linux" data-label="Linux">
+            <img class="platform-option-icon" src="../assets/platforms/pc/linux.svg" alt="">Linux
+        </li>
+        <li class="platform-option opt-pc" data-value="webbrowser" data-label="Web Browser">
+            <img class="platform-option-icon" src="../assets/platforms/pc/webbrowser.png" alt="">Web Browser
+        </li>
+
+        <!-- Mobile -->
+        <li class="platform-option opt-mobile" data-value="mobile" data-label="Mobile (Android & iOS)">
+            <img class="platform-option-icon" src="../assets/platforms/mobile/mobile.svg" alt="">Mobile (Android &amp; iOS)
+        </li>
+
+        <!-- VR -->
+        <li class="platform-option opt-vr" data-value="steamvr" data-label="SteamVR">
+            <img class="platform-option-icon" src="../assets/platforms/vr/steamvr.svg" alt="">SteamVR
+        </li>
+        <li class="platform-option opt-vr" data-value="oculusvr" data-label="Oculus VR">
+            <img class="platform-option-icon" src="../assets/platforms/vr/oculus.svg" alt="">Oculus VR
+        </li>
+        <li class="platform-option opt-vr" data-value="metaquest" data-label="Meta Quest">
+            <img class="platform-option-icon" src="../assets/platforms/vr/metaquest.svg" alt="">Meta Quest
+        </li>
+
+        <!-- Other -->
+        <li class="platform-option opt-other" data-value="amiga" data-label="Amiga">
+            <img class="platform-option-icon" src="../assets/platforms/other/amiga.svg" alt="">Amiga
+        </li>
+        <li class="platform-option opt-other" data-value="cpc" data-label="Amstrad CPC">
+            <img class="platform-option-icon" src="../assets/platforms/other/cpc.svg" alt="">Amstrad CPC
+        </li>
+        </ul>
+    </div>
+
     <!-- Sort Dropdown -->
     <div class="custom-dropdown" id="sortDropdown">
       <button class="dropdown-btn">
@@ -141,9 +373,18 @@
 
     <div class="game-grid" id="gameGrid"></div>
 
-        <button id="loadMoreBtn" class="load-more-btn">
-            Load more games
-        </button>
+    <div id="infiniteSentinel" class="infinite-sentinel" aria-hidden="true"></div>
+
+    <div id="infiniteLoader" class="infinite-loader" aria-live="polite" aria-busy="false" hidden>
+    <div class="spinner"></div>
+        <span>Loading more games…</span>
+    </div>
+
+    <div id="endOfList" class="end-of-list" hidden>
+        No More games here (If you have any filters on, try removing them)
+    </div>
+
+
 </main>
 
 <footer class="main-footer">

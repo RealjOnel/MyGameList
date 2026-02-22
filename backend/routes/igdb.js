@@ -35,7 +35,71 @@ const GENRE_MAP = {
   moba: 36
 };
 
-//  TRENDING GAMES (für Login-Galerie)
+const PLATFORM_MAP = {
+  all: null,
+
+  // SONY
+  ps1: 7,
+  ps2: 8,
+  ps3: 9,
+  ps4: 48,
+  ps5: 167,
+  psp: 38,
+  psvita: 46,
+  psvr: 165,
+  psvr2: 390,
+
+  // MICROSOFT
+  xbox: 11,
+  xbox360: 12,
+  xboxone: 49,
+  xboxseries: 169,
+
+  // SEGA
+  sg1000: 84,
+  mastersystem: 64,
+  gamegear: 35,
+  megadrive: 29,     // Mega Drive / Genesis
+  segacd: 78,
+  sega32x: 30,
+  saturn: 32,
+  dreamcast: 23,
+  pico: 339,
+  nomad: 29,         // IGDB: Nomad is "version" of Genesis → only filterable by "Genesis"
+
+  // NINTENDO
+  switch: 130,
+  switch2: 508,
+  wii: 5,
+  wiiu: 41,
+  virtualboy: 87,
+  n64: 4,
+  gcn: 21,
+  nes: 18,
+  snes: 19,
+  gba: 24,
+  gbc: 22,
+  gb: 33,
+  ds: 20,
+  n3ds: 37,
+
+  // PC / WEB / OTHER
+  windows: 6,
+  linux: 3,
+  webbrowser: 82,
+  amiga: 16,
+  cpc: 25,
+
+  // MOBILE
+  mobile: [34, 39],  // Android + iOS
+
+  // VR
+  steamvr: 163,
+  oculusvr: 162,     // "Oculus VR" (Rift/PC-VR)
+  metaquest: [384, 386, 471], // Oculus Quest + Meta Quest 2 + Meta Quest 3
+};
+
+//  TRENDING GAMES (for Login Gallery)
 router.get("/trending", async (req, res) => {
   try {
     const token = await getTwitchToken();
@@ -62,7 +126,7 @@ router.get("/trending", async (req, res) => {
   }
 });
 
-//  EXPLORE GAMES (größere Liste)
+//  EXPLORE GAMES
 //  NOTE: keep this route SIMPLE and RELIABLE.
 //  We ask IGDB for games with a cover and then let the frontend
 //  filter out weird editions / DLC by name.
@@ -75,15 +139,28 @@ router.get("/games", async (req, res) => {
     // IGDB does not support a 'popularity' field on /games,
     // but it does support 'rating'. We treat 'rating' as our
     // default "popularity" proxy.
+
+    // sort logic
     const allowedSorts = ["name", "rating"];
-    const sort = allowedSorts.includes(req.query.sort)
-      ? req.query.sort
+    const sort = allowedSorts.includes(String(req.query.sort))
+      ? String(req.query.sort)
       : "rating";
 
-    const order = sort === "rating" ? "desc" : "asc";
+    const requestedOrder = String(req.query.order || "").toLowerCase();
+    const order = ["asc", "desc"].includes(requestedOrder)
+      ? requestedOrder
+      : (sort === "rating" ? "desc" : "asc");
+
+    // Search logic
     const search = req.query.search;
+
+    // Sort by Genre logic
     const genreKey = String(req.query.genre || "all").toLowerCase();
     const genreId = GENRE_MAP[genreKey];
+
+    // Sort by Platform logic
+    const platformKey = String(req.query.platform || "all").toLowerCase();
+    const platformId = PLATFORM_MAP[platformKey];
 
     const limit = EXPLORE_LIMIT;
     const offset = (page - 1) * limit;
@@ -100,6 +177,12 @@ router.get("/games", async (req, res) => {
       console.warn("⚠️ Unknown genre key:", genreKey);
     }
 
+    if (platformId != null) {
+      whereClause += ` & platforms = (${platformId})`;
+    } else if (platformKey !== "all") {
+      console.warn("⚠️ Unknown platform key:", platformKey);
+    }
+
     const response = await axios.post(
       "https://api.igdb.com/v4/games",
       `
@@ -107,11 +190,12 @@ router.get("/games", async (req, res) => {
           id,
           name,
           category,
+          first_release_date,
           parent_game,
           version_parent,
           cover.image_id,
           genres.name,
-          release_dates,
+          release_dates.date,
           release_dates.platform.name,
           involved_companies.company.name,
           involved_companies.developer,

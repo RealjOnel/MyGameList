@@ -665,6 +665,141 @@ button {
   gap: 1rem;
 }
 
+/* no results look on search look */
+
+.no-results {
+  grid-column: 1 / -1;
+  display: grid;
+  place-items: center;
+  padding: 3.5rem 1.5rem;
+  margin-top: 1.5rem;
+  border-radius: 18px;
+  border: 1px solid #eef2f6;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  box-shadow: 0 14px 30px rgba(0,0,0,0.06);
+  overflow: hidden;
+  position: relative;
+  animation: noResultsIn 420ms ease-out both;
+}
+
+.no-results-inner {
+  max-width: 520px;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.no-results-icon {
+  width: 74px;
+  height: 74px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.95rem;
+
+  background: rgba(37, 99, 235, 0.09);
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  box-shadow:
+    0 14px 30px rgba(0,0,0,0.08),
+    0 0 0 2px rgba(37, 99, 235, 0.06),
+    0 0 26px rgba(37, 99, 235, 0.14);
+}
+
+.no-results-svg {
+  width: 46px;
+  height: 46px;
+  color: #2563eb;
+  filter: drop-shadow(0 10px 18px rgba(37, 99, 235, 0.20));
+}
+
+.no-results h3 {
+  font-size: 1.35rem;
+  margin: 0 0 0.35rem;
+  color: #0f172a;
+}
+
+.no-results p {
+  margin: 0 auto 1.1rem;
+  color: #64748b;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.no-results-query {
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.no-results-actions {
+  display: inline-flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 0.85rem;
+}
+
+.no-results-btn {
+  padding: 0.7rem 1.05rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.no-results-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.08);
+}
+
+.no-results-link {
+  padding: 0.7rem 1.05rem;
+  border-radius: 12px;
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  background: rgba(37, 99, 235, 0.08);
+  color: #2563eb;
+  font-weight: 800;
+  text-decoration: none;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.no-results-link:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.12);
+}
+
+.no-results-hint {
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.no-results-watermark {
+  position: absolute;
+  inset: -40px;
+  z-index: 1;
+  opacity: 0.12;
+  filter: blur(0px);
+  background:
+    radial-gradient(circle at 30% 20%, rgba(59,130,246,0.22), transparent 40%),
+    radial-gradient(circle at 70% 60%, rgba(16,185,129,0.18), transparent 45%),
+    radial-gradient(circle at 50% 90%, rgba(239,68,68,0.12), transparent 50%);
+  transform: rotate(-8deg);
+}
+
+.no-results.has-logo .no-results-watermark {
+  background: var(--no-results-logo) center/260px no-repeat;
+  opacity: 0.08;
+}
+
+/* Animation */
+@keyframes noResultsIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 /* ---------- Custom Dropdown ---------- */
 
 .custom-dropdown {
@@ -749,6 +884,61 @@ button {
   font-weight: 600;
 }
 
+/* Main option spanning all columns */
+.custom-dropdown-menu .dropdown-main{
+  column-span: all;
+  -webkit-column-span: all;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 0.70rem 0.85rem;
+  margin: 0.15rem 0.15rem 0.65rem;
+  border-radius: 12px;
+
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.08),
+    inset 0 -1px 0 rgba(15, 23, 42, 0.08);
+
+transform: none !important;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
+  transform-origin: center;
+}
+
+.custom-dropdown-menu .dropdown-main:hover{
+  transform: scale(1.015) !important;  
+  border-color: rgba(37, 99, 235, 0.20);
+  box-shadow:
+    0 14px 34px rgba(0,0,0,0.10),
+    0 0 0 2px rgba(37, 99, 235, 0.08),
+    inset 0 -1px 0 rgba(15, 23, 42, 0.08);
+}
+
+.custom-dropdown-menu .dropdown-main .main-title{
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.custom-dropdown-menu .dropdown-main::after{
+  content: "";
+  display: block;
+  height: 1px;
+  background: rgba(15, 23, 42, 0.08);    
+  border-radius: 999px;
+  opacity: 0.9;
+}
+
+/* Left group */
+.custom-dropdown-menu .dropdown-main .main-left{
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
 /* 2 Rows Dropdown for genre */
 #genreDropdown .custom-dropdown-menu{
   width: max-content;
@@ -771,6 +961,145 @@ button {
   -webkit-column-break-inside: avoid;
   width: 100%;
   display: block;
+}
+
+/* Dropdown for Platform */
+
+#platformDropdown .custom-dropdown-menu{
+  width: max-content;
+  min-width: 660px;      /* enough for 3 rows */
+  max-width: 860px;      
+  column-count: 3;
+  column-gap: 14px;
+  padding: 0.7rem;
+  left: 50%;
+  right: auto;
+  transform: translate(-50%, -10px);
+}
+#platformDropdown.custom-dropdown.open > .custom-dropdown-menu{
+  transform: translate(-50%, 0);
+}
+
+#platformDropdown.custom-dropdown.open .custom-dropdown-menu{
+  transform: translate(-50%, 0);
+}
+
+#platformDropdown .custom-dropdown-menu li{
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  width: 100%;
+  display: block;
+}
+
+#platformDropdown .custom-dropdown-menu{
+  perspective: 900px; /* für tilt */
+}
+
+#platformDropdown .custom-dropdown-menu li.platform-option{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 0.65rem 0.9rem;
+  border-radius: 10px;
+
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, color 160ms ease;
+  transform-origin: left center;
+}
+
+#platformDropdown .platform-option-icon{
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  object-fit: contain;
+  transition: transform 160ms ease, filter 160ms ease;
+}
+
+/* Hover */
+#platformDropdown .custom-dropdown-menu li.platform-option:hover{
+  transform: translateX(6px) rotateY(-10deg);
+  background: rgba(255,255,255,0.75);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.06),
+    0 16px 30px rgba(0,0,0,0.10);
+}
+
+/* Icon “tilt” + extra glow */
+#platformDropdown .custom-dropdown-menu li.platform-option:hover .platform-option-icon{
+  transform: translateX(2px) rotate(-6deg) scale(1.06);
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.18));
+}
+
+/* Brand colors (CSS variables) */
+#platformDropdown .opt-sony      { --brand: rgba(90,140,255,0.85);  --brandSoft: rgba(90,140,255,0.18); }
+#platformDropdown .opt-microsoft { --brand: rgba(0,255,140,0.80);   --brandSoft: rgba(0,255,140,0.16); }
+#platformDropdown .opt-nintendo  { --brand: rgba(255,60,60,0.85);   --brandSoft: rgba(255,60,60,0.16); }
+#platformDropdown .opt-sega      { --brand: rgba(0,190,255,0.85);   --brandSoft: rgba(0,190,255,0.16); }
+#platformDropdown .opt-pc        { --brand: rgba(200,200,220,0.85); --brandSoft: rgba(200,200,220,0.16); }
+#platformDropdown .opt-mobile    { --brand: rgba(0,225,190,0.85);   --brandSoft: rgba(0,225,190,0.16); }
+#platformDropdown .opt-vr        { --brand: rgba(168,85,247,0.85);  --brandSoft: rgba(168,85,247,0.16); }
+#platformDropdown .opt-other     { --brand: rgba(148,163,184,0.85); --brandSoft: rgba(148,163,184,0.16); }
+
+/* Brand glow on hover */
+#platformDropdown .custom-dropdown-menu li.platform-option:hover{
+  box-shadow:
+    0 0 0 1px var(--brandSoft),
+    0 0 0 2px rgba(255,255,255,0.40),
+    0 0 18px var(--brandSoft),
+    0 18px 34px rgba(0,0,0,0.10);
+}
+
+#platformDropdown .custom-dropdown-menu li.platform-option:hover .platform-option-icon{
+  filter:
+    drop-shadow(0 10px 20px rgba(0,0,0,0.20))
+    drop-shadow(0 0 16px var(--brandSoft));
+}
+
+/* Prevent tilt on All Platforms row (it is also .platform-option) */
+#platformDropdown .custom-dropdown-menu li.platform-option.dropdown-main:hover{
+  transform: scale(1.015) !important;
+}
+
+#platformDropdown .custom-dropdown-menu li.platform-option:hover{
+  transform: translateX(6px) rotateY(-10deg);
+}
+
+
+@media (max-width: 980px){
+  #platformDropdown .custom-dropdown-menu{
+    column-count: 2;
+    min-width: 520px;
+    max-width: 90vw;
+  }
+}
+
+@media (max-width: 640px){
+  #platformDropdown .custom-dropdown-menu{
+    column-count: 1;
+    min-width: 240px;
+    max-width: 90vw;
+  }
+}
+
+.explore-controls .dropdown-btn{
+  width: 190px;              
+  min-width: 190px;
+}
+
+.explore-controls .dropdown-btn span{
+  display: inline-block;
+  max-width: 130px;          
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 640px){
+  #platformDropdown .custom-dropdown-menu{
+    column-count: 1;
+    min-width: 240px;
+    max-width: 90vw;
+  }
 }
 
 .search-filter-bar {
@@ -897,7 +1226,21 @@ button {
   transform: scale(1.28); 
   filter: drop-shadow(0 6px 14px rgba(0,0,0,0.45)) contrast(1.15);
 }  
-.platform-pc img        { transform: scale(1.08); }
+.platform-pc img { transform: scale(1.08); }
+
+.platform-sega img {
+  transform: scale(1.12);
+  filter: drop-shadow(0 7px 16px rgba(0,0,0,0.50)) contrast(1.18) saturate(1.25);
+}
+.platform-mastersystem img {
+    transform: scale(1.45);
+    filter: drop-shadow(0 6px 14px rgba(0,0,0,0.45)) contrast(1.15);
+}
+
+.platform-mobile img{
+  transform: scale(1.12);
+  filter: drop-shadow(0 7px 16px rgba(0,0,0,0.50)) contrast(1.15) saturate(1.20);
+}
 
 .platform-badge::before {
   content: "";
@@ -951,6 +1294,46 @@ button {
 }
 .platform-pc::before { background: rgba(200, 200, 220, 0.32); }
 
+/* SEGA */
+.platform-sega{
+  box-shadow:
+    0 0 0 2px rgba(0, 190, 255, 0.62),   
+    0 0 22px rgba(0, 190, 255, 0.52),   
+    0 0 60px rgba(0, 190, 255, 0.18);   
+  border-color: rgba(0, 190, 255, 0.62);
+}
+.platform-sega::before{ background: rgba(0, 190, 255, 0.36); }
+
+/* MOBILE */
+.platform-mobile{
+  box-shadow:
+    0 0 0 2px rgba(0, 225, 190, 0.60),
+    0 0 22px rgba(0, 225, 190, 0.50),
+    0 0 60px rgba(0, 225, 190, 0.18);
+  border-color: rgba(0, 225, 190, 0.60);
+}
+.platform-mobile::before{ background: rgba(0, 225, 190, 0.34); }
+
+/* VR */
+.platform-vr{
+  box-shadow:
+    0 0 0 2px rgba(168, 85, 247, 0.62),
+    0 0 22px rgba(168, 85, 247, 0.52),
+    0 0 60px rgba(168, 85, 247, 0.18);
+  border-color: rgba(168, 85, 247, 0.62);
+}
+.platform-vr::before{ background: rgba(168, 85, 247, 0.36); }
+
+/* OTHER */
+.platform-other{
+  box-shadow:
+    0 0 0 2px rgba(148, 163, 184, 0.60),
+    0 0 22px rgba(148, 163, 184, 0.50),
+    0 0 60px rgba(148, 163, 184, 0.18);
+  border-color: rgba(148, 163, 184, 0.60);
+}
+.platform-other::before{ background: rgba(148, 163, 184, 0.34); }
+
 .game-card:hover .platform-badge {
   transform: translateY(-1px) scale(1.03);
 }
@@ -1003,6 +1386,48 @@ button {
   cursor: pointer;
 }
 
+.infinite-loader{
+  margin: 1.75rem auto 0;
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.8rem 1.1rem;
+  border-radius: 14px;
+  border: 1px solid #eef2f6;
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+  color: #334155;
+  font-weight: 600;
+}
+
+.infinite-loader .spinner{
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(51,65,85,0.25);
+  border-top-color: rgba(51,65,85,0.85);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin{ to { transform: rotate(360deg); } }
+
+.infinite-sentinel{
+  height: 1px;
+  width: 100%;
+}
+
+.end-of-list{
+  margin: 1.25rem auto 0;
+  width: fit-content;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+#infiniteLoader[hidden] { display: none !important; }
+#infiniteSentinel[hidden] { display: none !important; }
+
 /* Styling für die Filter-Auswahlbox */
 .filter-select {
     padding: 0.8rem 2.8rem 0.8rem 1.4rem;
@@ -1034,6 +1459,90 @@ button {
 .filter-select:focus {
     border-color: #3b82f6;
     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+}
+
+/* ===== Platform Theme Background ===== */
+
+/* Background SVG positioning */
+.theme-bg{
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+
+/* content above bg */
+.navbar, footer{ position: relative; z-index: 1; }
+
+/* show bg when not neutral */
+html[data-theme="neutral"] .theme-bg{ opacity: 0; }
+html[data-theme]:not([data-theme="neutral"]) .theme-bg{ opacity: 1; }
+
+/* OLD + NEW colors read from CSS vars on the SVG element */
+.theme-bg{
+  --base-old: 255,255,255;
+  --stripe-old: 255,255,255;
+  --base-new: 255,255,255;
+  --stripe-new: 255,255,255;
+}
+
+.theme-bg{ filter: saturate(1.05); }
+
+/* Base: einfarbig + subtil */
+.theme-bg .bg-old-base { fill: rgb(var(--base-old)); opacity: 0.06; }
+.theme-bg .bg-new-base { fill: rgb(var(--base-new)); opacity: 0.06; }
+
+/* Stripes: kommen aus dem Gradient-Fill im SVG, Stärke hier */
+.theme-bg .bg-old-stripe,
+.theme-bg .bg-new-stripe { opacity: 0.14; }
+
+/* Wipe animation */
+.theme-bg .wipe-reveal,
+.theme-bg .wipe-hide{
+  transform-box: fill-box;
+  transform-origin: 0% 50%;
+  transform: scaleX(0);
+}
+
+.theme-bg.is-wiping .wipe-reveal,
+.theme-bg.is-wiping .wipe-hide{
+  animation: wipeX 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes wipeX{
+  0%   { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce){
+  .theme-bg.is-wiping .wipe-reveal,
+  .theme-bg.is-wiping .wipe-hide{ animation: none; transform: scaleX(1); }
+  .theme-bg feTurbulence animate{ display:none; }
+}
+
+/* Theme colors */
+html[data-theme="nintendo"]{ --tint: 255, 60, 60; }
+html[data-theme="sony"]{     --tint: 90, 140, 255; }
+html[data-theme="microsoft"]{--tint: 0, 255, 140; }
+html[data-theme="sega"]{     --tint: 0, 190, 255; }
+html[data-theme="pc"]{       --tint: 200, 200, 220; }
+html[data-theme="mobile"]{   --tint: 0, 225, 190; }
+html[data-theme="vr"]{       --tint: 168, 85, 247; }
+html[data-theme="other"]{    --tint: 148, 163, 184; }
+html[data-theme="neutral"]{  --tint: 255, 255, 255; }
+/* boost only for MyGameList default theme */
+html[data-theme="mgl"] .theme-bg .bg-old-base,
+html[data-theme="mgl"] .theme-bg .bg-new-base{
+  opacity: 0.11;
+}
+html[data-theme="mgl"] .theme-bg .bg-old-stripe,
+html[data-theme="mgl"] .theme-bg .bg-new-stripe{
+  opacity: 0.35;  
 }
 
 /* ==========================================================================
@@ -1945,6 +2454,7 @@ button {
 }
 
 .role-badge.dev { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+.role-badge.co-dev { background: rgba(65, 105, 225, 0.12); color: #2242a3;}
 .role-badge.helper { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
 .role-badge.tester { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
 .role-badge.designer { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
