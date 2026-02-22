@@ -1425,6 +1425,9 @@ transform: none !important;
   font-weight: 600;
 }
 
+#infiniteLoader[hidden] { display: none !important; }
+#infiniteSentinel[hidden] { display: none !important; }
+
 /* Styling für die Filter-Auswahlbox */
 .filter-select {
     padding: 0.8rem 2.8rem 0.8rem 1.4rem;

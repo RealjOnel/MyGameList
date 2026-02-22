@@ -57,6 +57,10 @@ function escapeHtml(str) {
 
 function setLoadingUI(on){
   if (!loaderEl) return;
+
+  // when there is no more games, the load more box is hidden
+  if (!hasMore) on = false;
+
   loaderEl.hidden = !on;
   loaderEl.setAttribute("aria-busy", on ? "true" : "false");
 }
@@ -357,6 +361,10 @@ function renderGames(games) {
   // no game found look
 
   if (validGames.length === 0 && currentPage === 1) {
+
+  setEndUI(false);       
+  setLoadingUI(false);   
+  hasMore = false;
   const q = searchInput?.value?.trim() || "";
   const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(q || "game")}`;
 
@@ -434,6 +442,14 @@ async function loadGames(reset = false) {
   if (isLoading) return;
   isLoading = true;
 
+  if (!reset && !hasMore) {
+  setLoadingUI(false);
+  setEndUI(true);
+  if (observer) observer.disconnect();
+  if (sentinel) sentinel.hidden = true;
+  return;
+}
+
   if (reset) {
     currentPage = 1;
     gameGrid.innerHTML = "";
@@ -442,6 +458,7 @@ async function loadGames(reset = false) {
   if (reset) {
     hasMore = true;
     setEndUI(false);
+    setLoadingUI(false);
   }
 
   try {
@@ -471,7 +488,11 @@ async function loadGames(reset = false) {
 
     const games = await res.json();
     hasMore = Array.isArray(games) && games.length === PAGE_SIZE;
-    if (!hasMore) setEndUI(true);
+
+    if (!hasMore){
+      setEndUI(true);
+      setLoadingUI(false); // <- loader gone and stays gone
+    }
 
     renderGames(games);
 
