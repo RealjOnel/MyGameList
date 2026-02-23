@@ -1476,7 +1476,7 @@ transform: none !important;
 }
 
 /* content above bg */
-.navbar, footer{ position: relative; z-index: 1; }
+footer{ position: relative; z-index: 1; }
 
 /* show bg when not neutral */
 html[data-theme="neutral"] .theme-bg{ opacity: 0; }

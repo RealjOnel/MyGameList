@@ -104,25 +104,71 @@ router.get("/trending", async (req, res) => {
   try {
     const token = await getTwitchToken();
 
-    const response = await axios.post(
-      "https://api.igdb.com/v4/games",
+    const limit = Math.min(parseInt(req.query.limit || "12", 10), 30);
+
+    // Default: IGDB Visits (popularity_type = 1)
+    // Other types exist (2..8 etc). See /popularity_types. :contentReference[oaicite:3]{index=3}
+    const popularityType = parseInt(req.query.type || "1", 10);
+
+    //  Get top game_ids by popularity
+    const popResp = await axios.post(
+      "https://api.igdb.com/v4/popularity_primitives",
       `
-        fields id, name, cover.image_id, rating;
-        where rating > 80 & cover != null;
-        sort rating desc;
-        limit 12;
+        fields game_id,value,popularity_type;
+        where popularity_type = ${popularityType};
+        sort value desc;
+        limit 60;
       `,
       {
         headers: {
           "Client-ID": process.env.TWITCH_CLIENT_ID,
-          "Authorization": `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        timeout: 15000,
       }
     );
 
-    res.json(response.data);
-  } catch {
-    res.status(500).json({ error: "Trending Games fehlgeschlagen" });
+    const popList = Array.isArray(popResp.data) ? popResp.data : [];
+    const orderedIds = [...new Set(popList.map(x => x.game_id).filter(Boolean))];
+
+    if (orderedIds.length === 0) return res.json([]);
+
+    // Fetch game details for these ids (covers etc.)
+    const idsStr = orderedIds.join(",");
+    const gamesResp = await axios.post(
+      "https://api.igdb.com/v4/games",
+      `
+        fields id,name,cover.image_id,rating;
+        where id = (${idsStr}) & cover != null;
+        limit 60;
+      `,
+      {
+        headers: {
+          "Client-ID": process.env.TWITCH_CLIENT_ID,
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        timeout: 15000,
+      }
+    );
+
+    const games = Array.isArray(gamesResp.data) ? gamesResp.data : [];
+    const byId = new Map(games.map(g => [g.id, g]));
+
+    // Keep popularity order and cut to limit
+    const result = [];
+    for (const id of orderedIds) {
+      const g = byId.get(id);
+      if (!g?.cover?.image_id) continue;
+      result.push(g);
+      if (result.length >= limit) break;
+    }
+
+    res.json(result);
+  } catch (err) {
+    console.error(err.response?.data || err);
+    res.status(500).json({ error: "Trending Games failed" });
   }
 });
 

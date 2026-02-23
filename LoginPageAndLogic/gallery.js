@@ -1,30 +1,33 @@
+import { API_BASE_URL } from "../../backend/config.js";
+
 async function loadDynamicGallery() {
-    try {
-        const response = await fetch('https://mygamelist-omhm.onrender.com/api/igdb/trending');
-        const games = await response.json();
-        
-        const track = document.querySelector('.gallery-track');
-        if (!track) return;
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/igdb/trending?limit=12&type=1`);
+    const games = await response.json();
 
-        track.innerHTML = '';
+    const track = document.querySelector(".gallery-track");
+    if (!track) return;
 
-        games.forEach(game => {
-            const imgId = game.cover.image_id;
-            const imgUrl = `https://images.igdb.com/igdb/image/upload/t_1080p/${imgId}.jpg`;
-            
-            const div = document.createElement('div');
-            div.className = 'gallery-item';
-            div.style.backgroundImage = `url('${imgUrl}')`;
-            
-            track.appendChild(div);
-        });
+    track.innerHTML = "";
 
-        const items = track.innerHTML;
-        track.innerHTML += items;
+    games.forEach((game) => {
+      const imgId = game?.cover?.image_id;
+      if (!imgId) return;
 
-    } catch (error) {
-        console.error("Couldnt load gallery:", error);
-    }
+      const imgUrl = `https://images.igdb.com/igdb/image/upload/t_1080p/${imgId}.jpg`;
+
+      const div = document.createElement("div");
+      div.className = "gallery-item";
+      div.style.backgroundImage = `url("${imgUrl}")`;
+
+      track.appendChild(div);
+    });
+
+    // duplicate for infinite track illusion
+    track.innerHTML += track.innerHTML;
+  } catch (error) {
+    console.error("Couldnt load gallery:", error);
+  }
 }
 
-document.addEventListener('DOMContentLoaded', loadDynamicGallery);
+document.addEventListener("DOMContentLoaded", loadDynamicGallery);
