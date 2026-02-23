@@ -134,6 +134,13 @@ router.get("/trending", async (req, res) => {
 
     if (orderedIds.length === 0) return res.json([]);
 
+    const pool = orderedIds.slice(0, 60);
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    const pickedIds = pool.slice(0, limit);
+
     // Fetch game details for these ids (covers etc.)
     const idsStr = orderedIds.join(",");
     const gamesResp = await axios.post(
@@ -158,13 +165,15 @@ router.get("/trending", async (req, res) => {
 
     // Keep popularity order and cut to limit
     const result = [];
-    for (const id of orderedIds) {
+    for (const id of pickedIds) {
       const g = byId.get(id);
       if (!g?.cover?.image_id) continue;
       result.push(g);
       if (result.length >= limit) break;
     }
 
+
+    res.set("Cache-Control", "no-store");
     res.json(result);
   } catch (err) {
     console.error(err.response?.data || err);

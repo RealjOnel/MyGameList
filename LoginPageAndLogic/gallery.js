@@ -2,7 +2,9 @@ import { API_BASE_URL } from "../../backend/config.js";
 
 async function loadDynamicGallery() {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/igdb/trending?limit=12&type=1`);
+    const response = await fetch(`${API_BASE_URL}/api/igdb/trending?limit=12&type=1`, {
+    cache: "no-store",
+    });
     const games = await response.json();
 
     const track = document.querySelector(".gallery-track");
