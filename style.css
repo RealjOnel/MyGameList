@@ -1123,12 +1123,13 @@ transform: none !important;
     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
 }
 
-.game-grid {
+.game-grid{
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, 220px);
     gap: 2.5rem;
     width: 100%;
     margin-top: 2rem;
+    justify-content: center;
 }
 
 .game-card {
