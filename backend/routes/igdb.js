@@ -244,6 +244,8 @@ router.get("/games", async (req, res) => {
         fields
           id,
           name,
+          rating,
+          rating_count,
           category,
           first_release_date,
           parent_game,

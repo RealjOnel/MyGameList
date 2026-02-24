@@ -327,14 +327,22 @@ function createGameCard(game) {
     : "Unknown Studio";
 
 const primaryPlatform = getOriginalPlatformName(game);
-const iconInfo = platformToIconInfo(primaryPlatform); // { src, brand } or null
+const iconInfo = platformToIconInfo(primaryPlatform);
+
+const year = game.first_release_date
+  ? new Date(game.first_release_date * 1000).getUTCFullYear()
+  : "—";
+
+const rating = (typeof game.rating === "number" && isFinite(game.rating))
+  ? `${Math.round(game.rating)}`
+  : "—";
 
 card.innerHTML = `
   <div class="game-cover">
     <img class="game-cover-img" src="${imageUrl}" alt="${game.name}">
     ${
       iconInfo
-        ? `<div class="platform-badge platform-${iconInfo.brand} platform-${iconInfo.key}" title="${primaryPlatform}">
+        ? `<div class="platform-badge platform-${iconInfo.brand} platform-${iconInfo.key || ""}" title="${primaryPlatform}">
              <img src="${iconInfo.src}" alt="${primaryPlatform}">
            </div>`
         : ``
@@ -343,7 +351,28 @@ card.innerHTML = `
 
   <div class="game-info">
     <h4>${game.name}</h4>
-    <p>${genre} • ${studio}</p>
+    <p class="game-sub">${genre} • ${studio}</p>
+
+    <!-- Extra meta (hidden in grid, shown in table) -->
+    <div class="game-meta">
+      <div class="meta-item">
+        ${iconInfo ? `<img class="meta-icon" src="${iconInfo.src}" alt="">` : ""}
+        <span class="meta-text">${primaryPlatform || "—"}</span>
+      </div>
+
+      <div class="meta-item">
+        <span class="meta-label">Year</span>
+        <span class="meta-text">${year}</span>
+      </div>
+
+      <div class="meta-item">
+        <span class="meta-label">Rating</span>
+        <span class="meta-text">${rating}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="game-actions">
     <button class="btn-add">+ Add to List</button>
   </div>
 `;
