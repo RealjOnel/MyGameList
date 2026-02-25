@@ -16,7 +16,25 @@ let sortOrder = "desc";
 let selectedGenre = "all";
 let selectedPlatform = "all";
 
-const searchInput = document.querySelector(".search-input");
+function getSearchInput(){
+  return document.getElementById("globalSearchInput") || document.querySelector(".search-input");
+}
+
+function syncQueryFromUrl(retries = 10){
+  const q = new URLSearchParams(window.location.search).get("search");
+  if (!q) return;
+
+  const input = getSearchInput();
+  if (!input){
+    if (retries > 0) return setTimeout(() => syncQueryFromUrl(retries - 1), 50);
+    return;
+  }
+
+  input.value = q;
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+document.addEventListener("DOMContentLoaded", () => syncQueryFromUrl());
 
 const bannedPatterns = [
   /collector/i,
@@ -394,7 +412,7 @@ function renderGames(games) {
   setEndUI(false);       
   setLoadingUI(false);   
   hasMore = false;
-  const q = searchInput?.value?.trim() || "";
+  const q = getSearchInput()?.value?.trim() || "";
   const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(q || "game")}`;
 
   gameGrid.innerHTML = `
@@ -453,7 +471,8 @@ function renderGames(games) {
   const clearBtn = document.getElementById("clearSearchBtn");
   if (clearBtn) {
     clearBtn.addEventListener("click", () => {
-      if (searchInput) searchInput.value = "";
+      const inputEl = getSearchInput();
+      if (inputEl) inputEl.value = "";
       selectedGenre = "all";
       loadGames(true);
     });
@@ -497,9 +516,8 @@ async function loadGames(reset = false) {
       order: sortOrder
     });
 
-    if (searchInput.value.trim()) {
-      params.append("search", searchInput.value.trim());
-    }
+    const q = getSearchInput()?.value?.trim();
+    if (q) params.append("search", q);
 
     if (selectedGenre !== "all") {
       params.append("genre", selectedGenre);
@@ -584,8 +602,6 @@ setupDropdown("sortDropdown", value => {
 
 loadGames(true);
 
-let searchTimeout;
-
 function setupInfiniteScroll(){
   if (!sentinel) return;
 
@@ -609,7 +625,15 @@ function setupInfiniteScroll(){
 
 document.addEventListener("DOMContentLoaded", setupInfiniteScroll);
 
-searchInput.addEventListener("input", () => {
+let searchTimeout;
+
+document.addEventListener("input", (e) => {
+  const t = e.target;
+  if (!(t instanceof HTMLInputElement)) return;
+
+  // react only to our search input
+  if (!(t.id === "globalSearchInput" || t.classList.contains("search-input"))) return;
+
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
     loadGames(true);

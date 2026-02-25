@@ -85,6 +85,9 @@
     <div class="logo">
         <a href="../index.html">MY<span class="accent">GAMELIST</span></a>
     </div>
+
+    <div class="nav-search-slot" id="navSearchSlot"></div>
+
     <div class="nav-links">
         <a href="./features.html" class="nav-item">Features</a>
     
@@ -139,11 +142,7 @@
   <h2>Explore <span class="gradient-text">All Games</span></h2>
 
   <div class="explore-controls">
-    <input
-      type="text"
-      placeholder="Search for games..."
-      class="search-input"
-    />
+    <div class="page-search-slot" id="pageSearchSlot"></div>
 
     <!-- Genre Dropdown -->
     <div class="custom-dropdown" id="genreDropdown">
@@ -434,10 +433,11 @@
     </div>
 </footer>
 
+<script src="../js/ExplorePage/togglelook.js"></script>
+<script type="module" src="../js/global/nav-search.js"></script>
 <script src="../js/global/reveal.js"></script>
 <script src="../js/global/active.js"></script>
 <script type="module" src="../js/ExplorePage/explore.js"></script>
-<script src="../js/ExplorePage/togglelook.js"></script>
 <script src="../js/global/storeuser.js"></script>
 
 </body>
