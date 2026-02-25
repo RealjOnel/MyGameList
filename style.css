@@ -291,7 +291,7 @@ html[data-auth="in"] #userMenu {
   align-items:center;
 }
 
-/* responsive: hide in navbar on small screens (optional) */
+/* responsive: hide in navbar on small screens */
 @media (max-width: 980px){
   .nav-search{ width: 240px; }
 }
@@ -321,8 +321,8 @@ html[data-auth="in"] #userMenu {
 
 .nav-search[data-variant="page"] .nav-search-panel{
   display: none !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.04);
 }
-
 
 /* Dropdown */
 

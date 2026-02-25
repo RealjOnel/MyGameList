@@ -49,7 +49,8 @@ function buildSearch(){
       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M21 21l-4.3-4.3m1.3-5.4a7.4 7.4 0 11-14.8 0 7.4 7.4 0 0114.8 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg>
-      <input id="globalSearchInput" class="search-input" type="text" placeholder="Search games, users, forum..." autocomplete="off" />
+      <input id="globalSearchInput" class="nav-search-field" type="text"
+       placeholder="Search games, users, forum..." autocomplete="off" />
     </div>
 
     <div class="nav-search-panel" hidden>
