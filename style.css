@@ -3605,23 +3605,11 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
         
 }
 
-
-.profile_main {
-    flex: 2;                
-    outline: #c4c4c4 solid 1px; 
-    flex-direction: column;
-}
-
 .box {
     flex: 1.1;               
 
 }
 
-.profile_banner {
-    flex: auto;
-    outline: #c4c4c4 solid 1px; 
-    height: 150px;              /* height banner */
-}
 .profile_right {
     flex: 2;               
     flex-direction: column;
@@ -3643,12 +3631,17 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
     height: auto;
 }
 
-
                               /* Profile Identity Section */
 
-.sidebar{
-    flex: 0.9;                /* sidebar width */
-    min-height: 100vh;        /* full height of the viewport */
+.sidebar {
+    flex: 0.9;                      /* sidebar width */
+    min-height: 100vh;              /* full height of the viewport */
+
+    background: linear-gradient(
+        to bottom,
+        #ffffff 0%,
+        #f7f7f7 100%
+    );
 }
 
 .profile_identity {
@@ -3661,6 +3654,11 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
     height: 200px;
     width: auto;
     border-radius: 50%;
+
+    border: 4px solid #3b82f6;
+    padding: 5px;
+    background: linear-gradient(145deg, #ffffff, #e6e6e6);
+    box-shadow: 0 10px 25px rgba(59,130,246,0.25);
 }
 .profile_socials {
     text-align: center;
@@ -3675,7 +3673,7 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 .profile_actionbuttons {
     display: flex;
     justify-content: center;
-    margin-top: 20px;
+    margin-top: 10px;
     margin-left: 10px;
     margin-right: 10px;
 }
@@ -3698,7 +3696,7 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 .profile_button:hover {
     background-color: #60a5fa; 
     transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 15px 25px rgba(0,0,0,0.15); 
+    box-shadow: 0 10px 25px rgba(59,130,246,0.25);
 }
 
 .profile_button a {
@@ -3718,12 +3716,11 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 
 .profile_bio_content {
     text-align: left;
-    background-color: rgb(236, 236, 236); 
+    background-color: #f8fafc; 
     color: rgb(0, 0, 0);
     padding: 10px 20px;
     border-radius: 15px;
     border: none;
-    cursor: pointer;
     font-weight: 600;
     transition: all 0.3s ease; 
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
@@ -3732,12 +3729,20 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 }
 
 .bio_line {
-    border-bottom: 1px solid #c4c4c4;
     padding: 5px 0;
+    background-image: linear-gradient(
+        to right,
+        #3b82f6 0%,
+        rgba(59,130,246,0.6) 40%,
+        transparent 100%
+    );
+    background-repeat: no-repeat;
+    background-size: 100% 1px;
+    background-position: bottom;
 }
 
 .bio_line:last-child {
-    border-bottom: none;
+    background-image: none;
 }
 
 .profile_bio_items {
@@ -3783,4 +3788,59 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
     background-color: rgb(220, 220, 220); 
     transform: translateY(-3px) scale(1.02);
     box-shadow: 0 15px 25px rgba(0,0,0,0.15); 
+}
+
+.profile_check_in {
+    display: flex;
+    flex-direction: column;
+}
+.profile_check_in h3 {
+    margin-top: auto;
+    margin-left: 40px;
+}
+
+
+
+        /* profile Main Section */
+.profile_main {
+    flex: 2;                
+    outline: #c4c4c4 solid 1px; 
+    flex-direction: column;
+}
+
+.profile_banner {
+    flex: auto;
+    outline: #c4c4c4 solid 1px; 
+    height: 150px;              /* height banner */
+}
+
+.profile_banner_image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile_statistics {
+    position: relative; /* damit absolute Positionierung innerhalb funktioniert */
+}
+
+.profile_pie_container {
+    position: absolute; /* oben links positionieren */
+    top: 0;
+    left: 0;
+    width: 275px; /* Compact Width */
+    font-family: Arial, sans-serif;
+    padding: 0.5rem;
+    border-radius: 8px; /* optional, sieht schön aus */
+    z-index: 10;
+    margin : 10px;
+    margin-left: 10px;
+}
+
+#pieChart {
+    width: 100%;  /* Canvas füllt Container */
+    height: 100%;
+    border-radius: 50%; /* Canvas selbst auch rund */
+    display: block;
+    border: #000 solid 3px;
 }
