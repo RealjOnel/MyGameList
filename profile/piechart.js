@@ -12,10 +12,12 @@ const tooltip = document.getElementById('tooltip'); // Tooltip div für Hover
 
 const centerX = canvas.width / 2;
 const centerY = canvas.height / 2;
-const radius = 150;
+
+// Radius exakt bis zur Innenkante der 3px Border
+const radius = (canvas.width / 2) - 3;
 
 // Farben der Segmente
-const colors = ['#3b82f6', '#8b5cf6', '#f97316', '#22c55e', '#eab308'];
+const colors = ['#06a700de', '#3b83f6e3', '#ff0000da', '#ffd000', '#6d6d6d'];
 
 // Array speichert Start- und Endwinkel jedes Segments
 let startAngles = [];
@@ -65,12 +67,12 @@ canvas.addEventListener('mousemove', function(e) {
         const segment = startAngles.find(s => adjustedAngle >= s.start && adjustedAngle <= s.end);
         if(segment) {
             tooltip.style.display = 'block';
-            tooltip.style.left = (mouseX + 5) + 'px'; // 10px Abstand rechts
-            tooltip.style.top = (mouseY + 5) + 'px';  // 10px Abstand unten
-            tooltip.textContent = segment.name; // Segment-Name
+            tooltip.style.left = (mouseX + 30) + 'px';
+            tooltip.style.top = (mouseY + 30) + 'px';  
+            tooltip.textContent = segment.name; 
         }
     } else {
-        tooltip.style.display = 'none'; // Maus außerhalb Pie
+        tooltip.style.display = 'none'; 
     }
 });
 

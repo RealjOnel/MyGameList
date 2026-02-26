@@ -76,7 +76,7 @@
 <div class="container reveal">
     <div class="sidebar">
         <div class="profile_identity">
-            <img src="../assets/User/Default_User_Icon.png" alt="User Icon" class="profile_icon">
+            <img src="../assets/User/Default_User_Icon.png" alt="User Icon" id="profile_log" class="profile_icon ">
             <h2 class="profile_username">Username</h2>
         </div>
         <div class="profile_socials">
@@ -137,35 +137,79 @@
         </div>
     </div>
     <div class="profile_main">
+
+        <!-- ===================== -->
+        <!-- banner -->
+        <!-- ===================== -->
         <div class="profile_banner">
             <img src="../assets/User/banner.png" alt="banner" class="profile_banner_image">
         </div>
-        <div class="profile_statistics" style="position:relative;">
-            <div class="profile_pie_container">
 
-                <canvas id="pieChart" width="200" height="200"></canvas>
+        <div class="profile_content">
 
-                <!-- Tooltip für Hover-Labels -->
-                <div id="tooltip" 
+            <!-- ===================== -->
+            <!--left site: statistics -->
+            <!-- ===================== -->
+            <div class="profile_statistics">
+
+                <div class="profile_pie_container">
+                    <canvas id="pieChart" width="200" height="200"></canvas>
+                </div>
+
+                <!-- Tooltip -->
+                <div id="tooltip"
                     style="position:absolute; 
-                            padding:5px 10px; 
-                            background:#333; 
-                            color:white; 
-                            border-radius:4px; 
-                            pointer-events:none; 
-                            display:none; 
-                            font-family:Arial; 
-                            font-size:14px;">
+                        padding:5px 10px; 
+                        background:#333; 
+                        color:white; 
+                        border-radius:4px; 
+                        pointer-events:none; 
+                        display:none; 
+                        font-family:Arial; 
+                        font-size:14px;
+                        z-index:100;">
                 </div>
             </div>
+
+            <!-- ===================== -->
+            <!-- right site: favourites -->
+            <!-- ===================== -->
+            <div class="profile_favourites">
+
+                <h3>Player's Favorite Games:</h3>
+
+                <div class="profile_favourites_items">
+
+                    <button class="favourite_item" type="button">
+                        <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co498s.jpg" class="favourite_icon">
+                        <span class="favourite_name">Donkey Kong Land</span>
+                    </button>
+
+                    <button class="favourite_item" type="button">
+                        <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co517y.jpg" class="favourite_icon">
+                        <span class="favourite_name">Battle Charge</span>
+                    </button>
+
+                    <button class="favourite_item" type="button">
+                        <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co2lbd.jpg" class="favourite_icon">
+                        <span class="favourite_name">Grand Theft Auto V</span>
+                    </button>
+
+                    <button class="favourite_item" type="button">
+                        <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co1r7f.jpg" class="favourite_icon">
+                        <span class="favourite_name">The Last Of Us</span>
+                    </button>
+
+                </div>
+            </div>
+
         </div>
-    </div>
-    <div class="box">
+    </div>    <div class="box">
         <div class="profile_right">
             <div class="profile_empty">
                 Empty
             </div>
-            <div class="profile_favourites">
+            <div class="profile_favs">
                 Favs
 
             </div>

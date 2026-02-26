@@ -3620,7 +3620,7 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
     height: 150px;
 }
 
-.profile_favourites {
+.profile_favs {
     flex: auto;
     height: 600px;
     border-top: 1px solid #c4c4c4;
@@ -3660,6 +3660,18 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
     background: linear-gradient(145deg, #ffffff, #e6e6e6);
     box-shadow: 0 10px 25px rgba(59,130,246,0.25);
 }
+
+.profile_icon_loggedin {
+    height: 200px;
+    width: auto;
+    border-radius: 50%;
+
+    border: 4px solid #22c55e;
+    padding: 5px;
+    background: linear-gradient(145deg, #ffffff, #e6e6e6);
+    box-shadow: 0 10px 25px rgba(28, 192, 88, 0.35);
+}
+
 .profile_socials {
     text-align: center;
 }
@@ -3803,15 +3815,16 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 
         /* profile Main Section */
 .profile_main {
-    flex: 2;                
-    outline: #c4c4c4 solid 1px; 
+    flex: 2;
+    outline: #c4c4c4 solid 1px;
+    display: flex;
     flex-direction: column;
 }
 
+/* Banner bleibt oben */
 .profile_banner {
-    flex: auto;
-    outline: #c4c4c4 solid 1px; 
-    height: 150px;              /* height banner */
+    height: 150px;
+    outline: #c4c4c4 solid 1px;
 }
 
 .profile_banner_image {
@@ -3820,27 +3833,82 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
     object-fit: cover;
 }
 
+/* ===================== */
+/* NEUER CONTENT WRAPPER */
+/* ===================== */
+.profile_content {
+    display: flex;      /* STATISTIK LINKS / FAVORITEN RECHTS */
+    gap: 40px;
+    padding: 20px;
+}
+
+/* ===================== */
+/* LINKE SEITE */
+/* ===================== */
 .profile_statistics {
-    position: relative; /* damit absolute Positionierung innerhalb funktioniert */
+    flex: 1;
+    position: relative;
 }
 
 .profile_pie_container {
-    position: absolute; /* oben links positionieren */
-    top: 0;
-    left: 0;
-    width: 275px; /* Compact Width */
-    font-family: Arial, sans-serif;
-    padding: 0.5rem;
-    border-radius: 8px; /* optional, sieht schön aus */
-    z-index: 10;
-    margin : 10px;
-    margin-left: 10px;
+    width: 220px;
+    margin-bottom: 30px;
 }
 
 #pieChart {
-    width: 100%;  /* Canvas füllt Container */
-    height: 100%;
-    border-radius: 50%; /* Canvas selbst auch rund */
     display: block;
+    border-radius: 50%;
     border: #000 solid 3px;
 }
+
+/* ===================== */
+/* RECHTE SEITE */
+/* ===================== */
+.profile_favourites {
+    flex: 1;
+}
+
+.profile_favourites_items {
+    display: flex;
+    flex-wrap: wrap; /* neue Zeile, wenn nicht genug Platz */
+    gap: 15px;
+    justify-content: flex-start; /* linksbündig */
+}
+
+.favourite_item {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease;
+    border: 1px solid #f1f5f9;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    backface-visibility: hidden;
+    transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease; 
+    width: 120px;
+}
+
+.favourite_icon {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.favourite_name {
+    margin-top: 8px;
+    font-size: 14px;
+    text-align: center;
+}
+
+
+.favourite_item:hover {
+    transform: translateY(-10px);
+}
+
+
+
+
+
