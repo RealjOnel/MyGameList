@@ -123,7 +123,7 @@ async function fetchGameSuggestions(q){
   // keep it light
   return (Array.isArray(games) ? games : [])
     .filter(g => g?.cover?.image_id && g?.name)
-    .slice(0, 8);
+    .slice(0, 15);
 }
 
 function renderSuggestions(root, mode, items, q){
