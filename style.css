@@ -25,7 +25,7 @@ body {
     background-color: var(--bg-body);
     color: var(--text-main);
     overflow-x: hidden;
-    -webkit-font-smoothing: antialiased; /* Macht die Schrift auf Macs noch cleaner */
+    -webkit-font-smoothing: antialiased;
 }
 
 /* Default: shows nothing until decided */
@@ -56,6 +56,10 @@ html[data-auth="in"] #userMenu {
     position: sticky; 
     top: 0; 
     z-index: 1000;
+}
+
+.navbar {
+    position: relative;
 }
 
 .logo { font-weight: 800; font-size: 1.4rem; letter-spacing: -1px; }
@@ -148,6 +152,17 @@ html[data-auth="in"] #userMenu {
 .nav-search{
   position: relative;
   width: 320px;
+}
+
+.navbar .nav-search-slot{
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1200;
+}
+
+.navbar .nav-search{
+  width: clamp(360px, 42vw, 560px);
 }
 
 /* on explore page slot, use your existing size */
@@ -319,9 +334,90 @@ html[data-auth="in"] #userMenu {
   background:transparent;
 }
 
+/* Search for Game Page - hide panel, only show input */
+
 .nav-search[data-variant="page"] .nav-search-panel{
   display: none !important;
   box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+}
+
+/* Navbar Search specific styles */
+
+/* Bigger + centered dropdown panel (NAV variant) */
+.nav-search[data-variant="nav"] .nav-search-panel{
+  width: min(680px, 92vw);
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  top: calc(100% + 12px);
+
+  border-radius: 18px;
+  border: 1px solid rgba(15,23,42,0.10);
+  background: rgba(255,255,255,0.94);
+  backdrop-filter: blur(16px);
+
+  box-shadow:
+    0 30px 70px rgba(0,0,0,0.18),
+    0 10px 30px rgba(0,0,0,0.10);
+
+  overflow: hidden;
+  z-index: 2000;
+  animation: navPanelIn 140ms ease-out both;
+}
+
+@keyframes navPanelIn{
+  from { opacity: 0; transform: translateX(-50%) translateY(-6px) scale(0.99); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+/* Tabs: a bit more premium */
+.nav-search[data-variant="nav"] .nav-search-tabs{
+  gap: 8px;
+  padding: 12px;
+  background: rgba(248,250,252,0.75);
+}
+
+/* Results: more breathing room */
+.nav-search[data-variant="nav"] .nav-search-results{
+  padding: 10px;
+  max-height: 420px;
+}
+
+/* Items: cleaner hover and spacing */
+.nav-search[data-variant="nav"] .nav-search-item{
+  padding: 12px;
+  border-radius: 16px;
+}
+
+.nav-search[data-variant="nav"] .nav-search-item:hover{
+  background: rgba(59,130,246,0.10);
+  transform: translateX(6px);
+}
+
+/* Thumbs slightly bigger */
+.nav-search[data-variant="nav"] .nav-search-thumb{
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  flex: 0 0 52px;
+}
+
+/* Footer a bit nicer */
+.nav-search[data-variant="nav"] .nav-search-footer{
+  padding: 12px 14px;
+  background: rgba(248,250,252,0.75);
+}
+
+/* Custom scrollbar for results */
+
+.nav-search-results::-webkit-scrollbar{ width: 10px; }
+.nav-search-results::-webkit-scrollbar-thumb{
+  background: rgba(148,163,184,0.45);
+  border-radius: 999px;
+  border: 3px solid rgba(255,255,255,0.9);
+}
+.nav-search-results::-webkit-scrollbar-track{
+  background: transparent;
 }
 
 /* Dropdown */
