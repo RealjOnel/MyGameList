@@ -4,6 +4,25 @@ const sentinel = document.getElementById("infiniteSentinel");
 const loaderEl = document.getElementById("infiniteLoader");
 const endEl = document.getElementById("endOfList");
 
+const URL_SEARCH = (new URLSearchParams(window.location.search).get("search") || "").trim();
+let bootSearch = URL_SEARCH;
+
+function getSearchInput(){
+  return document.getElementById("globalSearchInput") || document.querySelector(".search-input");
+}
+
+function getSearchQuery(){
+  const el = getSearchInput();
+  const v = el?.value?.trim();
+  return v || bootSearch || "";
+}
+
+// When the input finally exists, reflect URL search in it (nice UX)
+document.addEventListener("DOMContentLoaded", () => {
+  const el = getSearchInput();
+  if (el && bootSearch && !el.value) el.value = bootSearch;
+});
+
 const PAGE_SIZE = 50; // HAS to be the same as the limit on IGDB.js
 let hasMore = true;
 let observer = null;
@@ -16,25 +35,7 @@ let sortOrder = "desc";
 let selectedGenre = "all";
 let selectedPlatform = "all";
 
-function getSearchInput(){
-  return document.getElementById("globalSearchInput") || document.querySelector(".search-input");
-}
 
-function syncQueryFromUrl(retries = 10){
-  const q = new URLSearchParams(window.location.search).get("search");
-  if (!q) return;
-
-  const input = getSearchInput();
-  if (!input){
-    if (retries > 0) return setTimeout(() => syncQueryFromUrl(retries - 1), 50);
-    return;
-  }
-
-  input.value = q;
-  input.dispatchEvent(new Event("input", { bubbles: true }));
-}
-
-document.addEventListener("DOMContentLoaded", () => syncQueryFromUrl());
 
 const bannedPatterns = [
   /collector/i,
@@ -412,7 +413,7 @@ function renderGames(games) {
   setEndUI(false);       
   setLoadingUI(false);   
   hasMore = false;
-  const q = getSearchInput()?.value?.trim() || "";
+  const q = getSearchQuery() || "";
   const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(q || "game")}`;
 
   gameGrid.innerHTML = `
@@ -516,7 +517,7 @@ async function loadGames(reset = false) {
       order: sortOrder
     });
 
-    const q = getSearchInput()?.value?.trim();
+    const q = getSearchQuery();
     if (q) params.append("search", q);
 
     if (selectedGenre !== "all") {
@@ -636,6 +637,7 @@ document.addEventListener("input", (e) => {
 
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
+    bootSearch = "";    
     loadGames(true);
-  }, 300);
+}, 300);
 });
