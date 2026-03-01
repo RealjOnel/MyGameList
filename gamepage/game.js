@@ -32,7 +32,7 @@ async function loadGame(){
 
   // Title + Cover
   qs("gameTitle").textContent = g.name || "Unknown";
-  document.title = `${g.name} | MyGameList`;
+  document.title = `${g.name} | MGL`;
 
   const coverId = g?.cover?.image_id;
   qs("gameCover").src = coverId
@@ -48,14 +48,47 @@ async function loadGame(){
   const year = g.first_release_date ? new Date(g.first_release_date * 1000).getUTCFullYear() : "—";
   const rating = (typeof g.rating === "number") ? `${Math.round(g.rating)}` : "—";
 
-  qs("gameStats").innerHTML = `
-    <div class="stat-row">
-      <div class="stat"><span class="k">Rating</span><span class="v">${esc(rating)}</span></div>
-      <div class="stat"><span class="k">Release</span><span class="v">${esc(year)}</span></div>
-      <div class="stat"><span class="k">Studio</span><span class="v">${esc(studio)}</span></div>
-      <div class="stat"><span class="k">Ranking</span><span class="v">—</span></div>
-    </div>
-  `;
+    const userRating = "—"; // later: DB Rating (average of all users who added the game to their list)
+    const mglRank = "—";    // Later: calculate rank based on user ratings (e.g. top 1000 games in the database)
+
+    const meta = (typeof g.aggregated_rating === "number" && isFinite(g.aggregated_rating))
+        ? `${Math.round(g.aggregated_rating)}`
+        : "—";
+
+    qs("gameStats").innerHTML = `
+        <div class="stats-wrap">
+            <div class="stats-left">
+            <div class="stat">
+                <span class="k">User Rating</span>
+                <span class="v">${esc(userRating)}</span>
+            </div>
+
+            <div class="stat">
+                <span class="k">Metacritic</span>
+                <span class="v">${esc(meta)}</span>
+            </div>
+
+            <div class="stat stat-rank">
+                <span class="k">MGL Rank</span>
+                <span class="v">${esc(mglRank)}</span>
+            </div>
+            </div>
+
+            <div class="stats-divider" aria-hidden="true"></div>
+
+            <div class="stats-right">
+            <div class="stat">
+                <span class="k">Release</span>
+                <span class="v">${esc(year)}</span>
+            </div>
+
+            <div class="stat">
+                <span class="k">Studio</span>
+                <span class="v">${esc(studio)}</span>
+            </div>
+            </div>
+        </div>
+    `;
 
   // Description
   qs("gameDescription").textContent = g.summary || g.storyline || "No description available.";

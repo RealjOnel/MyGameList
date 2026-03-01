@@ -4038,6 +4038,55 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
   color: #0f172a;
 }
 
+/* Stats bar layout */
+.stats-wrap{
+  display: grid;
+  grid-template-columns: auto 1px 1fr;
+  align-items: center;
+  gap: 28px;
+}
+
+.stats-left,
+.stats-right{
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.stats-right{
+  justify-content: flex-end;
+  margin-left: auto;          /* pushes right group to the far right */ 
+}
+
+.stats-divider{
+  width: 1.5px;
+  height: 44px;
+  background: rgba(15, 23, 42, 0.10);
+}
+
+/* push rank a bit away from the other two */
+.stat-rank{
+  margin-left: 18px;
+}
+
+/* keep the stat typography consistent */
+.stat .k{
+  display:block;
+  font-size: .82rem;
+  color: #94a3b8;
+  font-weight: 800;
+  letter-spacing: .01em;
+}
+
+.stat .v{
+  display:block;
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
 .game-stats-card,
 .game-user-card,
 .game-tags-card,
