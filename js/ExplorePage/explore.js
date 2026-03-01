@@ -327,6 +327,11 @@ function platformToIconInfo(platformName) {
 function createGameCard(game) {
   const card = document.createElement("div");
   card.classList.add("game-card");
+  card.dataset.id = game.id;
+
+  card.addEventListener("click", () => {
+    window.location.href = `../gamepage/game.html?id=${encodeURIComponent(game.id)}`;
+  });
 
   const imageUrl = game.cover
     ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${game.cover.image_id}.jpg`

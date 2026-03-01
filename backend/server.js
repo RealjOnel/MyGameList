@@ -25,8 +25,7 @@ app.get("/ping", (req, res) => {
 app.use('/api', authRoutes);
 app.use("/api/igdb", igdbRoutes);
 
-const PORT = 5500;
-
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server runs on http://localhost:${PORT}`);
 });

@@ -278,6 +278,58 @@ router.get("/games", async (req, res) => {
   }
 });
 
+// GAME DETAILS FOR EACH GAME PAGE
+router.get("/game/:id", async (req, res) => {
+  try {
+    const token = await getTwitchToken();
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: "Invalid game id" });
+
+    const response = await axios.post(
+      "https://api.igdb.com/v4/games",
+      `
+        fields
+          id, name,
+          summary, storyline,
+          rating, aggregated_rating, total_rating, total_rating_count,
+          first_release_date,
+          cover.image_id,
+          genres.name,
+          platforms.name,
+          involved_companies.developer,
+          involved_companies.publisher,
+          involved_companies.company.name,
+          time_to_beat.hastily,
+          time_to_beat.normally,
+          time_to_beat.completely,
+          videos.video_id,
+          videos.name,
+          release_dates.date,
+          release_dates.platform.name,
+          release_dates.region;
+        where id = ${id};
+        limit 1;
+      `,
+      {
+        headers: {
+          "Client-ID": process.env.TWITCH_CLIENT_ID,
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        timeout: 15000,
+      }
+    );
+
+    const game = Array.isArray(response.data) ? response.data[0] : null;
+    if (!game) return res.status(404).json({ error: "Game not found" });
+
+    res.json(game);
+  } catch (err) {
+    console.error(err.response?.data || err);
+    res.status(500).json({ error: "Game detail failed" });
+  }
+});
+
 router.get("/", (req, res) => {
   res.send("IGDB ROUTER WORKS");
 });
