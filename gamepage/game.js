@@ -106,7 +106,41 @@ async function loadGame(){
   (plats.length ? plats : ["—"]).forEach(t => platWrap.appendChild(chip(t)));
 
   // Trailer (YouTube ID)
-  const vid = g?.videos?.[0]?.video_id;
+  function pickTrailerVideoId(videos, gameName){
+    const list = Array.isArray(videos) ? videos : [];
+    const nameNorm = (s) => String(s || "").toLowerCase();
+
+    const GOOD = [
+        /trailer/, /official/, /teaser/, /announcement/, /reveal/, /launch/, /release date/, /gameplay trailer/, /story trailer/
+    ];
+    const BAD = [
+        /walkthrough/, /playthrough/, /let'?s play/, /longplay/, /\b100%\b/, /speedrun/, /full game/, /complete/, /no commentary/, /all bosses/, /ost/, /soundtrack/
+    ];
+
+    const gn = nameNorm(gameName);
+
+    const scored = list
+        .filter(v => v?.video_id)
+        .map(v => {
+            const n = nameNorm(v.name);
+            let score = 0;
+
+        if (GOOD.some(rx => rx.test(n))) score += 50;
+        if (BAD.some(rx => rx.test(n))) score -= 100;
+
+        // little extras
+        if (n.includes("official")) score += 10;
+        if (gn && n.includes(gn)) score += 5;
+
+        return { id: v.video_id, score, name: v.name };
+    })
+    .sort((a,b) => b.score - a.score);
+
+    // only take if its positively scored (heuristic to avoid wrong videos when no clear trailer is available)
+    return scored[0]?.score > 0 ? scored[0].id : null;
+    }
+
+const vid = pickTrailerVideoId(g?.videos, g?.name);
   const trailerWrap = qs("trailerWrap");
   trailerWrap.innerHTML = vid
     ? `<iframe src="https://www.youtube-nocookie.com/embed/${esc(vid)}" title="Trailer" frameborder="0"
