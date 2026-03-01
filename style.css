@@ -4101,7 +4101,7 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 
 .game-stats-card{ padding: 14px 16px; }
 .stat-row{ display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
-.stat .k{ display:block; font-size: .78rem; color:#94a3b8; font-weight: 800; }
+.stat .k{ display:block; font-size: .78rem; color:#94a3b8; font-weight: 800; margin-bottom: 3px; text-transform: uppercase; }
 .stat .v{ display:block; font-size: .95rem; color:#0f172a; font-weight: 900; white-space: nowrap; overflow:hidden; text-overflow: ellipsis; }
 
 .game-user-card{
