@@ -83,11 +83,11 @@ async function loadGame(){
 
   // Time to beat
   const ttb = g?.time_to_beat || {};
-  qs("playtimeBox").innerHTML = `
-    <div class="pt-row"><span>Main</span><b>${fmtHours(ttb.normally)}</b></div>
-    <div class="pt-row"><span>Extra</span><b>${fmtHours(ttb.hastily)}</b></div>
-    <div class="pt-row"><span>Completionist</span><b>${fmtHours(ttb.completely)}</b></div>
-  `;
+    qs("playtimeBox").innerHTML = `
+        <div class="pt-row"><span>Main</span><b>${fmtHours(ttb.hastily)}</b></div>
+        <div class="pt-row"><span>Main + Extras</span><b>${fmtHours(ttb.normally)}</b></div>
+        <div class="pt-row"><span>Completionist</span><b>${fmtHours(ttb.completely)}</b></div>
+    `;
 
   // Releases grouped by platform
   const rds = Array.isArray(g.release_dates) ? g.release_dates : [];

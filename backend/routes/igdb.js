@@ -285,11 +285,19 @@ router.get("/game/:id", async (req, res) => {
     const id = parseInt(req.params.id, 10);
     if (!Number.isFinite(id)) return res.status(400).json({ error: "Invalid game id" });
 
-    const response = await axios.post(
+    const headers = {
+      "Client-ID": process.env.TWITCH_CLIENT_ID,
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+    };
+
+    // 1) Base game data (include parent/version)
+    const gameResp = await axios.post(
       "https://api.igdb.com/v4/games",
       `
         fields
           id, name,
+          parent_game, version_parent,
           summary, storyline,
           rating, aggregated_rating, total_rating, total_rating_count,
           first_release_date,
@@ -299,9 +307,6 @@ router.get("/game/:id", async (req, res) => {
           involved_companies.developer,
           involved_companies.publisher,
           involved_companies.company.name,
-          time_to_beat.hastily,
-          time_to_beat.normally,
-          time_to_beat.completely,
           videos.video_id,
           videos.name,
           release_dates.date,
@@ -310,18 +315,38 @@ router.get("/game/:id", async (req, res) => {
         where id = ${id};
         limit 1;
       `,
-      {
-        headers: {
-          "Client-ID": process.env.TWITCH_CLIENT_ID,
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
-        timeout: 15000,
-      }
+      { headers, timeout: 15000 }
     );
 
-    const game = Array.isArray(response.data) ? response.data[0] : null;
+    const game = Array.isArray(gameResp.data) ? gameResp.data[0] : null;
     if (!game) return res.status(404).json({ error: "Game not found" });
+
+    // 2) Fallback ID for time-to-beat (edition -> base game)
+    const ttbGameId = Number(game.version_parent || game.parent_game || game.id);
+
+    // 3) Time to beat from separate endpoint
+    const ttbResp = await axios.post(
+      "https://api.igdb.com/v4/game_time_to_beats",
+      `
+        fields hastily,normally,completely,count;
+        where game_id = ${ttbGameId};
+        sort count desc;
+        limit 1;
+      `,
+      { headers, timeout: 15000 }
+    );
+
+    const ttb = Array.isArray(ttbResp.data) ? ttbResp.data[0] : null;
+
+    game.time_to_beat = ttb
+      ? {
+          hastily: Number(ttb.hastily) || 0,
+          normally: Number(ttb.normally) || 0,
+          completely: Number(ttb.completely) || 0,
+          count: Number(ttb.count) || 0,
+          source_game_id: ttbGameId, // optional fürs Debuggen
+        }
+      : null;
 
     res.json(game);
   } catch (err) {
