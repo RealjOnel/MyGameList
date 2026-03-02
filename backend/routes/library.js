@@ -83,6 +83,24 @@ router.post("/add", requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/library/entry/:igdbId
+// returns the user's entry for this game (or null)
+router.get("/entry/:igdbId", requireAuth, async (req, res) => {
+  try {
+    const igdbId = Number(req.params.igdbId);
+    if (!Number.isFinite(igdbId)) return res.status(400).json({ message: "Invalid igdbId" });
+
+    const game = await Game.findOne({ igdbId });
+    if (!game) return res.json({ entry: null });
+
+    const entry = await UserGameEntry.findOne({ userId: req.userId, gameId: game._id });
+    return res.json({ entry: entry || null });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "Failed to fetch entry" });
+  }
+});
+
 /**
  * PATCH /api/library/:igdbId
  * body can include: { status?, rating? }
