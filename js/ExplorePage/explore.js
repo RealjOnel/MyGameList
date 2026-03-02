@@ -419,59 +419,32 @@ function renderGames(games) {
   setLoadingUI(false);   
   hasMore = false;
   const q = getSearchQuery() || "";
-  const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(q || "game")}`;
+const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(q || "game")}`;
+const iconUrl = new URL("../assets/specialicons/nogamesfound.svg", document.baseURI).href; // Pfad anpassen!
 
-  gameGrid.innerHTML = `
-    <div class="no-results" role="status" aria-live="polite">
-      <div class="no-results-inner">
-        <div class="no-results-icon" aria-hidden="true">
-          <svg class="no-results-svg" viewBox="0 0 24 24" fill="none">
-            <!-- Cloud/Controller body -->
-              <path d="M7.2 9.4A4.8 4.8 0 0 1 12 5h0a4.8 4.8 0 0 1 4.8 4.4c.9-.7 2.2-.7 3.2.1 1.1.9 1.5 2.4 1.1 3.8l-.8 2.8A3.6 3.6 0 0 1 16.7 20H7.3a3.6 3.6 0 0 1-3.5-2.7l-.8-2.8c-.4-1.4 0-2.9 1.1-3.8 1-.8 2.3-.8 3.2-.1Z"
-                stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-
-            <!-- D-pad -->
-              <path d="M7.5 12.9h2.8M8.9 11.5v2.8"
-                stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-
-            <!-- Buttons RIGHT  -->
-              <circle cx="16.7" cy="12.4" r=".65" fill="currentColor"/>
-              <circle cx="18.6" cy="13.9" r=".65" fill="currentColor"/>
-
-            <!-- Face eyes -->
-              <circle cx="10.3" cy="13.3" r=".8" fill="currentColor"/>
-              <circle cx="13.7" cy="13.3" r=".8" fill="currentColor"/>
-
-            <!-- Sad mouth -->
-              <path d="M10.6 17.2Q12 16.0 13.4 17.2"
-                stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-          </svg>
+gameGrid.innerHTML = `
+  <div class="no-results" role="status" aria-live="polite">
+    <div class="no-results-inner">
+      <div class="no-results-icon" aria-hidden="true">
+        <img class="no-results-svg" src="${iconUrl}" alt="" decoding="async">
       </div>
 
+      <h3>No games found</h3>
+      <p>
+        ${q ? `Nothing matched <span class="no-results-query">"${escapeHtml(q)}"</span>.` : `Try a different search or pick a genre.`}
+      </p>
 
-        <h3>No games found</h3>
-        <p>
-          ${q ? `Nothing matched <span class="no-results-query">"${escapeHtml(q)}"</span>.` : `Try a different search or pick a genre.`}
-        </p>
-
-        <div class="no-results-actions">
-          <button class="no-results-btn" type="button" id="clearSearchBtn">
-            Clear search
-          </button>
-
-          <a class="no-results-link" href="${googleUrl}" target="_blank" rel="noopener noreferrer">
-            Search on Google
-          </a>
-        </div>
-
-        <div class="no-results-hint">
-          Tip: check spelling, try fewer words, or remove filters.
-        </div>
+      <div class="no-results-actions">
+        <button class="no-results-btn" type="button" id="clearSearchBtn">Clear search</button>
+        <a class="no-results-link" href="${googleUrl}" target="_blank" rel="noopener noreferrer">Search on Google</a>
       </div>
 
-      <div class="no-results-watermark" aria-hidden="true"></div>
+      <div class="no-results-hint">Tip: check spelling, try fewer words, or remove filters.</div>
     </div>
-  `;
+
+    <div class="no-results-watermark" aria-hidden="true"></div>
+  </div>
+`;
 
   // Clear button
   const clearBtn = document.getElementById("clearSearchBtn");

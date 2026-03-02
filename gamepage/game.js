@@ -39,6 +39,182 @@ async function loadGame(){
     ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${coverId}.jpg`
     : "../assets/placeholder-cover.png";
 
+// ===== Library controls (Add -> Status Dropdown, Rating Dropdown) =====
+const token = localStorage.getItem("token");
+
+const btnAdd = qs("btnAdd");
+const statusDD = qs("statusDD");
+const ratingDD = qs("ratingDD");
+const btnReview = qs("btnReview");
+
+function ddParts(root){
+  return {
+    root,
+    btn: root.querySelector(".mgl-dd-btn"),
+    label: root.querySelector(".mgl-dd-label"),
+    menu: root.querySelector(".mgl-dd-menu"),
+    items: [...root.querySelectorAll(".mgl-dd-item")]
+  };
+}
+
+function closeAllDropdowns(){
+  document.querySelectorAll(".mgl-dd.open").forEach(x => {
+    x.classList.remove("open");
+    const b = x.querySelector(".mgl-dd-btn");
+    if (b) b.setAttribute("aria-expanded", "false");
+  });
+}
+
+function wireDropdown(root, onSelect){
+  const p = ddParts(root);
+
+  p.btn.addEventListener("click", (e) => {
+    if (root.classList.contains("disabled")) return;
+    e.stopPropagation();
+    const isOpen = root.classList.toggle("open");
+    p.btn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  });
+
+  p.items.forEach(it => {
+    it.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const val = it.dataset.value;
+      await onSelect(val);
+      root.classList.remove("open");
+      p.btn.setAttribute("aria-expanded", "false");
+    });
+  });
+
+  return {
+    setLabel: (txt) => { p.label.textContent = txt; },
+    setActiveValue: (val) => {
+      p.items.forEach(it => it.classList.toggle("active", it.dataset.value === String(val ?? "")));
+    },
+    setDisabled: (dis) => {
+      root.classList.toggle("disabled", !!dis);
+    }
+  };
+}
+
+document.addEventListener("click", closeAllDropdowns);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeAllDropdowns(); });
+
+async function fetchEntry(){
+  if (!token) return null;
+  const r = await fetch(`${API_BASE_URL}/api/library/entry/${encodeURIComponent(id)}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!r.ok) return null;
+  const data = await r.json();
+  return data?.entry || null;
+}
+
+async function patchEntry(patch){
+  const r = await fetch(`${API_BASE_URL}/api/library/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(patch)
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+const statusUI = wireDropdown(statusDD, async (val) => {
+  await patchEntry({ status: val });
+  await refreshControls();
+});
+
+const ratingUI = wireDropdown(ratingDD, async (val) => {
+  const rating = val === "" ? null : Number(val);
+  await patchEntry({ rating });
+  await refreshControls();
+});
+
+function statusLabel(v){
+  return ({
+    planned: "Planned",
+    playing: "Currently Playing",
+    completed: "Completed",
+    dropped: "Dropped",
+    on_hold: "On-Hold"
+  })[v] || "Planned";
+}
+
+async function refreshControls(){
+  // Default safe state
+  btnAdd.hidden = false;
+  btnAdd.disabled = false;
+  statusDD.hidden = true;
+  ratingDD.hidden = true;
+  btnReview.disabled = true;
+
+  // logged out
+  if (!token){
+    btnAdd.textContent = "Login to add";
+    return;
+  }
+
+  const entry = await fetchEntry();
+
+  // not in list
+  if (!entry){
+    btnAdd.textContent = "+ Add to List";
+    return;
+  }
+
+  // in list
+  btnAdd.hidden = true;
+  btnAdd.disabled = true;
+
+  statusDD.hidden = false;
+  ratingDD.hidden = false;
+
+  statusUI.setLabel(statusLabel(entry.status));
+  statusUI.setActiveValue(entry.status);
+
+  const rLabel = entry.rating == null ? "Your Rating" : `Your Rating: ${entry.rating}/10`;
+  ratingUI.setLabel(rLabel);
+  ratingUI.setActiveValue(entry.rating == null ? "" : String(entry.rating));
+
+  btnReview.disabled = false;
+}
+
+btnAdd.addEventListener("click", async () => {
+  if (!token){
+    window.location.href = "../LoginPageAndLogic/login.html";
+    return;
+  }
+
+  btnAdd.disabled = true;
+
+  const r = await fetch(`${API_BASE_URL}/api/library/add`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({ igdbId: Number(id), status: "planned" })
+  });
+
+  if (!r.ok){
+    btnAdd.disabled = false;
+    console.error("Add failed:", await r.text());
+    return;
+  }
+
+  await refreshControls();
+});
+
+// Review placeholder (feature later)
+btnReview.addEventListener("click", () => {
+  console.log("Review feature later.");
+});
+
+await refreshControls();
+
   // Studio (dev/publisher)
   const studio =
     g?.involved_companies?.find(c => c?.developer)?.company?.name ||

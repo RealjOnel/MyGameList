@@ -45,6 +45,8 @@ html[data-auth="in"] #userMenu {
   align-items: center;
 }
 
+[hidden] { display: none !important; }
+
 .navbar {
     display: flex;
     justify-content: space-between;
@@ -991,6 +993,9 @@ button {
   color: #2563eb;
   filter: drop-shadow(0 10px 18px rgba(37, 99, 235, 0.20));
 }
+
+.no-results-icon { width: 96px; height: 96px; margin: 0 auto 12px; }
+.no-results-svg  { width: 100%; height: 100%; display: block; }
 
 .no-results h3 {
   font-size: 1.35rem;
@@ -4237,3 +4242,132 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 @media (max-width: 640px){
   .game-top{ grid-template-columns: 1fr; }
 }
+
+/* ===== MGL Dropdown (custom) ===== */
+.mgl-dd{ position: relative; width: 100%; }
+.game-user-card .mgl-dd{ width: 100%; }
+
+.mgl-dd-btn{
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  display:flex;
+  align-items:center;
+  justify-content: center;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
+}
+
+.mgl-dd-label{
+  font-weight: 900;
+}
+
+/* caret */
+.mgl-dd-caret{
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid rgba(15,23,42,0.55);
+  border-bottom: 2px solid rgba(15,23,42,0.55);
+  transform: rotate(45deg);
+  transition: transform 180ms ease, opacity 180ms ease;
+  opacity: 0.75;
+}
+.mgl-dd.open .mgl-dd-caret{
+  transform: rotate(-135deg);
+  opacity: 1;
+}
+
+/* subtle glow sweep */
+.mgl-dd-btn::before{
+  content:"";
+  position:absolute;
+  inset: -40px;
+  background: radial-gradient(circle at 30% 30%, rgba(59,130,246,0.25), transparent 55%),
+              radial-gradient(circle at 70% 70%, rgba(139,92,246,0.18), transparent 60%);
+  opacity: 0;
+  transition: opacity 220ms ease;
+  pointer-events:none;
+}
+.mgl-dd-btn:hover::before{ opacity: 1; }
+
+/* menu */
+.mgl-dd-menu{
+  position:absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 10px);
+  border-radius: 16px;
+  border: 1px solid rgba(15,23,42,0.10);
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 22px 50px rgba(0,0,0,0.14);
+  padding: 8px;
+  z-index: 50;
+
+  opacity: 0;
+  transform: translateY(-8px) scale(0.99);
+  pointer-events: none;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.mgl-dd.open .mgl-dd-menu{
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.mgl-dd-item{
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 800;
+  color: #0f172a;
+  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+}
+
+.mgl-dd-item:hover{
+  background: rgba(59,130,246,0.10);
+  border-color: rgba(59,130,246,0.18);
+  transform: translateX(4px);
+}
+
+.mgl-dd-item.active{
+  background: rgba(59,130,246,0.14);
+  border-color: rgba(59,130,246,0.22);
+}
+.mgl-dd-item:active{ transform: translateX(2px) scale(0.99); }
+
+/* disabled look */
+.mgl-dd.disabled .mgl-dd-btn{
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.mgl-dd.disabled .mgl-dd-btn:hover::before{ opacity: 0; }
+
+.mgl-dd-btn{
+  box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.mgl-dd-btn:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px rgba(0,0,0,0.10);
+}
+.mgl-dd.open .mgl-dd-btn{
+  box-shadow: 0 22px 50px rgba(0,0,0,0.14);
+}
+
+/* Ensure dropdowns render above other cards/sections */
+.game-head { position: relative; z-index: 5; }
+.game-user-card { position: relative; z-index: 20; }
+
+/* dropdown wrapper already relative, but give it priority */
+.mgl-dd { position: relative; z-index: 30; }
+
+/* menu needs to be above literally everything in that column */
+.mgl-dd-menu { z-index: 9999; }

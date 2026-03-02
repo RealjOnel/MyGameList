@@ -90,10 +90,48 @@
           <!-- rating / ranking / studio / release -->
         </div>
 
-        <div class="game-user-card">
+        <div class="game-user-card" id="userControls">
+          <!-- Add Button (shown when not in list) -->
           <button class="btn-add" id="btnAdd">+ Add to List</button>
-          <button class="btn-secondary" id="btnRate">Your Rating</button>
-          <button class="btn-secondary" id="btnReview">Write Review</button>
+
+          <!-- Status Dropdown (shown when in list) -->
+          <div class="mgl-dd" id="statusDD" hidden>
+            <button class="btn-add mgl-dd-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
+              <span class="mgl-dd-label">Planned</span>
+              <span class="mgl-dd-caret" aria-hidden="true"></span>
+            </button>
+            <div class="mgl-dd-menu" role="listbox">
+              <button type="button" class="mgl-dd-item" data-value="planned">Planned</button>
+              <button type="button" class="mgl-dd-item" data-value="playing">Currently Playing</button>
+              <button type="button" class="mgl-dd-item" data-value="completed">Completed</button>
+              <button type="button" class="mgl-dd-item" data-value="dropped">Dropped</button>
+              <button type="button" class="mgl-dd-item" data-value="on_hold">On-Hold</button>
+            </div>
+          </div>
+
+          <!-- Rating Dropdown -->
+          <div class="mgl-dd" id="ratingDD" hidden>
+              <button class="btn-secondary mgl-dd-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
+                <span class="mgl-dd-label">Your Rating</span>
+                <span class="mgl-dd-caret" aria-hidden="true"></span>
+              </button>
+            <div class="mgl-dd-menu" role="listbox">
+              <button type="button" class="mgl-dd-item" data-value="">Unrated</button>
+              <button type="button" class="mgl-dd-item" data-value="1">1</button>
+              <button type="button" class="mgl-dd-item" data-value="2">2</button>
+              <button type="button" class="mgl-dd-item" data-value="3">3</button>
+              <button type="button" class="mgl-dd-item" data-value="4">4</button>
+              <button type="button" class="mgl-dd-item" data-value="5">5</button>
+              <button type="button" class="mgl-dd-item" data-value="6">6</button>
+              <button type="button" class="mgl-dd-item" data-value="7">7</button>
+              <button type="button" class="mgl-dd-item" data-value="8">8</button>
+              <button type="button" class="mgl-dd-item" data-value="9">9</button>
+              <button type="button" class="mgl-dd-item" data-value="10">10</button>
+            </div>
+        </div>
+
+        <!-- Review Button -->
+        <button class="btn-secondary" id="btnReview" type="button">Write Review</button>
         </div>
 
         <div class="game-tags-card">
