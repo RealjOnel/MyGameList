@@ -4000,6 +4000,52 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
     transform: translateY(-10px);
 }
 
+.favourite_games {
+    flex: 1;
+    
+}
+
+.profile_games {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr););
+    gap: 24px;
+    padding: 24px;
+    overflow: hidden;
+        
+}
+.pg_item_cp {
+    background: rgba(118, 223, 69, 0.527);
+    border-radius: 16px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease;
+    border: 1px solid #f1f5f9;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    backface-visibility: hidden;
+    transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease; 
+}
+.pg_item_ptp {
+    background: rgba(118, 223, 69, 0.527);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease;
+    border: 1px solid #f1f5f9;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    backface-visibility: hidden;
+    transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease; 
+}
+
+.pg_icon {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
 /* ==========================================================================
    EACH SINGLE GAME PAGE
    ========================================================================== */

@@ -17,7 +17,7 @@ const centerY = canvas.height / 2;
 const radius = (canvas.width / 2) - 3;
 
 // Farben der Segmente
-const colors = ['#06a700de', '#3b83f6e3', '#ff0000da', '#ffd000', '#6d6d6d'];
+const colors = ['rgba(118, 223, 69, 0.527)', '#3b83f6e3', '#ff0000da', '#ffd000', '#6d6d6d'];
 
 // Array speichert Start- und Endwinkel jedes Segments
 let startAngles = [];
