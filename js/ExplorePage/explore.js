@@ -4,6 +4,25 @@ const sentinel = document.getElementById("infiniteSentinel");
 const loaderEl = document.getElementById("infiniteLoader");
 const endEl = document.getElementById("endOfList");
 
+const URL_SEARCH = (new URLSearchParams(window.location.search).get("search") || "").trim();
+let bootSearch = URL_SEARCH;
+
+function getSearchInput(){
+  return document.getElementById("globalSearchInput") || document.querySelector(".search-input");
+}
+
+function getSearchQuery(){
+  const el = getSearchInput();
+  const v = el?.value?.trim();
+  return v || bootSearch || "";
+}
+
+// When the input finally exists, reflect URL search in it (nice UX)
+document.addEventListener("DOMContentLoaded", () => {
+  const el = getSearchInput();
+  if (el && bootSearch && !el.value) el.value = bootSearch;
+});
+
 const PAGE_SIZE = 50; // HAS to be the same as the limit on IGDB.js
 let hasMore = true;
 let observer = null;
@@ -16,7 +35,7 @@ let sortOrder = "desc";
 let selectedGenre = "all";
 let selectedPlatform = "all";
 
-const searchInput = document.querySelector(".search-input");
+
 
 const bannedPatterns = [
   /collector/i,
@@ -308,6 +327,11 @@ function platformToIconInfo(platformName) {
 function createGameCard(game) {
   const card = document.createElement("div");
   card.classList.add("game-card");
+  card.dataset.id = game.id;
+
+  card.addEventListener("click", () => {
+    window.location.href = `../gamepage/game.html?id=${encodeURIComponent(game.id)}`;
+  });
 
   const imageUrl = game.cover
     ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${game.cover.image_id}.jpg`
@@ -327,14 +351,22 @@ function createGameCard(game) {
     : "Unknown Studio";
 
 const primaryPlatform = getOriginalPlatformName(game);
-const iconInfo = platformToIconInfo(primaryPlatform); // { src, brand } or null
+const iconInfo = platformToIconInfo(primaryPlatform);
+
+const year = game.first_release_date
+  ? new Date(game.first_release_date * 1000).getUTCFullYear()
+  : "—";
+
+const rating = (typeof game.rating === "number" && isFinite(game.rating))
+  ? `${Math.round(game.rating)}`
+  : "—";
 
 card.innerHTML = `
   <div class="game-cover">
     <img class="game-cover-img" src="${imageUrl}" alt="${game.name}">
     ${
       iconInfo
-        ? `<div class="platform-badge platform-${iconInfo.brand} platform-${iconInfo.key}" title="${primaryPlatform}">
+        ? `<div class="platform-badge platform-${iconInfo.brand} platform-${iconInfo.key || ""}" title="${primaryPlatform}">
              <img src="${iconInfo.src}" alt="${primaryPlatform}">
            </div>`
         : ``
@@ -343,7 +375,28 @@ card.innerHTML = `
 
   <div class="game-info">
     <h4>${game.name}</h4>
-    <p>${genre} • ${studio}</p>
+    <p class="game-sub">${genre} • ${studio}</p>
+
+    <!-- Extra meta (hidden in grid, shown in table) -->
+    <div class="game-meta">
+      <div class="meta-item">
+        ${iconInfo ? `<img class="meta-icon" src="${iconInfo.src}" alt="">` : ""}
+        <span class="meta-text">${primaryPlatform || "—"}</span>
+      </div>
+
+      <div class="meta-item">
+        <span class="meta-label">Year</span>
+        <span class="meta-text">${year}</span>
+      </div>
+
+      <div class="meta-item">
+        <span class="meta-label">Rating</span>
+        <span class="meta-text">${rating}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="game-actions">
     <button class="btn-add">+ Add to List</button>
   </div>
 `;
@@ -365,66 +418,40 @@ function renderGames(games) {
   setEndUI(false);       
   setLoadingUI(false);   
   hasMore = false;
-  const q = searchInput?.value?.trim() || "";
-  const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(q || "game")}`;
+  const q = getSearchQuery() || "";
+const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(q || "game")}`;
+const iconUrl = new URL("../assets/specialicons/nogamesfound.svg", document.baseURI).href; // Pfad anpassen!
 
-  gameGrid.innerHTML = `
-    <div class="no-results" role="status" aria-live="polite">
-      <div class="no-results-inner">
-        <div class="no-results-icon" aria-hidden="true">
-          <svg class="no-results-svg" viewBox="0 0 24 24" fill="none">
-            <!-- Cloud/Controller body -->
-              <path d="M7.2 9.4A4.8 4.8 0 0 1 12 5h0a4.8 4.8 0 0 1 4.8 4.4c.9-.7 2.2-.7 3.2.1 1.1.9 1.5 2.4 1.1 3.8l-.8 2.8A3.6 3.6 0 0 1 16.7 20H7.3a3.6 3.6 0 0 1-3.5-2.7l-.8-2.8c-.4-1.4 0-2.9 1.1-3.8 1-.8 2.3-.8 3.2-.1Z"
-                stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-
-            <!-- D-pad -->
-              <path d="M7.5 12.9h2.8M8.9 11.5v2.8"
-                stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-
-            <!-- Buttons RIGHT  -->
-              <circle cx="16.7" cy="12.4" r=".65" fill="currentColor"/>
-              <circle cx="18.6" cy="13.9" r=".65" fill="currentColor"/>
-
-            <!-- Face eyes -->
-              <circle cx="10.3" cy="13.3" r=".8" fill="currentColor"/>
-              <circle cx="13.7" cy="13.3" r=".8" fill="currentColor"/>
-
-            <!-- Sad mouth -->
-              <path d="M10.6 17.2Q12 16.0 13.4 17.2"
-                stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-          </svg>
+gameGrid.innerHTML = `
+  <div class="no-results" role="status" aria-live="polite">
+    <div class="no-results-inner">
+      <div class="no-results-icon" aria-hidden="true">
+        <img class="no-results-svg" src="${iconUrl}" alt="" decoding="async">
       </div>
 
+      <h3>No games found</h3>
+      <p>
+        ${q ? `Nothing matched <span class="no-results-query">"${escapeHtml(q)}"</span>.` : `Try a different search or pick a genre.`}
+      </p>
 
-        <h3>No games found</h3>
-        <p>
-          ${q ? `Nothing matched <span class="no-results-query">"${escapeHtml(q)}"</span>.` : `Try a different search or pick a genre.`}
-        </p>
-
-        <div class="no-results-actions">
-          <button class="no-results-btn" type="button" id="clearSearchBtn">
-            Clear search
-          </button>
-
-          <a class="no-results-link" href="${googleUrl}" target="_blank" rel="noopener noreferrer">
-            Search on Google
-          </a>
-        </div>
-
-        <div class="no-results-hint">
-          Tip: check spelling, try fewer words, or remove filters.
-        </div>
+      <div class="no-results-actions">
+        <button class="no-results-btn" type="button" id="clearSearchBtn">Clear search</button>
+        <a class="no-results-link" href="${googleUrl}" target="_blank" rel="noopener noreferrer">Search on Google</a>
       </div>
 
-      <div class="no-results-watermark" aria-hidden="true"></div>
+      <div class="no-results-hint">Tip: check spelling, try fewer words, or remove filters.</div>
     </div>
-  `;
+
+    <div class="no-results-watermark" aria-hidden="true"></div>
+  </div>
+`;
 
   // Clear button
   const clearBtn = document.getElementById("clearSearchBtn");
   if (clearBtn) {
     clearBtn.addEventListener("click", () => {
-      if (searchInput) searchInput.value = "";
+      const inputEl = getSearchInput();
+      if (inputEl) inputEl.value = "";
       selectedGenre = "all";
       loadGames(true);
     });
@@ -468,9 +495,8 @@ async function loadGames(reset = false) {
       order: sortOrder
     });
 
-    if (searchInput.value.trim()) {
-      params.append("search", searchInput.value.trim());
-    }
+    const q = getSearchQuery();
+    if (q) params.append("search", q);
 
     if (selectedGenre !== "all") {
       params.append("genre", selectedGenre);
@@ -555,8 +581,6 @@ setupDropdown("sortDropdown", value => {
 
 loadGames(true);
 
-let searchTimeout;
-
 function setupInfiniteScroll(){
   if (!sentinel) return;
 
@@ -580,9 +604,18 @@ function setupInfiniteScroll(){
 
 document.addEventListener("DOMContentLoaded", setupInfiniteScroll);
 
-searchInput.addEventListener("input", () => {
+let searchTimeout;
+
+document.addEventListener("input", (e) => {
+  const t = e.target;
+  if (!(t instanceof HTMLInputElement)) return;
+
+  // react only to our search input
+  if (!(t.id === "globalSearchInput" || t.classList.contains("search-input"))) return;
+
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
+    bootSearch = "";    
     loadGames(true);
-  }, 300);
+}, 300);
 });

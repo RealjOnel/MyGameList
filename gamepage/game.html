@@ -13,7 +13,7 @@
         }
     })();
     </script>
-    <title>MyGameList | Features</title>
+    <title>MyGameList | Game</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../style.css">
 </head>
@@ -76,57 +76,101 @@
     </div>
 </nav>
 
-    <main class="features-main">
-        <section class="features-header reveal">
-            <h1>Everything you need to <span class="gradient-text">track your journey.</span></h1>
-            <p>From deep database insights to personal backlog management – discover the tools that make MyGameList your ultimate gaming companion.</p>
-        </section>
+<main class="game-detail">
+  <section class="game-main">
+    <div class="game-top">
+      <div class="game-cover-wrap">
+        <img id="gameCover" alt="">
+      </div>
 
-        <div class="bento-grid reveal">
-            
-            <div class="bento-item glass large" id="master-box">
-                <div class="bento-tag">CORE SYSTEM</div>
-                <h3>The Master List</h3>
-                <p>Categorize every game in your collection with precision. Stay organized and never lose track of your progress.</p>
-                
-                <div class="status-preview">
-                    <span class="status-tag playing">Currently Playing</span>
-                    <span class="status-tag completed">Completed</span>
-                    <span class="status-tag on-hold">On Hold</span>
-                    <span class="status-tag dropped">Dropped</span>
-                    <span class="status-tag planned">Plan to Play</span>
-                </div>
+      <div class="game-head">
+        <h1 id="gameTitle">Loading…</h1>
+
+        <div class="game-stats-card" id="gameStats">
+          <!-- rating / ranking / studio / release -->
+        </div>
+
+        <div class="game-user-card" id="userControls">
+          <!-- Add Button (shown when not in list) -->
+          <button class="btn-add" id="btnAdd">+ Add to List</button>
+
+          <!-- Status Dropdown (shown when in list) -->
+          <div class="mgl-dd" id="statusDD" hidden>
+            <button class="btn-add mgl-dd-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
+              <span class="mgl-dd-label">Planned</span>
+              <span class="mgl-dd-caret" aria-hidden="true"></span>
+            </button>
+            <div class="mgl-dd-menu" role="listbox">
+              <button type="button" class="mgl-dd-item" data-value="planned">Planned</button>
+              <button type="button" class="mgl-dd-item" data-value="playing">Currently Playing</button>
+              <button type="button" class="mgl-dd-item" data-value="completed">Completed</button>
+              <button type="button" class="mgl-dd-item" data-value="dropped">Dropped</button>
+              <button type="button" class="mgl-dd-item" data-value="on_hold">On-Hold</button>
             </div>
+          </div>
 
-            <div class="bento-item glass reveal">
-                <div class="bento-tag">CALENDAR</div>
-                <h3>Monthly Highlights</h3>
-                <p>See the biggest releases of each month at a glance. Filter by date and stay ahead of the hype.</p>
-            </div>
-
-            <div class="bento-item glass reveal">
-                <div class="bento-tag">REVIEWS</div>
-                <h3>Precision Ratings</h3>
-                <p>Rate games from 1-10. Your scores contribute to the community rank and help others find gems.</p>
-                <div class="rating-visual">⭐ 9.5</div>
-            </div>
-
-            <div class="bento-item glass medium reveal" id="database-box">
-                <div class="bento-tag">DATABASE</div>
-                <h3>Infinite Information</h3>
-                <p>Access deep insights for thousands of titles: release dates, developers, genres, and platforms. Everything manually curated for gamers.</p>
-                <div class="search-simulation">
-                    <span id="typewriter-text"></span><span class="cursor">|</span>
-                </div>
-            </div>
-
-            <div class="bento-item glass medium reveal">
-                <div class="bento-tag">UPCOMING</div>
-                <h3>PLACEHOLDER FOR NEW STUFF</h3>
-                <p>This is a placeholder text for the box with new upcoming feature teasers</p>
+          <!-- Rating Dropdown -->
+          <div class="mgl-dd" id="ratingDD" hidden>
+              <button class="btn-secondary mgl-dd-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
+                <span class="mgl-dd-label">Your Rating</span>
+                <span class="mgl-dd-caret" aria-hidden="true"></span>
+              </button>
+            <div class="mgl-dd-menu" role="listbox">
+              <button type="button" class="mgl-dd-item" data-value="">Unrated</button>
+              <button type="button" class="mgl-dd-item" data-value="1">1</button>
+              <button type="button" class="mgl-dd-item" data-value="2">2</button>
+              <button type="button" class="mgl-dd-item" data-value="3">3</button>
+              <button type="button" class="mgl-dd-item" data-value="4">4</button>
+              <button type="button" class="mgl-dd-item" data-value="5">5</button>
+              <button type="button" class="mgl-dd-item" data-value="6">6</button>
+              <button type="button" class="mgl-dd-item" data-value="7">7</button>
+              <button type="button" class="mgl-dd-item" data-value="8">8</button>
+              <button type="button" class="mgl-dd-item" data-value="9">9</button>
+              <button type="button" class="mgl-dd-item" data-value="10">10</button>
             </div>
         </div>
-    </main>
+
+        <!-- Review Button -->
+        <button class="btn-secondary" id="btnReview" type="button">Write Review</button>
+        </div>
+
+        <div class="game-tags-card">
+          <div class="tags-block">
+            <div class="tags-title">Genres</div>
+            <div class="chips" id="genreChips"></div>
+          </div>
+          <div class="tags-block">
+            <div class="tags-title">Platforms</div>
+            <div class="chips" id="platformChips"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-desc-card">
+      <h3>Description</h3>
+      <p id="gameDescription"></p>
+    </div>
+  </section>
+
+  <aside class="game-side">
+    <div class="game-side-card">
+      <h3>Trailer</h3>
+      <div class="video-wrap" id="trailerWrap"></div>
+    </div>
+
+    <div class="game-side-card">
+      <h3>Play Time</h3>
+      <div class="playtime" id="playtimeBox"></div>
+    </div>
+
+    <div class="game-side-card">
+      <h3>Releases</h3>
+      <div class="releases" id="releaseList"></div>
+    </div>
+  </aside>
+</main>
+
 
 <footer class="main-footer">
     <div class="footer-content">
@@ -169,10 +213,9 @@
     </div>
 </footer>
 
+    <script type="module" src="./game.js"></script>
     <script src="../js/global/reveal.js"></script>
     <script src="../js/global/active.js"></script>
-    <script src="../js/FeaturesPage/coloreffect.js"></script>
-    <script src="../js/FeaturesPage/databaseeffect.js"></script>
     <script src="../js/global/storeuser.js"></script>
     <script type="module" src="../js/global/nav-search.js"></script>
 

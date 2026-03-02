@@ -104,25 +104,80 @@ router.get("/trending", async (req, res) => {
   try {
     const token = await getTwitchToken();
 
-    const response = await axios.post(
-      "https://api.igdb.com/v4/games",
+    const limit = Math.min(parseInt(req.query.limit || "12", 10), 30);
+
+    // Default: IGDB Visits (popularity_type = 1)
+    // Other types exist (2..8 etc). See /popularity_types. :contentReference[oaicite:3]{index=3}
+    const popularityType = parseInt(req.query.type || "1", 10);
+
+    //  Get top game_ids by popularity
+    const popResp = await axios.post(
+      "https://api.igdb.com/v4/popularity_primitives",
       `
-        fields id, name, cover.image_id, rating;
-        where rating > 80 & cover != null;
-        sort rating desc;
-        limit 12;
+        fields game_id,value,popularity_type;
+        where popularity_type = ${popularityType};
+        sort value desc;
+        limit 60;
       `,
       {
         headers: {
           "Client-ID": process.env.TWITCH_CLIENT_ID,
-          "Authorization": `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        timeout: 15000,
       }
     );
 
-    res.json(response.data);
-  } catch {
-    res.status(500).json({ error: "Trending Games fehlgeschlagen" });
+    const popList = Array.isArray(popResp.data) ? popResp.data : [];
+    const orderedIds = [...new Set(popList.map(x => x.game_id).filter(Boolean))];
+
+    if (orderedIds.length === 0) return res.json([]);
+
+    const pool = orderedIds.slice(0, 60);
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    const pickedIds = pool.slice(0, limit);
+
+    // Fetch game details for these ids (covers etc.)
+    const idsStr = orderedIds.join(",");
+    const gamesResp = await axios.post(
+      "https://api.igdb.com/v4/games",
+      `
+        fields id,name,cover.image_id,rating;
+        where id = (${idsStr}) & cover != null;
+        limit 60;
+      `,
+      {
+        headers: {
+          "Client-ID": process.env.TWITCH_CLIENT_ID,
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        timeout: 15000,
+      }
+    );
+
+    const games = Array.isArray(gamesResp.data) ? gamesResp.data : [];
+    const byId = new Map(games.map(g => [g.id, g]));
+
+    // Keep popularity order and cut to limit
+    const result = [];
+    for (const id of pickedIds) {
+      const g = byId.get(id);
+      if (!g?.cover?.image_id) continue;
+      result.push(g);
+      if (result.length >= limit) break;
+    }
+
+
+    res.set("Cache-Control", "no-store");
+    res.json(result);
+  } catch (err) {
+    console.error(err.response?.data || err);
+    res.status(500).json({ error: "Trending Games failed" });
   }
 });
 
@@ -189,6 +244,8 @@ router.get("/games", async (req, res) => {
         fields
           id,
           name,
+          rating,
+          rating_count,
           category,
           first_release_date,
           parent_game,
@@ -218,6 +275,83 @@ router.get("/games", async (req, res) => {
   } catch (err) {
     console.error(err.response?.data || err);
     res.status(500).json({ error: "Explore Games fehlgeschlagen" });
+  }
+});
+
+// GAME DETAILS FOR EACH GAME PAGE
+router.get("/game/:id", async (req, res) => {
+  try {
+    const token = await getTwitchToken();
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: "Invalid game id" });
+
+    const headers = {
+      "Client-ID": process.env.TWITCH_CLIENT_ID,
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+    };
+
+    // 1) Base game data (include parent/version)
+    const gameResp = await axios.post(
+      "https://api.igdb.com/v4/games",
+      `
+        fields
+          id, name,
+          parent_game, version_parent,
+          summary, storyline,
+          rating, aggregated_rating, total_rating, total_rating_count,
+          first_release_date,
+          cover.image_id,
+          genres.name,
+          platforms.name,
+          involved_companies.developer,
+          involved_companies.publisher,
+          involved_companies.company.name,
+          videos.video_id,
+          videos.name,
+          release_dates.date,
+          release_dates.platform.name,
+          release_dates.region;
+        where id = ${id};
+        limit 1;
+      `,
+      { headers, timeout: 15000 }
+    );
+
+    const game = Array.isArray(gameResp.data) ? gameResp.data[0] : null;
+    if (!game) return res.status(404).json({ error: "Game not found" });
+
+    // 2) Fallback ID for time-to-beat (edition -> base game)
+    const ttbGameId = Number(game.version_parent || game.parent_game || game.id);
+
+    // 3) Time to beat from separate endpoint
+    const ttbResp = await axios.post(
+      "https://api.igdb.com/v4/game_time_to_beats",
+      `
+        fields hastily,normally,completely,count;
+        where game_id = ${ttbGameId};
+        sort count desc;
+        limit 1;
+      `,
+      { headers, timeout: 15000 }
+    );
+
+    const ttb = Array.isArray(ttbResp.data) ? ttbResp.data[0] : null;
+
+    game.time_to_beat = ttb
+      ? {
+          hastily: Number(ttb.hastily) || 0,
+          normally: Number(ttb.normally) || 0,
+          completely: Number(ttb.completely) || 0,
+          count: Number(ttb.count) || 0,
+          source_game_id: ttbGameId, // optional fürs Debuggen
+        }
+      : null;
+
+    res.json(game);
+  } catch (err) {
+    console.error(err.response?.data || err);
+    res.status(500).json({ error: "Game detail failed" });
   }
 });
 
