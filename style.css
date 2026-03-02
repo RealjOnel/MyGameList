@@ -4012,7 +4012,7 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 
 .profile_games {
     display: grid;
-    grid-template-columns: repeat(3, 1fr););
+    grid-template-columns: repeat(3, 1fr);
     gap: 24px;
     padding: 24px;
     overflow: hidden;
