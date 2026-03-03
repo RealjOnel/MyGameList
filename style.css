@@ -3992,6 +3992,7 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
     height: 100%;
     display: block;
     object-fit: cover;
+    border-radius: 5%;
 }
 
 .favourite_name {
@@ -4012,43 +4013,48 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 
 .profile_games {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 24px;
     padding: 24px;
     overflow: hidden;
-        
 }
-.pg_item_cp {
-    background: rgba(118, 223, 69, 0.527);
-    border-radius: 16px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-    transition: transform 0.3s ease;
-    border: 1px solid #f1f5f9;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    backface-visibility: hidden;
-    transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease; 
-}
-.pg_item_ptp {
-    background: rgba(118, 223, 69, 0.527);
+
+.pg_item_cp,
+.pg_item_ptp,
+.pg_item_completed,
+.pg_item_oh,
+.pg_item_dropped {
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-    transition: transform 0.3s ease;
     border: 1px solid #f1f5f9;
     display: flex;
     flex-direction: column;
     height: 100%;
     backface-visibility: hidden;
-    transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease; 
+    transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease;
 }
+
+.pg_item_cp { background: rgba(118, 223, 69, 0.53); }
+.pg_item_ptp { background: rgba(202, 202, 202, 0.43); }
+.pg_item_completed { background: rgba(59, 177, 255, 0.43); }
+.pg_item_oh { background: rgba(237, 255, 72, 0.43); }
+.pg_item_dropped { background: rgba(255, 99, 72, 0.43); }
 
 .pg_icon {
     width: 100%;
     height: 100%;
     display: block;
     object-fit: cover;
+    border-radius: 5%;
+}
+
+.pg_text {
+    margin-top: 8px;
+    margin-left: 24px;
+    font-size: 14px;
+    text-align: Left;
+    opacity: 0.8;
 }
 
 /* ==========================================================================
