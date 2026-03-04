@@ -4396,3 +4396,20 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 
 /* menu needs to be above literally everything in that column */
 .mgl-dd-menu { z-index: 9999; }
+
+/* Remove Game from List button */
+.mgl-dd-sep{
+  height: 1px;
+  margin: 8px 6px;
+  background: rgba(15,23,42,0.10);
+  border-radius: 999px;
+}
+
+.mgl-dd-item.danger{
+  color: #b91c1c;
+}
+
+.mgl-dd-item.danger:hover{
+  background: rgba(239,68,68,0.10);
+  border-color: rgba(239,68,68,0.18);
+}

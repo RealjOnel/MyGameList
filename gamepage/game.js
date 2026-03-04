@@ -128,7 +128,27 @@ async function patchEntry(patch){
 }
 
 const statusUI = wireDropdown(statusDD, async (val) => {
-  // update UI immediately
+  if (val === "__remove__") {
+    const ok = window.confirm("Remove this game from your list?");
+    if (!ok) return;
+
+    try {
+      const r = await fetch(`${API_BASE_URL}/api/library/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!r.ok) throw new Error(await r.text());
+
+      await refreshControls(); // back to "+ Add to List"
+      return;
+    } catch (e) {
+      console.error(e);
+      await refreshControls();
+      return;
+    }
+  }
+
+  // normal status change (handled by PATCH)
   statusUI.setLabel(statusLabel(val));
   statusUI.setActiveValue(val);
 
@@ -136,7 +156,7 @@ const statusUI = wireDropdown(statusDD, async (val) => {
     await patchEntry({ status: val });
   } catch (e) {
     console.error(e);
-    await refreshControls(); // only resync on error
+    await refreshControls(); // resync only on error
   }
 });
 

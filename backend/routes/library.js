@@ -172,4 +172,22 @@ router.get("/me", requireAuth, async (req, res) => {
   }
 });
 
+// DELETE /api/library/:igdbId  -> remove game from user's list
+router.delete("/:igdbId", requireAuth, async (req, res) => {
+  try {
+    const igdbId = Number(req.params.igdbId);
+    if (!Number.isFinite(igdbId)) return res.status(400).json({ message: "Invalid igdbId" });
+
+    const game = await Game.findOne({ igdbId });
+    if (!game) return res.json({ removed: false }); // nothing to remove
+
+    const result = await UserGameEntry.deleteOne({ userId: req.userId, gameId: game._id });
+
+    return res.json({ removed: result.deletedCount > 0 });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "Failed to remove entry" });
+  }
+});
+
 export default router;
