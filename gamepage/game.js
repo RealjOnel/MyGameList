@@ -46,6 +46,7 @@ const btnAdd = qs("btnAdd");
 const statusDD = qs("statusDD");
 const ratingDD = qs("ratingDD");
 const btnReview = qs("btnReview");
+const userControls = qs("userControls");
 
 function ddParts(root){
   return {
@@ -76,12 +77,16 @@ function wireDropdown(root, onSelect){
   });
 
   p.items.forEach(it => {
-    it.addEventListener("click", async (e) => {
-      e.stopPropagation();
-      const val = it.dataset.value;
-      await onSelect(val);
-      root.classList.remove("open");
-      p.btn.setAttribute("aria-expanded", "false");
+    it.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const val = it.dataset.value;
+
+    // close immediately
+    root.classList.remove("open");
+    p.btn.setAttribute("aria-expanded", "false");
+
+    // then patch async
+    onSelect(val).catch(console.error);
     });
   });
 
@@ -123,14 +128,32 @@ async function patchEntry(patch){
 }
 
 const statusUI = wireDropdown(statusDD, async (val) => {
-  await patchEntry({ status: val });
-  await refreshControls();
+  // update UI immediately
+  statusUI.setLabel(statusLabel(val));
+  statusUI.setActiveValue(val);
+
+  try {
+    await patchEntry({ status: val });
+  } catch (e) {
+    console.error(e);
+    await refreshControls(); // only resync on error
+  }
 });
 
 const ratingUI = wireDropdown(ratingDD, async (val) => {
   const rating = val === "" ? null : Number(val);
-  await patchEntry({ rating });
-  await refreshControls();
+
+  // label should be ONLY the number or "Your Rating"
+  const rLabel = rating == null ? "Your Rating" : String(rating);
+  ratingUI.setLabel(rLabel);
+  ratingUI.setActiveValue(rating == null ? "" : String(rating));
+
+  try {
+    await patchEntry({ rating });
+  } catch (e) {
+    console.error(e);
+    await refreshControls(); // only resync on error
+  }
 });
 
 function statusLabel(v){
@@ -151,13 +174,19 @@ async function refreshControls(){
   ratingDD.hidden = true;
   btnReview.disabled = true;
 
-  // logged out
+  // logged out -> show immediately (no flicker needed)
   if (!token){
+    if (userControls) userControls.classList.remove("is-loading");
     btnAdd.textContent = "Login to add";
     return;
   }
 
+  // logged in -> prevent flicker while loading entry
+  if (userControls) userControls.classList.add("is-loading");
+
   const entry = await fetchEntry();
+
+  if (userControls) userControls.classList.remove("is-loading");
 
   // not in list
   if (!entry){
@@ -167,7 +196,6 @@ async function refreshControls(){
 
   // in list
   btnAdd.hidden = true;
-  btnAdd.disabled = true;
 
   statusDD.hidden = false;
   ratingDD.hidden = false;
@@ -175,7 +203,7 @@ async function refreshControls(){
   statusUI.setLabel(statusLabel(entry.status));
   statusUI.setActiveValue(entry.status);
 
-  const rLabel = entry.rating == null ? "Your Rating" : `Your Rating: ${entry.rating}/10`;
+  const rLabel = entry.rating == null ? "Your Rating" : String(entry.rating);
   ratingUI.setLabel(rLabel);
   ratingUI.setActiveValue(entry.rating == null ? "" : String(entry.rating));
 
@@ -214,6 +242,7 @@ btnReview.addEventListener("click", () => {
 });
 
 await refreshControls();
+if (userControls) userControls.classList.add("is-ready");
 
   // Studio (dev/publisher)
   const studio =

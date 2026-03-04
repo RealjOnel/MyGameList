@@ -4061,6 +4061,25 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
    EACH SINGLE GAME PAGE
    ========================================================================== */
 
+/* Hide controls until JS has applied correct state */
+#userControls{
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+#userControls.is-ready{
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Hide flicker: show controls but in loading state */
+#userControls.is-loading{
+  opacity: 0.85;
+  filter: saturate(0.9);
+  pointer-events: none; /* prevents clicks while loading */
+}
+
 .game-detail{
   display: grid;
   grid-template-columns: 1fr 360px;

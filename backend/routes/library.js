@@ -115,8 +115,12 @@ router.patch("/:igdbId", requireAuth, async (req, res) => {
 
     const update = {};
     if (typeof req.body.status === "string") update.status = req.body.status;
-    if (req.body.rating === null) update.rating = null;
-    if (Number.isFinite(Number(req.body.rating))) update.rating = Number(req.body.rating);
+    if (req.body.rating === null) {
+      update.rating = null;
+    } else if (req.body.rating !== undefined) {
+      const n = Number(req.body.rating);
+      if (Number.isFinite(n)) update.rating = n;
+    }
 
     const entry = await UserGameEntry.findOneAndUpdate(
       { userId: req.userId, gameId: game._id },
