@@ -2891,6 +2891,7 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 .role-badge.helper { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
 .role-badge.tester { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
 .role-badge.designer { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+.role-badge.social-media {background: rgba(228, 241, 141, 0.18); color: #5a7a16;}
 
 .staff-info h3 {
     margin-bottom: 0.8rem;
