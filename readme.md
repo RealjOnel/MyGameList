@@ -27,6 +27,9 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
     <div class="logo">
         <a href="index.html">MY<span class="accent">GAMELIST</span></a>
     </div>
+
+    <div class="nav-search-slot" id="navSearchSlot"></div>
+
     <div class="nav-links">
         <a href="./OtherPages/features.html" class="nav-item">Features</a>
     
@@ -117,6 +120,7 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
     </div>
 </footer>
 
+    <script type="module" src="../js/global/nav-search.js"></script>
     <script src="../js/global/reveal.js"></script>
     <script src="../js/global/active.js"></script>
     <script src="../js/global/storeuser.js"></script>
