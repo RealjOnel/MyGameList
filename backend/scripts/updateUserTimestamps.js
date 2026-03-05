@@ -4,34 +4,23 @@ dotenv.config();
 import mongoose from "mongoose";
 import { User } from "../models/user.js";
 
-async function main() {
-  if (!process.env.MONGO_URI) {
-    throw new Error("MONGO_URI is missing in env");
-  }
-
+async function main(){
   await mongoose.connect(process.env.MONGO_URI);
-  console.log("Connected");
+  console.log("connected");
 
-  // Find users missing createdAt or updatedAt
-  const users = await User.find({
-    $or: [
-      { createdAt: { $exists: false } },
-      { updatedAt: { $exists: false } }
-    ]
-  }).select("_id createdAt updatedAt").lean();
+  // find users missing createdAt
+  const users = await User.find({ createdAt: { $exists: false } }).select("_id createdAt updatedAt");
+  console.log("found:", users.length);
 
-  if (users.length === 0) {
-    console.log("No users to backfill.");
+  if (!users.length){
     await mongoose.disconnect();
+    console.log("nothing to do");
     return;
   }
 
-  // Use ObjectId timestamp as a decent approximation for createdAt
   const ops = users.map(u => {
-    const ts = u._id instanceof mongoose.Types.ObjectId ? u._id.getTimestamp() : new Date();
-    const createdAt = u.createdAt ?? ts;
+    const createdAt = u._id.getTimestamp(); // from ObjectId
     const updatedAt = u.updatedAt ?? createdAt;
-
     return {
       updateOne: {
         filter: { _id: u._id },
@@ -40,14 +29,14 @@ async function main() {
     };
   });
 
-  const result = await User.bulkWrite(ops, { ordered: false });
-  console.log("Backfilled users:", result.modifiedCount);
+  const r = await User.bulkWrite(ops, { ordered: false });
+  console.log("modified:", r.modifiedCount);
 
   await mongoose.disconnect();
-  console.log("Done");
+  console.log("done");
 }
 
-main().catch(err => {
-  console.error("❌ Backfill failed:", err);
+main().catch(e => {
+  console.error(e);
   process.exit(1);
 });
