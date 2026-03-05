@@ -8,13 +8,14 @@ const router = express.Router();
 router.get("/me", requireAuth, async (req, res) => {
   try {
     res.set("Cache-Control", "no-store");
-    const user = await User.findById(req.userId).select("username createdAt");
+    const user = await User.findById(req.userId).select("username createdAt lastLoginAt");
     if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json({
-      id: user._id,
-      username: user.username,
-      createdAt: user.createdAt
+        id: user._id,
+        username: user.username,
+        createdAt: user.createdAt ?? user._id.getTimestamp(),
+        lastLoginAt: user.lastLoginAt ?? null
     });
   } catch (e) {
     console.error(e);

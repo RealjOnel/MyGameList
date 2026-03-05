@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema(
     passwordHash: { type: String, required: true },
 
     createdAt: { type: Date, default: Date.now },
+    lastLoginAt: { type: Date, default: null },
     updatedAt: { type: Date, default: Date.now },
   },
   { timestamps: false } // we handle it ourselves now

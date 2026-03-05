@@ -58,9 +58,13 @@ async function loadProfile(){
   // ---- render basics ----
   qs(".profile_username").textContent = me.username;
 
-  // joined date placeholder
+  // joined date
   const joinedEl = document.getElementById("joinedAt");
   if (joinedEl) joinedEl.textContent = `Joined: ${formatDate(me.createdAt)}`;
+
+  // last login
+  const lastEl = document.getElementById("lastOnline");
+  if (lastEl) lastEl.textContent = `Last Online: ${formatDate(me.lastLoginAt)}`;
 
   // ---- favorites (placeholder logic for now) ----
   // Until you have a "favorite" flag, just show top-rated or most recent entries:
