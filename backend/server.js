@@ -6,6 +6,7 @@ import express from "express";
 import cors from "cors";
 import igdbRoutes from "./routes/igdb.js";
 import libraryRoutes from "./routes/library.js";
+import userRoutes from "./routes/users.js";
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.get("/ping", (req, res) => {
 app.use('/api', authRoutes);
 app.use("/api/igdb", igdbRoutes);
 app.use("/api/library", libraryRoutes);
+app.use("/api/users", userRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

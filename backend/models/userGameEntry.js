@@ -12,7 +12,6 @@ const userGameEntrySchema = new mongoose.Schema(
     // rating 1..10 (null = not rated yet)
     rating: { type: Number, min: 1, max: 10, default: null },
 
-    // optional, but you’ll want it soon anyway
     playtimeHours: { type: Number, min: 0, default: 0 },
     notes: { type: String, default: "" },
   },
