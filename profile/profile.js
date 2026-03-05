@@ -1,21 +1,32 @@
-import { API_BASE_URL } from "../../backend/config.js";
+import { API_BASE_URL } from "../backend/config.js";
 
 function qs(sel){ return document.querySelector(sel); }
 
-async function api(path, { token, method="GET", body } = {}){
+async function api(path, { token, method = "GET", body } = {}) {
   const headers = {};
   if (token) headers.Authorization = `Bearer ${token}`;
   if (body) headers["Content-Type"] = "application/json";
 
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  // Cache-bust ALL GET requests so the server can't respond 304
+  const url =
+    method === "GET"
+      ? `${API_BASE_URL}${path}${path.includes("?") ? "&" : "?"}_=${Date.now()}`
+      : `${API_BASE_URL}${path}`;
+
+  const res = await fetch(url, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
-    cache: "no-store" 
-    });
+    cache: "no-store",
+  });
 
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.message || "Request failed");
+  // Handle empty-body statuses safely (304/204)
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : {};
+
+  if (!res.ok) {
+    throw new Error(data?.message || `Request failed (${res.status})`);
+  }
   return data;
 }
 
