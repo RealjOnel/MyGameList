@@ -13,10 +13,4 @@ const userSchema = new mongoose.Schema(
   { timestamps: false } // we handle it ourselves now
 );
 
-userSchema.pre("save", function (next) {
-  this.updatedAt = new Date();
-  if (!this.createdAt) this.createdAt = this.updatedAt;
-  next();
-});
-
 export const User = mongoose.model("User", userSchema);

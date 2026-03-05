@@ -1,25 +1,33 @@
-function switchAuth(type) {
-    const emailGroup = document.getElementById('email-group');
-    const title = document.getElementById('auth-title');
-    const subtitle = document.getElementById('auth-subtitle');
-    const submitText = document.getElementById('submit-text');
-    const tabs = document.querySelectorAll('.tab-btn');
+import { API_BASE_URL } from "../backend/config.js";
 
-    tabs.forEach(t => t.classList.remove('active'));
-    event.target.classList.add('active');
+function switchAuth(e, type) {
+  const emailGroup = document.getElementById('email-group');
+  const title = document.getElementById('auth-title');
+  const subtitle = document.getElementById('auth-subtitle');
+  const submitText = document.getElementById('submit-text');
+  const tabs = document.querySelectorAll('.tab-btn');
 
-    if (type === 'register') {
-        emailGroup.style.display = 'block';
-        title.innerHTML = 'Join the <span class="gradient-text">Gamers!</span>';
-        subtitle.textContent = 'Create your free MyGameList account.';
-        submitText.textContent = 'Register';
-    } else {
-        emailGroup.style.display = 'none';
-        title.innerHTML = 'Welcome <span class="gradient-text">Back!</span>';
-        subtitle.textContent = 'Get back to track your Gaming History.';
-        submitText.textContent = 'Login';
-    }
+  tabs.forEach(t => t.classList.remove('active'));
+  if (e?.target) e.target.classList.add('active');
+
+  if (type === 'register') {
+    emailGroup.style.display = 'block';
+    title.innerHTML = 'Join the <span class="gradient-text">Gamers!</span>';
+    subtitle.textContent = 'Create your free MyGameList account.';
+    submitText.textContent = 'Register';
+  } else {
+    emailGroup.style.display = 'none';
+    title.innerHTML = 'Welcome <span class="gradient-text">Back!</span>';
+    subtitle.textContent = 'Get back to track your Gaming History.';
+    submitText.textContent = 'Login';
+  }
 }
+
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", (e) => {
+    switchAuth(e, btn.dataset.type);
+  });
+});
 
 const form = document.getElementById('auth-form');
 const errorMsg = document.getElementById('error-msg');
@@ -43,11 +51,9 @@ form.addEventListener('submit', async (e) => {
   }
 
   // Choose Endpoint
-    const BACKEND_URL = 'https://mygamelist-omhm.onrender.com';
-    const endpoint = isRegister 
-        ? `${BACKEND_URL}/api/register` 
-        : `${BACKEND_URL}/api/login`;
-
+    const endpoint = isRegister
+      ? `${API_BASE_URL}/api/register`
+      : `${API_BASE_URL}/api/login`;
 
   try {
     const res = await fetch(endpoint, {

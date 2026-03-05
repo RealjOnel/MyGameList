@@ -24,7 +24,14 @@ app.use(express.json());
 
 // connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB Connected"))
+  .then(() => {
+    console.log("✅ MongoDB Connected");
+
+    // reliably available after connection is open
+    console.log("readyState:", mongoose.connection.readyState); // 1 = connected
+    console.log("DB:", mongoose.connection.db?.databaseName);
+    console.log("Host:", mongoose.connection.host);
+  })
   .catch((err) => console.log("❌ MongoDB Error:", err));
 
 app.get("/ping", (req, res) => {
