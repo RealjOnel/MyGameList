@@ -62,7 +62,7 @@
         <img id="userIcon" src="../assets/User/Default_User_Icon.png" alt="User" class="user-icon">
 
         <div id="userDropdown" class="user-dropdown" aria-hidden="true">
-            <a class="dropdown-item" href="./OtherPages/profile.html">Profile</a>
+            <a class="dropdown-item" href="./profile.html">Profile</a>
             <a class="dropdown-item" href="./OtherPages/settings.html">Settings</a>
 
             <div class="dropdown-divider"></div>
@@ -128,12 +128,8 @@
             </div>
         </div>
         <div class="profile_check_in">
-            <h3>
-                Joined: #01/01/2020#
-            </h3>
-            <h3>
-                Last Online: #01/01/2024#
-            </h3>
+            <h3 id="joinedAt">Joined: -</h3>
+            <h3 id="lastOnline">Last Online: -</h3>
         </div>
     </div>
     <div class="profile_main">
@@ -346,7 +342,6 @@
     <script type="module" src="./profile.js"></script>
     <script src="../js/global/reveal.js"></script>
     <script src="../js/global/active.js"></script>
-    <script src="../js/MethodologyPage/rating.js"></script>
     <script src="../js/global/storeuser.js"></script>
     <script src="./piechart.js"></script>
 </body>

@@ -10,6 +10,14 @@ import userRoutes from "./routes/users.js";
 
 const app = express();
 
+app.set("etag", false);
+
+// no caching for API
+app.use("/api", (req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
+
 app.use(cors());
 app.use(express.json());
 

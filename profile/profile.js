@@ -10,8 +10,9 @@ async function api(path, { token, method="GET", body } = {}){
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers,
-    body: body ? JSON.stringify(body) : undefined
-  });
+    body: body ? JSON.stringify(body) : undefined,
+    cache: "no-store" 
+    });
 
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data?.message || "Request failed");
@@ -47,7 +48,7 @@ async function loadProfile(){
   qs(".profile_username").textContent = me.username;
 
   // joined date placeholder
-  const joinedEl = document.querySelector(".profile_check_in h3");
+  const joinedEl = document.getElementById("joinedAt");
   if (joinedEl) joinedEl.textContent = `Joined: ${formatDate(me.createdAt)}`;
 
   // ---- favorites (placeholder logic for now) ----
