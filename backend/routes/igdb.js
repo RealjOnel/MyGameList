@@ -353,27 +353,24 @@ router.get("/game/:id", async (req, res) => {
 
     if (Number.isFinite(baseId)) {
       try {
-        const charsResp = await axios.post(
+        // 1) First try: only characters WITH mug shots (prevents broken images)
+        const withImgResp = await axios.post(
           "https://api.igdb.com/v4/characters",
           `
             fields id,name,mug_shot.image_id;
-            where games = (${baseId});
+            where games = (${baseId}) & mug_shot != null;
             limit 60;
           `,
           { headers, timeout: 15000 }
         );
 
-        game.characters = Array.isArray(charsResp.data) ? charsResp.data : [];
-      } catch (e) {
-        console.warn("characters fetch failed:", e.response?.data || e.message);
-        game.characters = [];
-      }
-    } else {
-      console.warn("characters skipped: baseId invalid", baseId);
-    }
+    const withImg = Array.isArray(withImgResp.data) ? withImgResp.data : [];
 
-    try {
-      const charsResp = await axios.post(
+    // 2) If IGDB has no mug_shots, fallback: fetch names without image restriction
+    if (withImg.length > 0) {
+      game.characters = withImg;
+    } else {
+      const anyResp = await axios.post(
         "https://api.igdb.com/v4/characters",
         `
           fields id,name,mug_shot.image_id;
@@ -382,11 +379,14 @@ router.get("/game/:id", async (req, res) => {
         `,
         { headers, timeout: 15000 }
       );
-
-      game.characters = Array.isArray(charsResp.data) ? charsResp.data : [];
-    } catch (e) {
-      console.warn("characters fetch failed:", e.response?.data || e.message);
-      game.characters = [];
+      game.characters = Array.isArray(anyResp.data) ? anyResp.data : [];
+    }
+  } catch (e) {
+    console.warn("characters fetch failed:", e.response?.data || e.message);
+    game.characters = [];
+  }
+    } else {
+      console.warn("characters skipped: baseId invalid", baseId);
     }
 
     // 2) Fallback ID for time-to-beat (edition -> base game)

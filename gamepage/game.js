@@ -22,6 +22,16 @@ function chip(text){
   return d;
 }
 
+function characterImgUrls(imageId){
+  if (!imageId) return null;
+  const base = "https://images.igdb.com/igdb/image/upload";
+  const size = "t_thumb"; 
+  return {
+    png: `${base}/${size}/${imageId}.png`,
+    jpg: `${base}/${size}/${imageId}.jpg`
+  };
+}
+
 async function loadGame(){
   const id = new URLSearchParams(location.search).get("id");
   if (!id) return;
@@ -405,6 +415,60 @@ const vid = pickTrailerVideoId(g?.videos, g?.name);
       const first = dates[0];
       return `<div class="rel-row"><span>${esc(p)}</span><b>${esc(fmtDate(first))}</b></div>`;
     }).join("");
+  }
+
+  // Characters (from backend: g.characters)
+  const chars = Array.isArray(g.characters) ? g.characters : [];
+  const grid = document.getElementById("charactersGrid");
+  const count = document.getElementById("charactersCount");
+
+  if (count) count.textContent = `${chars.length} found`;
+
+  if (grid){
+    if (!chars.length){
+      grid.innerHTML = `<div class="muted">No characters found.</div>`;
+    } else {
+      grid.innerHTML = chars.map(c => {
+        const name = c?.name || "Unknown";
+        const urls = characterImgUrls(c?.mug_shot?.image_id);
+        const initial = name.trim().slice(0,1).toUpperCase() || "?";
+
+        // We render an <img> only if we have an imageId
+        const media = urls
+          ? `<div class="char-media">
+              <img class="char-img" src="${urls.png}" data-fallback="${urls.jpg}" alt="${esc(name)}" loading="lazy">
+            </div>`
+          : `<div class="char-media">
+              <div class="char-fallback" aria-hidden="true">${esc(initial)}</div>
+            </div>`;
+
+        return `
+          <div class="char-card">
+            ${media}
+            <div class="char-name">${esc(name)}</div>
+          </div>
+        `;
+      }).join("");
+
+      // attach robust fallback: png -> jpg -> fallback letter
+      grid.querySelectorAll("img[data-fallback]").forEach(img => {
+        img.addEventListener("error", () => {
+          const fb = img.dataset.fallback;
+          if (fb){
+            img.dataset.fallback = "";     // prevent loop
+            img.src = fb;                  // try jpg
+            return;
+          }
+          // jpg also failed -> replace with fallback block
+          const media = img.closest(".char-media");
+          if (media){
+            const name = img.alt || "?"
+            const initial = name.trim().slice(0,1).toUpperCase() || "?";
+            media.innerHTML = `<div class="char-fallback" aria-hidden="true">${esc(initial)}</div>`;
+          }
+        });
+      });
+    } 
   }
 
   // ===== Tabs (About / Community / Characters / Related) =====
