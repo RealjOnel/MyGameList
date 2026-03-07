@@ -4043,9 +4043,8 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 .favourite_icon {
     width: 20%;
     height: 100%;
-    object-fit: cover;
-    border-radius: 18px;
-
+    border-radius: 18px;  
+    margin-right: auto;
 }
 
 .favourite_name {
@@ -4053,7 +4052,6 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
     font-size: 14px;
 
 }
-
 
 .favourite_item:hover {
     transform: translateY(-10px);
