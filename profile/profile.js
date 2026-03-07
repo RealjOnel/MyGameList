@@ -57,6 +57,8 @@ async function loadProfile(){
 
   // ---- render basics ----
   qs(".profile_username").textContent = me.username;
+  document.title = `${me.username} | MyGameList`;
+  document.title = `${me.username || "Profile"} | MyGameList`;
 
   // joined date
   const joinedEl = document.getElementById("joinedAt");
