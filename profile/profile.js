@@ -68,25 +68,36 @@ async function loadProfile(){
 
   // ---- favorites (placeholder logic for now) ----
   // Until you have a "favorite" flag, just show top-rated or most recent entries:
-  const favWrap = document.querySelector(".profile_favourites_items");
-  if (favWrap){
+  const favWrap = document.getElementById("profileFavorites");
+
+  if (favWrap) {
     favWrap.innerHTML = "";
 
     const top = [...entries]
       .filter(e => e?.game?.coverImageId)
-      .sort((a,b) => (b.rating ?? -1) - (a.rating ?? -1))
+      .sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1))
       .slice(0, 8);
 
-    for (const e of top){
+    for (const e of top) {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "favourite_item";
+
       btn.innerHTML = `
-        <img src="${coverUrl(e.game.coverImageId)}" class="favourite_icon" alt="">
+        <div class="favourite_box">
+          <span class="cover_shimmer" aria-hidden="true"></span>
+          <img
+            src="${coverUrl(e.game.coverImageId)}"
+            class="favourite_icon"
+            alt="${e.game.name || "Game Cover"}"
+          >
+        </div>
       `;
+
       btn.addEventListener("click", () => {
         window.location.href = `../gamepage/game.html?id=${encodeURIComponent(e.game.igdbId)}`;
       });
+
       favWrap.appendChild(btn);
     }
   }
