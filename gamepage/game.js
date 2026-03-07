@@ -295,7 +295,6 @@ if (btnFavorite) {
 
     const entry = await fetchEntry();
 
-    // Favorite only possible if game is already in list
     if (!entry) {
       alert("Add the game to your list first.");
       return;
@@ -303,14 +302,19 @@ if (btnFavorite) {
 
     const nextFav = !entry.isFavorite;
 
+    // direct UI update first, no flicker
     btnFavorite.disabled = true;
+    btnFavorite.textContent = nextFav ? "♥ Favorite" : "♡ Favorite";
+    btnFavorite.classList.toggle("active", nextFav);
 
     try {
       await patchEntry({ isFavorite: nextFav });
-      await refreshControls();
     } catch (e) {
       console.error("Favorite update failed:", e);
-      await refreshControls();
+      await refreshControls(); // only resync on error
+      return;
+    } finally {
+      btnFavorite.disabled = false;
     }
   });
 }
