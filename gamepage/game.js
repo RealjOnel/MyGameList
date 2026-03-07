@@ -406,6 +406,266 @@ const vid = pickTrailerVideoId(g?.videos, g?.name);
       return `<div class="rel-row"><span>${esc(p)}</span><b>${esc(fmtDate(first))}</b></div>`;
     }).join("");
   }
+
+  // ===== Tabs (About / Community / Characters / Related) =====
+function imgIGDB(imageId, size = "t_cover_big"){
+  return imageId
+    ? `https://images.igdb.com/igdb/image/upload/${size}/${imageId}.jpg`
+    : "../assets/placeholder-cover.png";
+}
+
+function uniq(arr){
+  return [...new Set(arr.filter(Boolean))];
+}
+
+function devPubLists(involved){
+  const list = Array.isArray(involved) ? involved : [];
+  const devs = uniq(list.filter(x => x?.developer).map(x => x?.company?.name));
+  const pubs = uniq(list.filter(x => x?.publisher).map(x => x?.company?.name));
+  return { devs, pubs };
+}
+
+function chipsHtml(items){
+  const a = (items || []).filter(Boolean);
+  if (!a.length) return `<span class="muted">—</span>`;
+  return a.map(x => `<span class="chip">${esc(x)}</span>`).join("");
+}
+
+function gameCard(gm){
+  const id = gm?.id;
+  const name = gm?.name || "Unknown";
+  const coverId = gm?.cover?.image_id;
+  return `
+    <button class="mini-card" type="button" data-gid="${esc(id)}">
+      <div class="mini-cover"><img src="${imgIGDB(coverId)}" alt=""></div>
+      <div class="mini-title">${esc(name)}</div>
+    </button>
+  `;
+}
+
+function wireMiniCardClicks(root){
+  root.querySelectorAll(".mini-card").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const gid = btn.getAttribute("data-gid");
+      if (!gid) return;
+      window.location.href = `./game.html?id=${encodeURIComponent(gid)}`;
+    });
+  });
+}
+
+function renderAboutTab(game){
+  const about = qs("panel-about");
+  if (!about) return;
+
+  const { devs, pubs } = devPubLists(game?.involved_companies);
+
+  const modes = (game?.game_modes || []).map(x => x?.name);
+  const themes = (game?.themes || []).map(x => x?.name);
+  const pers = (game?.player_perspectives || []).map(x => x?.name);
+  const kws = (game?.keywords || []).map(x => x?.name).slice(0, 18);
+
+  const franchise = game?.franchise?.name;
+  const collection = game?.collection?.name;
+
+  const websites = Array.isArray(game?.websites) ? game.websites : [];
+  const websiteHtml = websites.length
+    ? websites.slice(0, 10).map(w => {
+        const url = w?.url;
+        if (!url) return "";
+        const host = (() => { try { return new URL(url).hostname.replace("www.",""); } catch { return url; } })();
+        return `<a class="site-link" href="${esc(url)}" target="_blank" rel="noreferrer">${esc(host)}</a>`;
+      }).join("")
+    : `<span class="muted">No websites.</span>`;
+
+  about.innerHTML = `
+    <div class="sub-grid">
+      <div class="sub-card">
+        <h4>Main Developers</h4>
+        <div class="sub-body">${chipsHtml(devs)}</div>
+      </div>
+
+      <div class="sub-card">
+        <h4>Publishers</h4>
+        <div class="sub-body">${chipsHtml(pubs)}</div>
+      </div>
+
+      <div class="sub-card">
+        <h4>Game Modes</h4>
+        <div class="sub-body">${chipsHtml(modes)}</div>
+      </div>
+
+      <div class="sub-card">
+        <h4>Player Perspectives</h4>
+        <div class="sub-body">${chipsHtml(pers)}</div>
+      </div>
+
+      <div class="sub-card">
+        <h4>Themes</h4>
+        <div class="sub-body">${chipsHtml(themes)}</div>
+      </div>
+
+      <div class="sub-card">
+        <h4>Franchise / Collection</h4>
+        <div class="sub-body">
+          ${franchise ? `<div><b>Franchise:</b> ${esc(franchise)}</div>` : `<div class="muted">Franchise: —</div>`}
+          ${collection ? `<div><b>Collection:</b> ${esc(collection)}</div>` : `<div class="muted">Collection: —</div>`}
+        </div>
+      </div>
+
+      <div class="sub-card sub-card-wide">
+        <h4>Websites</h4>
+        <div class="sub-links">${websiteHtml}</div>
+      </div>
+
+      <div class="sub-card sub-card-wide">
+        <h4>Keywords</h4>
+        <div class="sub-body">${chipsHtml(kws)}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderCommunityTab(){
+  const c = qs("panel-community");
+  if (!c) return;
+  c.innerHTML = `
+    <div class="sub-empty">
+      <h4>Community</h4>
+      <p class="muted">Reviews & forums will live here. For now: your future glory is still loading.</p>
+    </div>
+  `;
+}
+
+function renderCharactersTab(game){
+  const el = qs("panel-characters");
+  if (!el) return;
+
+  const chars = Array.isArray(game?.characters) ? game.characters : [];
+  if (!chars.length){
+    el.innerHTML = `<div class="sub-empty"><h4>Characters</h4><p class="muted">No character data available.</p></div>`;
+    return;
+  }
+
+  const items = chars.slice(0, 30).map(ch => {
+    const name = ch?.name || "Unknown";
+    const mug = ch?.mug_shot?.image_id;
+    const img = mug ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${mug}.jpg` : "../assets/placeholder-cover.png";
+    return `
+      <div class="char-card">
+        <div class="char-pic"><img src="${img}" alt=""></div>
+        <div class="char-name">${esc(name)}</div>
+      </div>
+    `;
+  }).join("");
+
+  el.innerHTML = `
+    <div class="sub-head">
+      <h4>Characters</h4>
+      <div class="muted">${chars.length} found</div>
+    </div>
+    <div class="char-grid">${items}</div>
+  `;
+}
+
+function renderRelatedTab(game){
+  const el = qs("panel-related");
+  if (!el) return;
+
+  const parent = game?.parent_game && (game.parent_game?.id || game.parent_game) ? game.parent_game : null;
+  const vparent = game?.version_parent && (game.version_parent?.id || game.version_parent) ? game.version_parent : null;
+
+  const similar = Array.isArray(game?.similar_games) ? game.similar_games : [];
+  const dlcs = Array.isArray(game?.dlcs) ? game.dlcs : [];
+  const exps = Array.isArray(game?.expansions) ? game.expansions : [];
+  const remakes = Array.isArray(game?.remakes) ? game.remakes : [];
+  const remasters = Array.isArray(game?.remasters) ? game.remasters : [];
+  const ports = Array.isArray(game?.ports) ? game.ports : [];
+
+  const blocks = [];
+
+  if (vparent?.id){
+    blocks.push(`
+      <div class="sub-block">
+        <div class="sub-title">This is an edition of</div>
+        <div class="mini-grid">${gameCard(vparent)}</div>
+      </div>
+    `);
+  } else if (parent?.id){
+    blocks.push(`
+      <div class="sub-block">
+        <div class="sub-title">Parent Game</div>
+        <div class="mini-grid">${gameCard(parent)}</div>
+      </div>
+    `);
+  }
+
+  if (similar.length){
+    blocks.push(`
+      <div class="sub-block">
+        <div class="sub-title">Similar Games</div>
+        <div class="mini-grid">${similar.slice(0, 12).map(gameCard).join("")}</div>
+      </div>
+    `);
+  }
+
+  const addPack = (title, arr) => {
+    if (!arr.length) return;
+    blocks.push(`
+      <div class="sub-block">
+        <div class="sub-title">${esc(title)}</div>
+        <div class="mini-grid">${arr.slice(0, 12).map(gameCard).join("")}</div>
+      </div>
+    `);
+  };
+
+  addPack("DLCs", dlcs);
+  addPack("Expansions", exps);
+  addPack("Remakes", remakes);
+  addPack("Remasters", remasters);
+  addPack("Ports", ports);
+
+  if (!blocks.length){
+    el.innerHTML = `<div class="sub-empty"><h4>Related Games</h4><p class="muted">No related data available.</p></div>`;
+    return;
+  }
+
+  el.innerHTML = `<div class="related-wrap">${blocks.join("")}</div>`;
+  wireMiniCardClicks(el);
+}
+
+function initTabs(){
+  const tabs = document.querySelectorAll(".g-tab");
+  const panels = {
+    about: qs("panel-about"),
+    community: qs("panel-community"),
+    characters: qs("panel-characters"),
+    related: qs("panel-related"),
+  };
+
+  function setActive(key){
+    tabs.forEach(t => {
+      const on = t.dataset.tab === key;
+      t.classList.toggle("active", on);
+      t.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    Object.entries(panels).forEach(([k, p]) => p && p.classList.toggle("active", k === key));
+  }
+
+  tabs.forEach(t => {
+    t.addEventListener("click", () => {
+      setActive(t.dataset.tab);
+    });
+  });
+
+  setActive("about");
+}
+
+// render + wire
+renderAboutTab(g);
+renderCommunityTab();
+renderCharactersTab(g);
+renderRelatedTab(g);
+initTabs();
 }
 
 document.addEventListener("DOMContentLoaded", () => {

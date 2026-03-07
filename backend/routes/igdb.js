@@ -293,36 +293,110 @@ router.get("/game/:id", async (req, res) => {
 
     // 1) Base game data (include parent/version)
     const gameResp = await axios.post(
-      "https://api.igdb.com/v4/games",
-      `
-        fields
-          id, name,
-          parent_game, version_parent,
-          summary, storyline,
-          rating, aggregated_rating, total_rating, total_rating_count,
-          first_release_date,
-          cover.image_id,
-          genres.name,
-          platforms.name,
-          involved_companies.developer,
-          involved_companies.publisher,
-          involved_companies.company.name,
-          videos.video_id,
-          videos.name,
-          release_dates.date,
-          release_dates.platform.name,
-          release_dates.region;
-        where id = ${id};
-        limit 1;
-      `,
-      { headers, timeout: 15000 }
-    );
+    "https://api.igdb.com/v4/games",
+    `
+      fields
+        id, name,
+        parent_game.id, parent_game.name, parent_game.cover.image_id, parent_game.first_release_date,
+        version_parent.id, version_parent.name, version_parent.cover.image_id, version_parent.first_release_date,
+
+        summary, storyline,
+        rating, aggregated_rating, total_rating, total_rating_count,
+        first_release_date,
+
+        cover.image_id,
+        genres.name,
+        platforms.name,
+
+        game_modes.name,
+        themes.name,
+        player_perspectives.name,
+        franchise.name,
+        collection.name,
+        keywords.name,
+        websites.url, websites.category,
+
+        involved_companies.developer,
+        involved_companies.publisher,
+        involved_companies.company.name,
+
+        videos.video_id,
+        videos.name,
+
+        release_dates.date,
+        release_dates.platform.name,
+        release_dates.region,
+
+        similar_games.id, similar_games.name, similar_games.cover.image_id, similar_games.first_release_date,
+        dlcs.id, dlcs.name, dlcs.cover.image_id,
+        expansions.id, expansions.name, expansions.cover.image_id,
+        remakes.id, remakes.name, remakes.cover.image_id,
+        remasters.id, remasters.name, remasters.cover.image_id,
+        ports.id, ports.name, ports.cover.image_id;
+      where id = ${id};
+      limit 1;
+    `,
+    { headers, timeout: 15000 }
+  );
 
     const game = Array.isArray(gameResp.data) ? gameResp.data[0] : null;
     if (!game) return res.status(404).json({ error: "Game not found" });
 
+    // 1b) Characters (robust via /characters endpoint)
+    // Use base-game id for editions (version_parent/parent_game fallback)
+    const baseId =
+      Number(game?.version_parent?.id) ||
+      Number(game?.parent_game?.id) ||
+      Number(game?.id);
+
+    if (!Number.isFinite(baseId)) {
+      // fallback safety: don't break the route
+      game.characters = [];
+    } else {
+      try {
+        const charsResp = await axios.post(
+          "https://api.igdb.com/v4/characters",
+          `
+            fields id,name,mug_shot.image_id;
+            where games = (${baseId});
+            limit 60;
+          `,
+          { headers, timeout: 15000 }
+        );
+        game.characters = Array.isArray(charsResp.data) ? charsResp.data : [];
+      } catch (e) {
+       console.warn("characters fetch failed:", e.response?.data || e.message);
+        game.characters = [];
+      }
+    }
+
+    try {
+      const charsResp = await axios.post(
+        "https://api.igdb.com/v4/characters",
+        `
+          fields id,name,mug_shot.image_id;
+          where games = (${charGameId});
+          limit 60;
+        `,
+        { headers, timeout: 15000 }
+      );
+
+      game.characters = Array.isArray(charsResp.data) ? charsResp.data : [];
+    } catch (e) {
+      console.warn("characters fetch failed:", e.response?.data || e.message);
+      game.characters = [];
+    }
+
     // 2) Fallback ID for time-to-beat (edition -> base game)
-    const ttbGameId = Number(game.version_parent || game.parent_game || game.id);
+    const ttbGameId =
+      Number(game?.version_parent?.id) ||
+      Number(game?.parent_game?.id) ||
+      Number(game?.id);
+
+      if (!Number.isFinite(ttbGameId)) {
+      game.time_to_beat = null;
+      return res.json(game);
+    }
 
     // 3) Time to beat from separate endpoint
     const ttbResp = await axios.post(
