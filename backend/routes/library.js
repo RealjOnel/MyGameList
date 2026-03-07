@@ -113,22 +113,35 @@ router.patch("/:igdbId", requireAuth, async (req, res) => {
     const game = await Game.findOne({ igdbId });
     if (!game) return res.status(404).json({ message: "Game not in DB yet. Add it first." });
 
-    const update = {};
-    if (typeof req.body.status === "string") update.status = req.body.status;
-    if (req.body.rating === null) {
-      update.rating = null;
-    } else if (req.body.rating !== undefined) {
-      const n = Number(req.body.rating);
-      if (Number.isFinite(n)) update.rating = n;
+    const entry = await UserGameEntry.findOne({ userId: req.userId, gameId: game._id });
+    if (!entry) return res.status(404).json({ message: "Game not in your list" });
+
+    if (typeof req.body.status === "string") {
+      entry.status = req.body.status;
     }
 
-    const entry = await UserGameEntry.findOneAndUpdate(
-      { userId: req.userId, gameId: game._id },
-      { $set: update },
-      { new: true }
-    );
+    if (req.body.rating === null) {
+      entry.rating = null;
+    } else if (req.body.rating !== undefined) {
+      const n = Number(req.body.rating);
+      if (Number.isFinite(n)) entry.rating = n;
+    }
 
-    if (!entry) return res.status(404).json({ message: "Game not in your list" });
+    if (typeof req.body.isFavorite === "boolean") {
+      const nextFav = req.body.isFavorite;
+
+      if (nextFav && !entry.isFavorite) {
+        entry.isFavorite = true;
+        entry.favoriteAddedAt = new Date();
+      }
+
+      if (!nextFav) {
+        entry.isFavorite = false;
+        entry.favoriteAddedAt = null;
+      }
+    }
+
+    await entry.save();
 
     return res.json({ entry });
   } catch (e) {
@@ -156,6 +169,8 @@ router.get("/me", requireAuth, async (req, res) => {
       notes: it.notes,
       createdAt: it.createdAt,
       updatedAt: it.updatedAt,
+      isFavorite: !!it.isFavorite,
+      favoriteAddedAt: it.favoriteAddedAt ?? null,
       game: it.gameId ? {
         igdbId: it.gameId.igdbId,
         name: it.gameId.name,
