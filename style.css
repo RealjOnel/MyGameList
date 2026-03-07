@@ -3993,7 +3993,7 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
     opacity: 0.8;
 }
 
-/*User Data */
+        /*User Data */
 
 .user_data {
     flex: 1.1;               
@@ -4012,7 +4012,7 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 
 .profile_favs {
     flex: auto;
-    height: 600px;
+    height: auto;
     border-top: 1px solid #c4c4c4;
 }
 
@@ -4023,38 +4023,103 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 
 .profile_favourites_items {
     display: flex;
-    flex-wrap: wrap; /* neue Zeile, wenn nicht genug Platz */
+    flex-wrap: wrap;
     gap: 15px;
-    justify-content: flex-start; /* linksbündig */
+    justify-content: flex-start;
+    margin-top: 15px;
+    margin-bottom: 50px;
 }
 
 .favourite_item {
-    background: white;
-    border-radius: 18px;
-    overflow: hidden;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-    transition: transform 0.3s ease;
-    border: 1px solid #f1f5f9;
-    height: 100%;
-    backface-visibility: hidden;
-    transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease; 
-}
-
-.favourite_icon {
-    width: 20%;
-    height: 100%;
-    border-radius: 18px;  
-    margin-right: auto;
-}
-
-.favourite_name {
-    margin-top: 8px;
-    font-size: 14px;
-
+    background: transparent;
+    border: none;
+    padding: 0;
+    width: 120px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.25s ease;
 }
 
 .favourite_item:hover {
-    transform: translateY(-10px);
+    transform: translateY(-6px);
+}
+
+.favourite_icon_wrap {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    padding: 8px;
+    border-radius: 22px;
+    overflow: hidden;
+
+    background:
+        radial-gradient(circle at 18% 22%, rgba(59,130,246,0.80), transparent 48%),
+        radial-gradient(circle at 78% 28%, rgba(139,92,246,0.78), transparent 52%),
+        radial-gradient(circle at 50% 95%, rgba(167,139,250,0.45), transparent 60%),
+        linear-gradient(135deg, rgba(255,255,255,0.55), rgba(255,255,255,0.12));
+
+    box-shadow:
+        0 12px 28px rgba(0,0,0,0.10),
+        inset 0 1px 0 rgba(255,255,255,0.35),
+        0 0 24px rgba(99,102,241,0.18);
+}
+
+/* glossy layer /
+.favourite_icon_wrap::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 22px;
+    background: linear-gradient(
+        135deg,
+        rgba(255,255,255,0.30),
+        rgba(255,255,255,0.08) 35%,
+        rgba(255,255,255,0) 65%
+    );
+    pointer-events: none;
+}
+
+/ moving shimmer only behind cover */
+.cover-shimmer {
+    position: absolute;
+    top: -40%;
+    left: -70%;
+    width: 80%;
+    height: 200%;
+    background: linear-gradient(
+        120deg,
+        transparent 20%,
+        rgba(255,255,255,0.28) 40%,
+        rgba(59,130,246,0.18) 52%,
+        rgba(139,92,246,0.22) 60%,
+        transparent 80%
+    );
+    transform: rotate(16deg);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.favourite_item:hover .cover-shimmer {
+    opacity: 1;
+    animation: coverSheen 900ms ease forwards;
+}
+
+@keyframes coverSheen {
+    from { left: -70%; }
+    to   { left: 140%; }
+}
+
+.favourite_icon {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    border-radius: 16px;
+    object-fit: cover;
+    display: block;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.16);
 }
 
 .favourite_games {

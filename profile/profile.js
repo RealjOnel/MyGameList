@@ -83,7 +83,6 @@ async function loadProfile(){
       btn.className = "favourite_item";
       btn.innerHTML = `
         <img src="${coverUrl(e.game.coverImageId)}" class="favourite_icon" alt="">
-        <span class="favourite_name">${e.game.name}</span>
       `;
       btn.addEventListener("click", () => {
         window.location.href = `../gamepage/game.html?id=${encodeURIComponent(e.game.igdbId)}`;
