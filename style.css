@@ -3945,55 +3945,7 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 /* ===================== */
 /* RECHTE SEITE */
 /* ===================== */
-.profile_favourites {
-    flex: 1;
-}
 
-.profile_favourites_items {
-    display: flex;
-    flex-wrap: wrap; /* neue Zeile, wenn nicht genug Platz */
-    gap: 15px;
-    justify-content: flex-start; /* linksbündig */
-}
-
-.favourite_item {
-    background: white;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-    transition: transform 0.3s ease;
-    border: 1px solid #f1f5f9;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    backface-visibility: hidden;
-    transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease; 
-    width: 120px;
-}
-
-.favourite_icon {
-    width: 100%;
-    height: 100%;
-    display: block;
-    object-fit: cover;
-    border-radius: 5%;
-}
-
-.favourite_name {
-    margin-top: 8px;
-    font-size: 14px;
-    text-align: center;
-}
-
-
-.favourite_item:hover {
-    transform: translateY(-10px);
-}
-
-.favourite_games {
-    flex: 1;
-    
-}
 
 .profile_games {
     display: grid;
@@ -4063,6 +4015,55 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
     height: 600px;
     border-top: 1px solid #c4c4c4;
 }
+
+.profile_favourites {
+    flex: 1;
+    margin: 20px;
+}
+
+.profile_favourites_items {
+    display: flex;
+    flex-wrap: wrap; /* neue Zeile, wenn nicht genug Platz */
+    gap: 15px;
+    justify-content: flex-start; /* linksbündig */
+}
+
+.favourite_item {
+    background: white;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease;
+    border: 1px solid #f1f5f9;
+    height: 100%;
+    backface-visibility: hidden;
+    transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease; 
+}
+
+.favourite_icon {
+    width: 20%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 18px;
+
+}
+
+.favourite_name {
+    margin-top: 8px;
+    font-size: 14px;
+
+}
+
+
+.favourite_item:hover {
+    transform: translateY(-10px);
+}
+
+.favourite_games {
+    flex: 1;
+    
+} 
+
 
 
 .profile_reviews {
