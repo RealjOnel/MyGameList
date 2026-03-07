@@ -531,7 +531,7 @@ function renderCommunityTab(){
   c.innerHTML = `
     <div class="sub-empty">
       <h4>Community</h4>
-      <p class="muted">Reviews & forums will live here. For now: your future glory is still loading.</p>
+      <p class="muted">Reviews & forums will live here. For now: Placeholder content.</p>
     </div>
   `;
 }

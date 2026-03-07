@@ -349,10 +349,9 @@ router.get("/game/:id", async (req, res) => {
       Number(game?.parent_game?.id) ||
       Number(game?.id);
 
-    if (!Number.isFinite(baseId)) {
-      // fallback safety: don't break the route
-      game.characters = [];
-    } else {
+    game.characters = [];
+
+    if (Number.isFinite(baseId)) {
       try {
         const charsResp = await axios.post(
           "https://api.igdb.com/v4/characters",
@@ -363,11 +362,14 @@ router.get("/game/:id", async (req, res) => {
           `,
           { headers, timeout: 15000 }
         );
+
         game.characters = Array.isArray(charsResp.data) ? charsResp.data : [];
       } catch (e) {
-       console.warn("characters fetch failed:", e.response?.data || e.message);
+        console.warn("characters fetch failed:", e.response?.data || e.message);
         game.characters = [];
       }
+    } else {
+      console.warn("characters skipped: baseId invalid", baseId);
     }
 
     try {
@@ -375,7 +377,7 @@ router.get("/game/:id", async (req, res) => {
         "https://api.igdb.com/v4/characters",
         `
           fields id,name,mug_shot.image_id;
-          where games = (${charGameId});
+          where games = (${baseId});
           limit 60;
         `,
         { headers, timeout: 15000 }
