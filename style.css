@@ -4202,6 +4202,36 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
   color: #0f172a;
 }
 
+/* Favorite Button */
+
+.game-cover-column{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-favorite{
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(15,23,42,0.10);
+  background: rgba(255,255,255,0.86);
+  font-weight: 900;
+  color: #0f172a;
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.btn-favorite:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+}
+
+.btn-favorite.active{
+  background: rgba(239,68,68,0.10);
+  border-color: rgba(239,68,68,0.24);
+  color: #b91c1c;
+}
+
 /* Stats bar layout */
 .stats-wrap{
   display: grid;

@@ -14,6 +14,9 @@ const userGameEntrySchema = new mongoose.Schema(
 
     playtimeHours: { type: Number, min: 0, default: 0 },
     notes: { type: String, default: "" },
+
+    isFavorite: { type: Boolean, default: false },
+    favoriteAddedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

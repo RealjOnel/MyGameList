@@ -57,7 +57,6 @@ async function loadProfile(){
 
   // ---- render basics ----
   qs(".profile_username").textContent = me.username;
-  document.title = `${me.username} | MyGameList`;
   document.title = `${me.username || "Profile"} | MyGameList`;
 
   // joined date
@@ -76,8 +75,12 @@ async function loadProfile(){
     favWrap.innerHTML = "";
 
     const top = [...entries]
-      .filter(e => e?.game?.coverImageId)
-      .sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1))
+      .filter(e => e?.isFavorite && e?.game?.coverImageId)
+      .sort((a, b) => {
+        const da = a?.favoriteAddedAt ? new Date(a.favoriteAddedAt).getTime() : 0;
+        const db = b?.favoriteAddedAt ? new Date(b.favoriteAddedAt).getTime() : 0;
+        return db - da; // newest first, oldest last
+      })
       .slice(0, 8);
 
     for (const e of top) {

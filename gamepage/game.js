@@ -57,6 +57,7 @@ const statusDD = qs("statusDD");
 const ratingDD = qs("ratingDD");
 const btnReview = qs("btnReview");
 const userControls = qs("userControls");
+const btnFavorite = qs("btnFavorite");
 
 function ddParts(root){
   return {
@@ -197,34 +198,46 @@ function statusLabel(v){
 }
 
 async function refreshControls(){
-  // Default safe state
   btnAdd.hidden = false;
   btnAdd.disabled = false;
   statusDD.hidden = true;
   ratingDD.hidden = true;
   btnReview.disabled = true;
 
-  // logged out -> show immediately (no flicker needed)
+  if (btnFavorite) {
+    btnFavorite.hidden = true;
+    btnFavorite.disabled = true;
+    btnFavorite.textContent = "♡ Favorite";
+    btnFavorite.classList.remove("active");
+  }
+
   if (!token){
     if (userControls) userControls.classList.remove("is-loading");
     btnAdd.textContent = "Login to add";
     return;
   }
 
-  // logged in -> prevent flicker while loading entry
   if (userControls) userControls.classList.add("is-loading");
 
   const entry = await fetchEntry();
 
   if (userControls) userControls.classList.remove("is-loading");
 
-  // not in list
+  // Logged in: show favorite button always
+  if (btnFavorite) {
+    btnFavorite.hidden = false;
+    btnFavorite.disabled = !entry; // only if game is already in list
+  }
+
   if (!entry){
     btnAdd.textContent = "+ Add to List";
+    if (btnFavorite) {
+      btnFavorite.textContent = "♡ Favorite";
+      btnFavorite.classList.remove("active");
+    }
     return;
   }
 
-  // in list
   btnAdd.hidden = true;
 
   statusDD.hidden = false;
@@ -238,6 +251,13 @@ async function refreshControls(){
   ratingUI.setActiveValue(entry.rating == null ? "" : String(entry.rating));
 
   btnReview.disabled = false;
+
+  if (btnFavorite) {
+    const fav = !!entry.isFavorite;
+    btnFavorite.disabled = false;
+    btnFavorite.textContent = fav ? "♥ Favorite" : "♡ Favorite";
+    btnFavorite.classList.toggle("active", fav);
+  }
 }
 
 btnAdd.addEventListener("click", async () => {
@@ -265,6 +285,35 @@ btnAdd.addEventListener("click", async () => {
 
   await refreshControls();
 });
+
+if (btnFavorite) {
+  btnFavorite.addEventListener("click", async () => {
+    if (!token) {
+      window.location.href = "../LoginPageAndLogic/login.html";
+      return;
+    }
+
+    const entry = await fetchEntry();
+
+    // Favorite only possible if game is already in list
+    if (!entry) {
+      alert("Add the game to your list first.");
+      return;
+    }
+
+    const nextFav = !entry.isFavorite;
+
+    btnFavorite.disabled = true;
+
+    try {
+      await patchEntry({ isFavorite: nextFav });
+      await refreshControls();
+    } catch (e) {
+      console.error("Favorite update failed:", e);
+      await refreshControls();
+    }
+  });
+}
 
 // Review placeholder (feature later)
 btnReview.addEventListener("click", () => {
