@@ -3711,31 +3711,6 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
         
 }
 
-.box {
-    flex: 1.1;               
-
-}
-
-.profile_right {
-    flex: 2;               
-    flex-direction: column;
-}
-
-.profile_empty {
-    flex: auto;
-    height: 150px;
-}
-
-.profile_favs {
-    flex: auto;
-    height: 600px;
-    border-top: 1px solid #c4c4c4;
-}
-.profile_reviews {
-    flex: auto;
-    border-top: 1px solid #c4c4c4;
-    height: auto;
-}
 
                               /* Profile Identity Section */
 
@@ -4064,6 +4039,36 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
     font-size: 14px;
     text-align: Left;
     opacity: 0.8;
+}
+
+/*User Data */
+
+.user_data {
+    flex: 1.1;               
+
+}
+
+.profile_right {
+    flex: 2;               
+    flex-direction: column;
+}
+
+.profile_empty {
+    flex: auto;
+    height: 150px;
+}
+
+.profile_favs {
+    flex: auto;
+    height: 600px;
+    border-top: 1px solid #c4c4c4;
+}
+
+
+.profile_reviews {
+    flex: auto;
+    border-top: 1px solid #c4c4c4;
+    height: auto;
 }
 
 /* ==========================================================================
