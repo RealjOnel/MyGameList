@@ -3923,11 +3923,10 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
     padding: 20px;
 }
 
-/* ===================== */
-/* LINKE SEITE */
-/* ===================== */
 .profile_statistics {
-    flex: 1;
+    display: flex;
+    flex-direction: row;   
+    align-items: left;   
     position: relative;
 }
 
@@ -3942,20 +3941,21 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
     border: #000 solid 3px;
 }
 
-/* ===================== */
-/* RECHTE SEITE */
-/* ===================== */
+.last_edit{
+
+}
+
+
 
 
 .profile_games {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
     gap: 24px;
     padding: 24px;
     overflow: hidden;
 }
 
-.pg_item_cp,
+.pg_item_playing,
 .pg_item_ptp,
 .pg_item_completed,
 .pg_item_oh,
@@ -3965,32 +3965,34 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
     box-shadow: 0 10px 20px rgba(0,0,0,0.05);
     border: 1px solid #f1f5f9;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: center;
     height: 100%;
-    backface-visibility: hidden;
-    transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease;
+    padding: 0px;
+    gap: 12px;
 }
 
-.pg_item_cp { background: rgba(118, 223, 69, 0.53); }
+.pg_item_playing { background: rgba(118, 223, 69, 0.53); }
 .pg_item_ptp { background: rgba(202, 202, 202, 0.43); }
 .pg_item_completed { background: rgba(59, 177, 255, 0.43); }
 .pg_item_oh { background: rgba(237, 255, 72, 0.43); }
 .pg_item_dropped { background: rgba(255, 99, 72, 0.43); }
 
 .pg_icon {
-    width: 100%;
+    width: 120px;
     height: 100%;
-    display: block;
     object-fit: cover;
-    border-radius: 5%;
+    border-radius: 6px;
+    flex-shrink: 0; 
 }
 
-.pg_text {
-    margin-top: 8px;
-    margin-left: 24px;
-    font-size: 14px;
-    text-align: Left;
-    opacity: 0.8;
+.pg_name {
+    font-size: 16px;
+    text-align: left;
+    background-color: #000;
+    width: 120px;
+    height: 100%;
+    margin: 10px;
 }
 
         /*User Data */
