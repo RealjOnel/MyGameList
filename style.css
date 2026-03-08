@@ -3902,7 +3902,6 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
     flex-direction: column;
 }
 
-/* Banner bleibt oben */
 .profile_banner {
     height: 150px;
     outline: #c4c4c4 solid 1px;
@@ -3914,9 +3913,6 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
     object-fit: cover;
 }
 
-/* ===================== */
-/* NEUER CONTENT WRAPPER */
-/* ===================== */
 .profile_content {
     display: flex;      /* STATISTIK LINKS / FAVORITEN RECHTS */
     gap: 40px;
@@ -3948,44 +3944,110 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
     overflow: hidden;
 }
 
-.pg_item_playing,
-.pg_item_ptp,
-.pg_item_completed,
-.pg_item_oh,
-.pg_item_dropped {
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-    border: 1px solid #f1f5f9;
+/* =========================
+   Game list container
+   ========================= */
+
+.profile_games{
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    height: 100%;
-    padding: 0px;
-    gap: 12px;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.pg_item_playing { background: rgba(118, 223, 69, 0.53); }
-.pg_item_ptp { background: rgba(202, 202, 202, 0.43); }
-.pg_item_completed { background: rgba(59, 177, 255, 0.43); }
-.pg_item_oh { background: rgba(237, 255, 72, 0.43); }
-.pg_item_dropped { background: rgba(255, 99, 72, 0.43); }
+/* =========================
+   Game title
+   ========================= */
 
-.pg_icon {
+.pg_name{
+    font-size: 18px;
+    font-weight: 600;
+    margin-left: 6px;
+}
+
+/* =========================
+   Game card container
+   ========================= */
+
+.pg_item{
+    display: flex;
+    width: 250px;
+    padding: 0;
+
+    border-radius: 18px;
+    border: 1px solid #f1f5f9;
+    overflow: hidden;
+}
+
+.pg_card{
+    display: flex;
+    width: 100%;
+}
+
+/* =========================
+   Game cover image
+   ========================= */
+
+.pg_icon{
     width: 120px;
-    height: 100%;
+    height: 160px;
     object-fit: cover;
-    border-radius: 6px;
-    flex-shrink: 0; 
+    border-radius: 8px 0 0 8px;
 }
 
-.pg_name {
+/* =========================
+   Right side information
+   ========================= */
+
+.pg_stateclass{
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    flex: 1;
+}
+
+/* =========================
+   Base state text
+   ========================= */
+
+.pg_state{
     font-size: 16px;
+    font-weight: 500;
     text-align: left;
-    background-color: #000;
-    width: 120px;
-    height: 100%;
-    margin: 10px;
+    width: 100%;
+}
+
+/* pushes "last edit" to the bottom */
+.pg_state.last_edit{
+    margin-top: auto;
+}
+
+/* =========================
+   State colors
+   ========================= */
+
+.pg_state_completed{
+    color: #2d7fb8;
+    text-align: left;
+}
+
+.pg_state_dropped{
+    color: rgba(211, 27, 27, 0.77);
+    text-align: left;
+}
+
+.pg_state_onhold{
+    color: rgba(192, 189, 6, 0.96);
+    text-align: left;
+}
+
+.pg_state_planed{
+    color: rgba(121, 121, 121, 0.96);
+    text-align: left;
+}
+
+.pg_state_playing{
+    color: rgba(110, 223, 58, 0.78);
+    text-align: left;
 }
 
         /*User Data */
