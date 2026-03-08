@@ -3723,7 +3723,7 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
     line-height: 1.05;
     font-weight: 900;
     letter-spacing: -0.03em;
-    color: #0f172a;
+    color: #2c1653;
     display: inline-block;
 }
 
@@ -3741,7 +3741,7 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 /* Version for Main Headlines */
 
 .section-title--gradient{
-    background: linear-gradient(90deg, #0f172a 0%, #2563eb 38%, #8b5cf6 78%, #0f172a 100%);
+    background: linear-gradient(90deg, #170f2a 0%, #2563eb 38%, #8b5cf6 78%, #0f172a 100%);
     background-size: 200% auto;
     -webkit-background-clip: text;
     background-clip: text;
@@ -3752,7 +3752,7 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 /* Glow Version (good for Sub Sections) */
 
 .section-title--glow{
-    color: #0f172a;
+    color: #280f2a;
     text-shadow:
         0 0 12px rgba(59,130,246,0.28),
         0 0 22px rgba(139,92,246,0.20);
@@ -3790,7 +3790,7 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 /* Metallic Style (Good for very important sections) */
 
 .section-title--metal{
-    background: linear-gradient(135deg, #0f172a 0%, #334155 25%, #2563eb 60%, #8b5cf6 100%);
+    background: linear-gradient(135deg, #210f2a 0%, #334155 25%, #2563eb 60%, #8b5cf6 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
