@@ -7,7 +7,6 @@ async function api(path, { token, method = "GET", body } = {}) {
   if (token) headers.Authorization = `Bearer ${token}`;
   if (body) headers["Content-Type"] = "application/json";
 
-  // Cache-bust ALL GET requests so the server can't respond 304
   const url =
     method === "GET"
       ? `${API_BASE_URL}${path}${path.includes("?") ? "&" : "?"}_=${Date.now()}`
@@ -20,7 +19,6 @@ async function api(path, { token, method = "GET", body } = {}) {
     cache: "no-store",
   });
 
-  // Handle empty-body statuses safely (304/204)
   const text = await res.text();
   const data = text ? JSON.parse(text) : {};
 
@@ -41,34 +39,105 @@ function formatDate(iso){
   return new Date(iso).toLocaleDateString("en-GB");
 }
 
+function formatDateTime(iso){
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+function statusLabel(status){
+  return ({
+    playing: "Currently Playing",
+    planned: "Planned",
+    completed: "Completed",
+    on_hold: "On Hold",
+    dropped: "Dropped"
+  })[status] || "Unknown";
+}
+
+function statusClass(status){
+  return ({
+    playing: "pg_state_playing",
+    planned: "pg_state_planed",
+    completed: "pg_state_completed",
+    on_hold: "pg_state_onhold",
+    dropped: "pg_state_dropped"
+  })[status] || "pg_state";
+}
+
+function renderRecentActivity(items){
+  const wrap = document.getElementById("recentActivityWrap");
+  if (!wrap) return;
+
+  wrap.innerHTML = "";
+
+  const recent = [...items]
+    .filter(e => e?.game)
+    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+    .slice(0, 4);
+
+  if (!recent.length){
+    wrap.innerHTML = `<div class="muted">No recent activity yet.</div>`;
+    return;
+  }
+
+  for (const e of recent){
+    const btn = document.createElement("button");
+    btn.className = "pg_item";
+    btn.type = "button";
+
+    btn.innerHTML = `
+  <div class="pg_card">
+    <div class="pg_iconclass">
+      <img src="${coverUrl(e.game.coverImageId)}" class="pg_icon" alt="${e.game.name || "Game cover"}">
+    </div>
+    <div class="pg_stateclass">
+      <div class="pg_top">
+        <span class="pg_name">${e.game.name || "Unknown Game"}</span>
+        <span class="${statusClass(e.status)}">${statusLabel(e.status)}</span>
+      </div>
+
+      <div class="pg_bottom">
+        <span class="pg_state">Rating: ${e.rating ?? "—"}</span>
+        <span class="pg_state last_edit">Last Edit: ${formatDateTime(e.updatedAt)}</span>
+      </div>
+    </div>
+  </div>
+`;
+
+    btn.addEventListener("click", () => {
+      window.location.href = `../gamepage/game.html?id=${encodeURIComponent(e.game.igdbId)}`;
+    });
+
+    wrap.appendChild(btn);
+  }
+}
+
 async function loadProfile(){
   const token = localStorage.getItem("token");
   if (!token){
-    // not logged in -> redirect or show a message
     window.location.href = "../../LoginPageAndLogic/login.html";
     return;
   }
 
-  // 1) who am I
   const me = await api("/api/users/me", { token });
-
-  // 2) my library
   const entries = await api("/api/library/me", { token });
 
-  // ---- render basics ----
   qs(".profile_username").textContent = me.username;
   document.title = `${me.username || "Profile"} | MyGameList`;
 
-  // joined date
   const joinedEl = document.getElementById("joinedAt");
   if (joinedEl) joinedEl.textContent = `Joined: ${formatDate(me.createdAt)}`;
 
-  // last login
   const lastEl = document.getElementById("lastOnline");
   if (lastEl) lastEl.textContent = `Last Online: ${formatDate(me.lastLoginAt)}`;
 
-  // ---- favorites (placeholder logic for now) ----
-  // Until you have a "favorite" flag, just show top-rated or most recent entries:
+  // Favorites
   const favWrap = document.getElementById("profileFavorites");
 
   if (favWrap) {
@@ -79,7 +148,7 @@ async function loadProfile(){
       .sort((a, b) => {
         const da = a?.favoriteAddedAt ? new Date(a.favoriteAddedAt).getTime() : 0;
         const db = b?.favoriteAddedAt ? new Date(b.favoriteAddedAt).getTime() : 0;
-        return db - da; // newest first, oldest last
+        return db - da;
       })
       .slice(0, 8);
 
@@ -107,16 +176,17 @@ async function loadProfile(){
     }
   }
 
-  // ---- pie chart stats ----
-  // Use your existing piechart.js, just feed it counts by status later.
-  // Example counts:
+  // Recent Activity
+  renderRecentActivity(entries);
+
+  // Pie chart counts
   const counts = entries.reduce((acc, e) => {
     acc[e.status] = (acc[e.status] || 0) + 1;
     return acc;
   }, {});
   console.log("status counts", counts);
 
-  // Later: call your pie chart render function with these counts.
+  // later: render pie chart based on counts
 }
 
 document.addEventListener("DOMContentLoaded", () => {
