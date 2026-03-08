@@ -92,23 +92,23 @@ function renderRecentActivity(items){
     btn.type = "button";
 
     btn.innerHTML = `
-  <div class="pg_card">
-    <div class="pg_iconclass">
-      <img src="${coverUrl(e.game.coverImageId)}" class="pg_icon" alt="${e.game.name || "Game cover"}">
-    </div>
-    <div class="pg_stateclass">
-      <div class="pg_top">
-        <span class="pg_name">${e.game.name || "Unknown Game"}</span>
-        <span class="${statusClass(e.status)}">${statusLabel(e.status)}</span>
-      </div>
+      <div class="pg_card">
+        <div class="pg_iconclass">
+          <img src="${coverUrl(e.game.coverImageId)}" class="pg_icon" alt="${e.game.name || "Game cover"}">
+        </div>
+        <div class="pg_stateclass">
+          <div class="pg_top">
+            <span class="pg_name">${e.game.name || "Unknown Game"}</span>
+            <span class="${statusClass(e.status)}">${statusLabel(e.status)}</span>
+          </div>
 
-      <div class="pg_bottom">
-        <span class="pg_state">Rating: ${e.rating ?? "—"}</span>
-        <span class="pg_state last_edit">Last Edit: ${formatDateTime(e.updatedAt)}</span>
+          <div class="pg_bottom">
+            <span class="pg_state">Rating: ${e.rating ?? "—"}</span>
+            <span class="pg_state last_edit">Last Edit: ${formatDateTime(e.updatedAt)}</span>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-`;
+    `;
 
     btn.addEventListener("click", () => {
       window.location.href = `../gamepage/game.html?id=${encodeURIComponent(e.game.igdbId)}`;
