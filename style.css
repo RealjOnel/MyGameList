@@ -3711,6 +3711,132 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
         
 }
 
+/* =========================
+   Sub Headline Styles (use different versions for different sections)
+   ========================= */
+
+/* Base styles for all section titles */
+
+.section-title{
+    margin: 0 0 16px;
+    font-size: 1.5rem;
+    line-height: 1.05;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    color: #0f172a;
+    display: inline-block;
+}
+
+.section-title::after{
+    content: "";
+    display: block;
+    width: 84px;
+    height: 4px;
+    margin-top: 10px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    box-shadow: 0 0 18px rgba(99,102,241,0.22);
+}
+
+/* Version for Main Headlines */
+
+.section-title--gradient{
+    background: linear-gradient(90deg, #0f172a 0%, #2563eb 38%, #8b5cf6 78%, #0f172a 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+}
+
+/* Glow Version (good for Sub Sections) */
+
+.section-title--glow{
+    color: #0f172a;
+    text-shadow:
+        0 0 12px rgba(59,130,246,0.28),
+        0 0 22px rgba(139,92,246,0.20);
+}
+
+/* Version if only one of the words should be highlighted */
+
+.section-title--split{
+    color: #0f172a;
+}
+
+.section-title--split span{
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* Clean Glass Style */
+
+.section-title--glass{ 
+    color: rgba(15,23,42,0.92); 
+    text-shadow: 0 1px 0 rgba(255,255,255,0.55), 0 8px 24px rgba(99,102,241,0.10); }
+
+/* Neon Style */
+
+.section-title--neon{
+    color: #111827;
+    text-shadow:
+        0 0 10px rgba(59,130,246,0.32),
+        0 0 20px rgba(139,92,246,0.26),
+        0 0 34px rgba(99,102,241,0.18);
+}
+
+/* Metallic Style (Good for very important sections) */
+
+.section-title--metal{
+    background: linear-gradient(135deg, #0f172a 0%, #334155 25%, #2563eb 60%, #8b5cf6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+}
+
+/* =========================
+   Sub Headline Line Styles
+   ========================= */
+
+/* Default section title style */
+
+.section-title--default::after{
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+}
+
+/* Reversed title style (gradient on the left) */
+
+.section-title--reverse::after{
+    background: linear-gradient(90deg, #8b5cf6, #3b82f6);
+}
+
+/* Cooler colors style */
+
+.section-title--cool::after{
+    background: linear-gradient(90deg, #60a5fa, #818cf8);
+}
+
+/* Stronger more vibrant colors */
+
+.section-title--bold::after{
+    background: linear-gradient(90deg, #2563eb, #7c3aed);
+    box-shadow: 0 0 24px rgba(99,102,241,0.30);
+}
+
+/* Shorter line style */
+
+.section-title--short::after{
+    width: 56px;
+}
+
+/* Longer line style */
+
+.section-title--long::after{
+    width: 120px;
+}
 
                               /* Profile Identity Section */
 
