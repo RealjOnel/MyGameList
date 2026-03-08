@@ -1,82 +1,189 @@
+ /* =========================
+   Data source
+   ========================= */
+
 const dbData = [
-    {name: 'currently playing', points: 120},
-    {name: 'completed', points: 90},
-    {name: 'dropped', points: 150},
-    {name: 'on hold', points: 75},
-    {name: 'plan to play', points: 60} 
+    { name: "currently playing", points: 120 },
+    { name: "completed", points: 90 },
+    { name: "dropped", points: 150 },
+    { name: "on hold", points: 75 },
+    { name: "plan to play", points: 60 }
 ];
 
-const canvas = document.getElementById('pieChart');
-const ctx = canvas.getContext('2d');
-const tooltip = document.getElementById('tooltip'); // Tooltip div für Hover
+/* =========================
+   Canvas setup
+   ========================= */
+
+const canvas = document.getElementById("pieChart");
+const ctx = canvas.getContext("2d");
+const tooltip = document.getElementById("tooltip");
 
 const centerX = canvas.width / 2;
 const centerY = canvas.height / 2;
 
-// Radius exakt bis zur Innenkante der 3px Border
-const radius = (canvas.width / 2) - 3;
+const baseRadius = (canvas.width / 2) - 10;
 
-// Farben der Segmente
-const colors = ['rgba(118, 223, 69, 0.527)', '#3b83f6e3', '#ff0000da', '#ffd000', '#6d6d6d'];
+/* =========================
+   Chart colors
+   ========================= */
 
-// Array speichert Start- und Endwinkel jedes Segments
-let startAngles = [];
+const colors = [
+    "rgba(107, 211, 59, 0.8)",
+    "#3b83f6",
+    "rgba(211, 27, 27, 0.77)",
+    "rgba(228, 210, 46, 0.84)",
+    "#5a5a5aa2"
+];
+
+/* =========================
+   Chart state
+   ========================= */
+
+let segments = [];
+let hoverIndex = -1;
+
+let animationProgress = 0;
+
 const total = dbData.reduce((sum, d) => sum + d.points, 0);
-let currentAngle = 0;
 
-// ---------------------------
-// Pie Chart zeichnen
-// ---------------------------
-dbData.forEach((data, index) => {
-    const sliceAngle = (data.points / total) * 2 * Math.PI;
+/* =========================
+   Draw pie chart (Start oben / Animation) 
+   ========================= */
 
-    ctx.beginPath();
-    ctx.moveTo(centerX, centerY);
-    ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
-    ctx.closePath();
-    ctx.fillStyle = colors[index % colors.length];
-    ctx.fill();
+function drawChart(progress = 1) {
 
-    // Start- und Endwinkel speichern, um später Hover zu erkennen
-    startAngles.push({
-        start: currentAngle,
-        end: currentAngle + sliceAngle,
-        name: data.name
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    let currentAngle = -Math.PI / 2; // Start bei 12 Uhr
+    segments = [];
+
+    const maxAngle = progress * 2 * Math.PI;
+
+    dbData.forEach((data, index) => {
+
+        const sliceAngle = (data.points / total) * 2 * Math.PI;
+
+        let endAngle = currentAngle + sliceAngle;
+
+        if (endAngle > -Math.PI / 2 + maxAngle) {
+            endAngle = -Math.PI / 2 + maxAngle;
+        }
+
+        if (currentAngle >= -Math.PI / 2 + maxAngle) return;
+
+        const isHover = index === hoverIndex;
+
+        const radius = isHover
+            ? baseRadius + 15
+            : baseRadius;
+
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+
+        ctx.arc(
+            centerX,
+            centerY,
+            radius,
+            currentAngle,
+            endAngle
+        );
+
+        ctx.closePath();
+
+        ctx.fillStyle = colors[index % colors.length];
+        ctx.fill();
+
+        segments.push({
+            start: currentAngle,
+            end: endAngle,
+            name: data.name,
+            value: data.points
+        });
+
+        currentAngle += sliceAngle;
     });
+}
 
-    currentAngle += sliceAngle;
-});
+/* =========================
+   Animation
+   ========================= */
 
-// ---------------------------
-// Hover-Funktion für Tooltip
-// ---------------------------
-canvas.addEventListener('mousemove', function(e) {
+function animateChart() {
+
+    animationProgress += 0.02;
+
+    if (animationProgress > 1) {
+        animationProgress = 1;
+    }
+
+    drawChart(animationProgress);
+
+    if (animationProgress < 1) {
+        requestAnimationFrame(animateChart);
+    }
+}
+
+animateChart();
+
+/* =========================
+   Hover interaction
+   ========================= */
+
+canvas.addEventListener("mousemove", (e) => {
+
     const rect = canvas.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left; // Maus X relativ zum Canvas
-    const mouseY = e.clientY - rect.top;  // Maus Y relativ zum Canvas
+
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
 
     const dx = mouseX - centerX;
     const dy = mouseY - centerY;
-    const distance = Math.sqrt(dx*dx + dy*dy);
+
+    const distance = Math.sqrt(dx * dx + dy * dy);
 
     let angle = Math.atan2(dy, dx);
-    let adjustedAngle = angle < 0 ? angle + 2 * Math.PI : angle;
+    let adjustedAngle = angle < 0
+        ? angle + 2 * Math.PI
+        : angle;
 
-    if(distance <= radius) {
-        // prüfen, welches Segment unter der Maus ist
-        const segment = startAngles.find(s => adjustedAngle >= s.start && adjustedAngle <= s.end);
-        if(segment) {
-            tooltip.style.display = 'block';
-            tooltip.style.left = (mouseX + 30) + 'px';
-            tooltip.style.top = (mouseY + 30) + 'px';  
-            tooltip.textContent = segment.name; 
+    if (distance <= baseRadius + 20) {
+
+        const index = segments.findIndex(
+            s => adjustedAngle >= s.start && adjustedAngle <= s.end
+        );
+
+        if (index !== hoverIndex) {
+            hoverIndex = index;
+            drawChart(animationProgress);
         }
+
+        const segment = segments[index];
+
+        if (segment) {
+
+            tooltip.style.display = "block";
+            tooltip.style.left = (mouseX + 20) + "px";
+            tooltip.style.top = (mouseY + 20) + "px";
+
+            tooltip.innerHTML =
+                `<strong>${segment.name}</strong><br>${segment.value}`;
+        }
+
     } else {
-        tooltip.style.display = 'none'; 
+
+        hoverIndex = -1;
+        tooltip.style.display = "none";
+        drawChart(animationProgress);
     }
 });
 
-// Maus verlässt Canvas → Tooltip ausblenden
-canvas.addEventListener('mouseleave', () => {
-    tooltip.style.display = 'none';
+/* =========================
+   Hide tooltip
+   ========================= */
+
+canvas.addEventListener("mouseleave", () => {
+
+    hoverIndex = -1;
+    tooltip.style.display = "none";
+    drawChart(animationProgress);
 });

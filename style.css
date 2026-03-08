@@ -4052,15 +4052,17 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
     position: relative;
 }
 
-.profile_pie_container {
-    width: 220px;
-    margin-bottom: 30px;
+.profile_pie_container{
+    width:220px;
+    margin-top: 37px;
+    margin-bottom:30px;
 }
 
-#pieChart {
-    display: block;
-    border-radius: 50%;
-    border: #000 solid 3px;
+/* canvas styling */
+
+#pieChart{
+    display:block;
+    border-radius:50%;
 }
 
 .profile_games {
@@ -4162,12 +4164,12 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 }
 
 .pg_state_onhold{
-    color: rgba(192, 189, 6, 0.96);
+    color: rgba(228, 210, 46, 0.84);
     text-align: left;
 }
 
 .pg_state_planed{
-    color: rgba(121, 121, 121, 0.96);
+    color: #5a5a5aa2;
     text-align: left;
 }
 
