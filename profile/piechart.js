@@ -1,60 +1,84 @@
 /* =========================
-   Data source
-   ========================= */
-
-const dbData = [
-    { name: "currently playing", points: 120 },
-    { name: "completed", points: 90 },
-    { name: "dropped", points: 150 },
-    { name: "on hold", points: 75 },
-    { name: "plan to play", points: 60 }
-];
-
-/* =========================
    Canvas setup
    ========================= */
 
 const canvas = document.getElementById("pieChart");
-const ctx = canvas.getContext("2d");
 const tooltip = document.getElementById("tooltip");
 
-const centerX = canvas.width / 2;
-const centerY = canvas.height / 2;
+if (!canvas || !tooltip) {
+  console.warn("Pie chart elements not found.");
+} else {
+  const ctx = canvas.getContext("2d");
 
-const baseRadius = (canvas.width / 2) - 10;
-const innerRadius = baseRadius * 0.55;
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
 
-/* =========================
-   Chart colors
-   ========================= */
+  const baseRadius = (canvas.width / 2) - 10;
+  const innerRadius = baseRadius * 0.55;
 
-const colors = [
-    "rgba(107, 211, 59, 0.8)",
-    "#3b83f6",
-    "rgba(211, 27, 27, 0.77)",
-    "rgba(228, 210, 46, 0.84)",
-    "#5a5a5aa2"
-];
+  /* =========================
+     Chart colors + labels
+     ========================= */
 
-/* =========================
-   Chart state
-   ========================= */
+  const STATUS_CONFIG = [
+    { key: "playing", label: "Currently Playing", color: "rgba(107, 211, 59, 0.8)" },
+    { key: "completed", label: "Completed", color: "#3b83f6" },
+    { key: "dropped", label: "Dropped", color: "rgba(211, 27, 27, 0.77)" },
+    { key: "on_hold", label: "On Hold", color: "rgba(228, 210, 46, 0.84)" },
+    { key: "planned", label: "Planned", color: "#5a5a5aa2" }
+  ];
 
-let segments = [];
-let hoverIndex = -1;
-let animationProgress = 0; // Start bei 0 für Aufbautanimation
+  /* =========================
+     Chart state
+     ========================= */
 
-/* animation state for hover */
-let segmentHoverProgress = new Array(dbData.length).fill(0);
-const hoverSpeed = 0.15;
+  let chartData = STATUS_CONFIG.map(item => ({
+    key: item.key,
+    name: item.label,
+    value: 0,
+    color: item.color
+  }));
 
-const total = dbData.reduce((sum, d) => sum + d.points, 0);
+  let segments = [];
+  let hoverIndex = -1;
+  let animationProgress = 0;
+  let segmentHoverProgress = new Array(chartData.length).fill(0);
+  const hoverSpeed = 0.15;
 
-/* =========================
-   Draw donut chart
-   ========================= */
+  function getTotal() {
+    return chartData.reduce((sum, d) => sum + d.value, 0);
+  }
 
-function drawChart(progress = 1) {
+  /* =========================
+     Draw empty state
+     ========================= */
+
+  function drawEmptyState() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, baseRadius, 0, Math.PI * 2);
+    ctx.arc(centerX, centerY, innerRadius, Math.PI * 2, 0, true);
+    ctx.closePath();
+
+    ctx.fillStyle = "rgba(203, 213, 225, 0.45)";
+    ctx.fill();
+
+    segments = [];
+  }
+
+  /* =========================
+     Draw donut chart
+     ========================= */
+
+  function drawChart(progress = 1) {
+    const total = getTotal();
+
+    if (!total) {
+      drawEmptyState();
+      return;
+    }
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     let currentAngle = -Math.PI / 2;
@@ -62,72 +86,102 @@ function drawChart(progress = 1) {
 
     const maxAngle = progress * 2 * Math.PI;
 
-    dbData.forEach((data, index) => {
-        const sliceAngle = (data.points / total) * 2 * Math.PI;
-        let endAngle = currentAngle + sliceAngle;
+    chartData.forEach((data, index) => {
+      if (!data.value) return;
 
-        if (endAngle > -Math.PI / 2 + maxAngle) endAngle = -Math.PI / 2 + maxAngle;
-        if (currentAngle >= -Math.PI / 2 + maxAngle) return;
+      const sliceAngle = (data.value / total) * 2 * Math.PI;
+      let endAngle = currentAngle + sliceAngle;
 
-        // Smooth hover animation
-        const target = index === hoverIndex ? 1 : 0;
-        segmentHoverProgress[index] += (target - segmentHoverProgress[index]) * hoverSpeed;
-        const hoverAmount = segmentHoverProgress[index];
+      if (endAngle > -Math.PI / 2 + maxAngle) endAngle = -Math.PI / 2 + maxAngle;
+      if (currentAngle >= -Math.PI / 2 + maxAngle) return;
 
-        const outerRadius = baseRadius + hoverAmount * 12;
-        const inner = innerRadius - hoverAmount * 4;
+      const target = index === hoverIndex ? 1 : 0;
+      segmentHoverProgress[index] += (target - segmentHoverProgress[index]) * hoverSpeed;
+      const hoverAmount = segmentHoverProgress[index];
 
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, outerRadius, currentAngle, endAngle);
-        ctx.arc(centerX, centerY, inner, endAngle, currentAngle, true);
-        ctx.closePath();
+      const outerRadius = baseRadius + hoverAmount * 12;
+      const inner = innerRadius - hoverAmount * 4;
 
-        ctx.fillStyle = colors[index % colors.length];
-        ctx.fill();
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, outerRadius, currentAngle, endAngle);
+      ctx.arc(centerX, centerY, inner, endAngle, currentAngle, true);
+      ctx.closePath();
 
-        const start = (currentAngle + 2 * Math.PI) % (2 * Math.PI);
-        const end = (currentAngle + sliceAngle + 2 * Math.PI) % (2 * Math.PI);
+      ctx.fillStyle = data.color;
+      ctx.fill();
 
-        segments.push({ start, end, name: data.name, value: data.points });
+      const start = (currentAngle + 2 * Math.PI) % (2 * Math.PI);
+      const actualEnd = (endAngle + 2 * Math.PI) % (2 * Math.PI);
 
-        currentAngle += sliceAngle;
+      segments.push({
+        chartIndex: index,   // WICHTIG: echter Index in chartData
+        start,
+        end: actualEnd,
+        name: data.name,
+        value: data.value
+      });
+
+      currentAngle += sliceAngle;
     });
-}
+  }
 
-/* =========================
-   Initial animation on load
-   ========================= */
+  /* =========================
+     Animation
+     ========================= */
 
-function animateChart() {
-    animationProgress += 0.02; // Geschwindigkeit der Aufbautanimation
-    if (animationProgress > 1) animationProgress = 1;
+  function animateChart() {
+    animationProgress = 0;
 
-    drawChart(animationProgress);
+    function step() {
+      animationProgress += 0.02;
+      if (animationProgress > 1) animationProgress = 1;
 
-    if (animationProgress < 1) {
-        requestAnimationFrame(animateChart);
-    } else {
-        // Starte Hover-Loop nach Aufbau
+      drawChart(animationProgress);
+
+      if (animationProgress < 1) {
+        requestAnimationFrame(step);
+      } else {
         requestAnimationFrame(animationLoop);
+      }
     }
-}
 
-/* =========================
-   Continuous loop for hover
-   ========================= */
+    requestAnimationFrame(step);
+  }
 
-function animationLoop() {
+  function animationLoop() {
     drawChart(animationProgress);
     requestAnimationFrame(animationLoop);
-}
+  }
 
-animateChart(); // Start der Aufbautanimation
+  /* =========================
+     Public update function
+     ========================= */
 
-/* =========================
-   Hover interaction
-   ========================= */
+  function updateProfileChart(counts = {}) {
+    chartData = STATUS_CONFIG.map(item => ({
+      key: item.key,
+      name: item.label,
+      value: Number(counts[item.key] || 0),
+      color: item.color
+    }));
 
-canvas.addEventListener("mousemove", (e) => {
+    segmentHoverProgress = new Array(chartData.length).fill(0);
+    hoverIndex = -1;
+    animateChart();
+  }
+
+  window.updateProfileChart = updateProfileChart;
+
+  drawEmptyState();
+
+  /* =========================
+     Hover interaction
+     ========================= */
+
+  canvas.addEventListener("mousemove", (e) => {
+    const total = getTotal();
+    if (!total) return;
+
     const rect = canvas.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
@@ -140,42 +194,49 @@ canvas.addEventListener("mousemove", (e) => {
     let adjustedAngle = angle < 0 ? angle + 2 * Math.PI : angle;
 
     if (distance <= baseRadius + 20 && distance >= innerRadius) {
-        const index = segments.findIndex(s => {
-            if (s.start < s.end) return adjustedAngle >= s.start && adjustedAngle <= s.end;
-            return adjustedAngle >= s.start || adjustedAngle <= s.end;
-        });
+      const seg = segments.find(s => {
+        if (s.start < s.end) return adjustedAngle >= s.start && adjustedAngle <= s.end;
+        return adjustedAngle >= s.start || adjustedAngle <= s.end;
+      });
 
-        hoverIndex = index;
+      hoverIndex = seg ? seg.chartIndex : -1;
 
-        const segment = segments[index];
-        if (segment) {
-            tooltip.style.display = "block";
-            tooltip.innerHTML = `<strong>${segment.name}</strong><br>${segment.value}`;
-            tooltip.classList.add("show");
+      if (seg) {
+        tooltip.style.display = "block";
+        tooltip.innerHTML = `<strong>${seg.name}</strong><br>${seg.value}`;
+        tooltip.classList.add("show");
 
-            // Tooltip im Viewport positionieren
-            const pageWidth = document.documentElement.clientWidth;
-            const pageHeight = document.documentElement.clientHeight;
-            let left = mouseX + 20;
-            let top = mouseY + 20;
-            if(left + tooltip.offsetWidth > pageWidth) left = mouseX - tooltip.offsetWidth - 20;
-            if(top + tooltip.offsetHeight > pageHeight) top = mouseY - tooltip.offsetHeight - 20;
-            tooltip.style.left = left + "px";
-            tooltip.style.top = top + "px";
-        }
+        // Tooltip relativ zum Canvas-Container positionieren
+        const parentRect = canvas.offsetParent
+          ? canvas.offsetParent.getBoundingClientRect()
+          : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+
+        let left = rect.left - parentRect.left + mouseX + 18;
+        let top = rect.top - parentRect.top + mouseY + 18;
+
+        // innerhalb des Parent-Containers halten
+        const maxLeft = parentRect.width - tooltip.offsetWidth - 8;
+        const maxTop = parentRect.height - tooltip.offsetHeight - 8;
+
+        if (left > maxLeft) left = rect.left - parentRect.left + mouseX - tooltip.offsetWidth - 18;
+        if (top > maxTop) top = rect.top - parentRect.top + mouseY - tooltip.offsetHeight - 18;
+
+        if (left < 8) left = 8;
+        if (top < 8) top = 8;
+
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px`;
+      }
     } else {
-        hoverIndex = -1;
-        tooltip.classList.remove("show");
-        setTimeout(() => { tooltip.style.display = "none"; }, 180);
+      hoverIndex = -1;
+      tooltip.classList.remove("show");
+      setTimeout(() => { tooltip.style.display = "none"; }, 180);
     }
-});
+  });
 
-/* =========================
-   Hide tooltip on leave
-   ========================= */
-
-canvas.addEventListener("mouseleave", () => {
+  canvas.addEventListener("mouseleave", () => {
     hoverIndex = -1;
     tooltip.classList.remove("show");
     setTimeout(() => { tooltip.style.display = "none"; }, 180);
-});
+  });
+}

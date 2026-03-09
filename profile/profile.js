@@ -184,9 +184,12 @@ async function loadProfile(){
     acc[e.status] = (acc[e.status] || 0) + 1;
     return acc;
   }, {});
+
   console.log("status counts", counts);
 
-  // later: render pie chart based on counts
+  if (typeof window.updateProfileChart === "function") {
+    window.updateProfileChart(counts);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
