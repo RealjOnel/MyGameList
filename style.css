@@ -3741,12 +3741,10 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 /* Version for Main Headlines */
 
 .section-title--gradient{
-    background: linear-gradient(90deg, #170f2a 0%, #2563eb 38%, #8b5cf6 78%, #0f172a 100%);
-    background-size: 200% auto;
+    background: linear-gradient(90deg, #7c5cff 0%, #4f7cff 45%, #8b5cf6 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    color: transparent;
 }
 
 /* Glow Version (good for Sub Sections) */
@@ -3803,8 +3801,8 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 
 /* Default section title style */
 
-.section-title--default::after{
-    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+.section-title::after{
+    background: linear-gradient(90deg, #7c5cff 0%, #4f7cff 45%, #8b5cf6 100%);
 }
 
 /* Reversed title style (gradient on the left) */
