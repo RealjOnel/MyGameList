@@ -4038,30 +4038,48 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 }
 
 .profile_content {
-    display: flex;      /* STATISTIK LINKS / FAVORITEN RECHTS */
+    display: flex;      /* STATISTICS LEFT / FAVORITES RIGHT */
     gap: 40px;
     padding: 20px;
 }
 
 .profile_statistics {
     display: flex;
-    flex-direction: row;   
-    align-items: left;   
+    align-items: flex-start;
+    gap: 28px;
     position: relative;
 }
 
-.profile_pie_container{
-    width:220px;
-    margin-top: 37px;
-    margin-bottom:30px;
+.profile_pie_container,
+.last_edit {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
-/* canvas styling */
+.profile_pie_container{
+    width: 220px;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.last_edit{
+    flex: 1;
+    min-width: 0;
+}
+
+.profile_block_title{
+    margin: 0 0 18px;
+    min-height: 42px;
+    display: inline-block;
+}
 
 #pieChart{
-    display:block;
-    border-radius:50%;
+    display: block;
+    margin-top: 15px;
+    border-radius: 50%;
 }
+
 .chart-tooltip{
     position: absolute;
     padding: 10px 14px;
