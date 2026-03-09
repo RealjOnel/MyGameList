@@ -13,7 +13,7 @@
         }
     })();
     </script>
-    <title>MyGameList | Methodology</title>
+    <title>Loading... | MyGameList</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../style.css">
@@ -24,6 +24,9 @@
     <div class="logo">
         <a href="../index.html">MY<span class="accent">GAMELIST</span></a>
     </div>
+
+    <div class="nav-search-slot" id="navSearchSlot"></div>
+
     <div class="nav-links">
         <a href="./features.html" class="nav-item">Features</a>
     
@@ -62,7 +65,7 @@
         <img id="userIcon" src="../assets/User/Default_User_Icon.png" alt="User" class="user-icon">
 
         <div id="userDropdown" class="user-dropdown" aria-hidden="true">
-            <a class="dropdown-item" href="./OtherPages/profile.html">Profile</a>
+            <a class="dropdown-item" href="./profile.html">Profile</a>
             <a class="dropdown-item" href="./OtherPages/settings.html">Settings</a>
 
             <div class="dropdown-divider"></div>
@@ -128,12 +131,8 @@
             </div>
         </div>
         <div class="profile_check_in">
-            <h3>
-                Joined: #01/01/2020#
-            </h3>
-            <h3>
-                Last Online: #01/01/2024#
-            </h3>
+            <h3 id="joinedAt">Joined: -</h3>
+            <h3 id="lastOnline">Last Online: -</h3>
         </div>
     </div>
     <div class="profile_main">
@@ -153,6 +152,12 @@
                     <canvas id="pieChart" width="200" height="200"></canvas>
                 </div>
 
+
+                <div class="last_edit">
+                    <div class="profile_games" id="recentActivityWrap"></div>
+                </div>
+
+
                 <!-- Tooltip -->
                 <div id="tooltip"
                     style="position:absolute; 
@@ -167,84 +172,20 @@
                         z-index:100;">
                 </div>
             </div>
-            <div class="profile_favourites">
-
-                <h3>Player's Favorite Games:</h3>
-
-                <div class="profile_favourites_items">
-
-                    <button class="favourite_item" type="button">
-                        <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co498s.jpg" class="favourite_icon">
-                        <span class="favourite_name">Donkey Kong Land</span>
-                    </button>
-
-                    <button class="favourite_item" type="button">
-                        <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co517y.jpg" class="favourite_icon">
-                        <span class="favourite_name">Battle Charge</span>
-                    </button>
-
-                    <button class="favourite_item" type="button">
-                        <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co2lbd.jpg" class="favourite_icon">
-                        <span class="favourite_name">Grand Theft Auto V</span>
-                    </button>
-
-                    <button class="favourite_item" type="button">
-                        <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co1r7f.jpg" class="favourite_icon">
-                        <span class="favourite_name">The Last Of Us</span>
-                    </button>
-
-                </div>
-            </div>
-
         </div>
-        <div class="profile_games">
-                    <button class="pg_item_cp" type="button">
-                        <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co1r7f.jpg" class="pg_icon">
-                        <span class="pg_name">The Last Of Us</span>
-                    </button>
-                    <button class="pg_item_cp" type="button">
-                        <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co2lbd.jpg" class="pg_icon">
-                        <span class="pg_name">Grand Theft Auto V</span>
-                    </button>
-                    <button class="pg_item_cp" type="button">
-                        <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co1r7f.jpg" class="pg_icon">
-                        <span class="pg_name">The Last Of Us</span>
-                    </button>
-                    <button class="pg_item_cp" type="button">
-                        <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co2lbd.jpg" class="pg_icon">
-                        <span class="pg_name">Grand Theft Auto V</span>
-                    </button>
-                    <button class="pg_item_cp" type="button">
-                        <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co2lbd.jpg" class="pg_icon">
-                        <span class="pg_name">Grand Theft Auto V</span>
-                    </button>                    
-                    <button class="pg_item_cp" type="button">
-                        <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co2lbd.jpg" class="pg_icon">
-                        <span class="pg_name">Grand Theft Auto V</span>
-                    </button>
-                    <button class="pg_item_cp" type="button">
-                        <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co2lbd.jpg" class="pg_icon">
-                        <span class="pg_name">Grand Theft Auto V</span>
-                    </button>
-                    <button class="pg_item_cp" type="button">
-                        <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co2lbd.jpg" class="pg_icon">
-                        <span class="pg_name">Grand Theft Auto V</span>
-                    </button>
-                    
-            </div>
-    </div>    
-
-
-        
-    <div class="box">
+    </div>      
+    <div class="user_data">
         <div class="profile_right">
             <div class="profile_empty">
                 Empty
             </div>
             <div class="profile_favs">
-                Favs
-
+                <div class="profile_favourites">
+                    <h3 class="section-title section-title--metal section-title--glow section-title--long">Favorite Games</h3>
+                    <div class="profile_favourites_items" id="profileFavorites"></div>
+                </div>
             </div>
+
             <div class="profile_reviews">
                 Reviews
             </div>
@@ -293,9 +234,10 @@
     </div>
 </footer>
 
+    <script type="module" src="./profile.js"></script>
+    <script type="module" src="../js/global/nav-search.js"></script>
     <script src="../js/global/reveal.js"></script>
     <script src="../js/global/active.js"></script>
-    <script src="../js/MethodologyPage/rating.js"></script>
     <script src="../js/global/storeuser.js"></script>
     <script src="./piechart.js"></script>
 </body>

@@ -26,7 +26,6 @@
 
     <div class="nav-search-slot" id="navSearchSlot"></div>
 
-
     <div class="nav-links">
         <a href="./features.html" class="nav-item">Features</a>
     
@@ -79,8 +78,14 @@
 <main class="game-detail">
   <section class="game-main">
     <div class="game-top">
-      <div class="game-cover-wrap">
-        <img id="gameCover" alt="">
+      <div class="game-cover-column">
+        <div class="game-cover-wrap">
+          <img id="gameCover" alt="">
+        </div>
+
+        <button id="btnFavorite" class="btn-favorite" type="button" hidden>
+          ♡ Favorite
+        </button>
       </div>
 
       <div class="game-head">
@@ -106,6 +111,8 @@
               <button type="button" class="mgl-dd-item" data-value="completed">Completed</button>
               <button type="button" class="mgl-dd-item" data-value="dropped">Dropped</button>
               <button type="button" class="mgl-dd-item" data-value="on_hold">On-Hold</button>
+              <div class="mgl-dd-sep" aria-hidden="true"></div>
+              <button type="button" class="mgl-dd-item danger" data-value="__remove__">Remove from List</button>
             </div>
           </div>
 
@@ -117,16 +124,16 @@
               </button>
             <div class="mgl-dd-menu" role="listbox">
               <button type="button" class="mgl-dd-item" data-value="">Unrated</button>
-              <button type="button" class="mgl-dd-item" data-value="1">1</button>
-              <button type="button" class="mgl-dd-item" data-value="2">2</button>
-              <button type="button" class="mgl-dd-item" data-value="3">3</button>
-              <button type="button" class="mgl-dd-item" data-value="4">4</button>
-              <button type="button" class="mgl-dd-item" data-value="5">5</button>
-              <button type="button" class="mgl-dd-item" data-value="6">6</button>
-              <button type="button" class="mgl-dd-item" data-value="7">7</button>
-              <button type="button" class="mgl-dd-item" data-value="8">8</button>
-              <button type="button" class="mgl-dd-item" data-value="9">9</button>
-              <button type="button" class="mgl-dd-item" data-value="10">10</button>
+              <button type="button" class="mgl-dd-item" data-value="1">1 (Unplayable)</button>
+              <button type="button" class="mgl-dd-item" data-value="2">2 (Terrible)</button>
+              <button type="button" class="mgl-dd-item" data-value="3">3 (Bad)</button>
+              <button type="button" class="mgl-dd-item" data-value="4">4 (Weak)</button>
+              <button type="button" class="mgl-dd-item" data-value="5">5 (Mediocre)</button>
+              <button type="button" class="mgl-dd-item" data-value="6">6 (Okay)</button>
+              <button type="button" class="mgl-dd-item" data-value="7">7 (Good)</button>
+              <button type="button" class="mgl-dd-item" data-value="8">8 (Great)</button>
+              <button type="button" class="mgl-dd-item" data-value="9">9 (Amazing)</button>
+              <button type="button" class="mgl-dd-item" data-value="10">10 (Masterpiece)</button>
             </div>
         </div>
 
@@ -169,6 +176,31 @@
       <div class="releases" id="releaseList"></div>
     </div>
   </aside>
+
+  <section class="game-lower" id="gameLower">
+    <div class="game-subnav" role="tablist" aria-label="Game sections">
+      <button class="g-tab active" type="button" data-tab="about" role="tab" aria-selected="true">About</button>
+      <button class="g-tab" type="button" data-tab="community" role="tab" aria-selected="false">Community</button>
+      <button class="g-tab" type="button" data-tab="characters" role="tab" aria-selected="false">Characters</button>
+      <button class="g-tab" type="button" data-tab="related" role="tab" aria-selected="false">Related Games</button>
+    </div>
+
+    <div class="game-subpanels">
+      <div class="g-panel active" id="panel-about" role="tabpanel"></div>
+      <div class="g-panel" id="panel-community" role="tabpanel"></div>
+      <div class="g-panel" id="panel-characters" role="tabpanel"></div>
+      <div class="g-panel" id="panel-related" role="tabpanel"></div>
+    </div>
+  </section>
+
+  <div class="tab-panel" id="tabCharacters" hidden>
+    <div class="tab-panel-head">
+      <h3>Characters</h3>
+      <span id="charactersCount">0 found</span>
+    </div>
+
+    <div id="charactersGrid" class="char-grid"></div>
+  </div>
 </main>
 
 

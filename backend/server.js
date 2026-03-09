@@ -6,8 +6,17 @@ import express from "express";
 import cors from "cors";
 import igdbRoutes from "./routes/igdb.js";
 import libraryRoutes from "./routes/library.js";
+import userRoutes from "./routes/users.js";
 
 const app = express();
+
+app.set("etag", false);
+
+// no caching for API
+app.use("/api", (req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
 
 app.use(cors());
 app.use(express.json());
@@ -15,7 +24,14 @@ app.use(express.json());
 
 // connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB Connected"))
+  .then(() => {
+    console.log("✅ MongoDB Connected");
+
+    // reliably available after connection is open
+    console.log("readyState:", mongoose.connection.readyState); // 1 = connected
+    console.log("DB:", mongoose.connection.db?.databaseName);
+    console.log("Host:", mongoose.connection.host);
+  })
   .catch((err) => console.log("❌ MongoDB Error:", err));
 
 app.get("/ping", (req, res) => {
@@ -26,6 +42,7 @@ app.get("/ping", (req, res) => {
 app.use('/api', authRoutes);
 app.use("/api/igdb", igdbRoutes);
 app.use("/api/library", libraryRoutes);
+app.use("/api/users", userRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
