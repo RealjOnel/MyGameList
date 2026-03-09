@@ -114,7 +114,7 @@ if (!canvas || !tooltip) {
       const actualEnd = (endAngle + 2 * Math.PI) % (2 * Math.PI);
 
       segments.push({
-        chartIndex: index,   // WICHTIG: echter Index in chartData
+        chartIndex: index,   // IMPORTANT: real Index in chartData
         start,
         end: actualEnd,
         name: data.name,
@@ -206,7 +206,7 @@ if (!canvas || !tooltip) {
         tooltip.innerHTML = `<strong>${seg.name}</strong><br>${seg.value}`;
         tooltip.classList.add("show");
 
-        // Tooltip relativ zum Canvas-Container positionieren
+        // position tooltip relative to canvas, but keep it within the parent container
         const parentRect = canvas.offsetParent
           ? canvas.offsetParent.getBoundingClientRect()
           : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
@@ -214,7 +214,7 @@ if (!canvas || !tooltip) {
         let left = rect.left - parentRect.left + mouseX + 18;
         let top = rect.top - parentRect.top + mouseY + 18;
 
-        // innerhalb des Parent-Containers halten
+        // stay within parent bounds
         const maxLeft = parentRect.width - tooltip.offsetWidth - 8;
         const maxTop = parentRect.height - tooltip.offsetHeight - 8;
 
