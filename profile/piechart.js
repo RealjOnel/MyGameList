@@ -1,4 +1,4 @@
- /* =========================
+/* =========================
    Data source
    ========================= */
 
@@ -22,6 +22,7 @@ const centerX = canvas.width / 2;
 const centerY = canvas.height / 2;
 
 const baseRadius = (canvas.width / 2) - 10;
+const innerRadius = baseRadius * 0.55;
 
 /* =========================
    Chart colors
@@ -41,20 +42,24 @@ const colors = [
 
 let segments = [];
 let hoverIndex = -1;
-
-let animationProgress = 0;
+let animationProgress = 1;
 
 const total = dbData.reduce((sum, d) => sum + d.points, 0);
 
+/* animation state for hover */
+
+let segmentHoverProgress = new Array(dbData.length).fill(0);
+const hoverSpeed = 0.15;
+
 /* =========================
-   Draw pie chart (Start oben / Animation) 
+   Draw donut chart
    ========================= */
 
 function drawChart(progress = 1) {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    let currentAngle = -Math.PI / 2; // Start bei 12 Uhr
+    let currentAngle = -Math.PI / 2;
     segments = [];
 
     const maxAngle = progress * 2 * Math.PI;
@@ -71,21 +76,33 @@ function drawChart(progress = 1) {
 
         if (currentAngle >= -Math.PI / 2 + maxAngle) return;
 
-        const isHover = index === hoverIndex;
+        /* smooth hover animation */
 
-        const radius = isHover
-            ? baseRadius + 15
-            : baseRadius;
+        const target = index === hoverIndex ? 1 : 0;
+        segmentHoverProgress[index] += (target - segmentHoverProgress[index]) * hoverSpeed;
+
+        const hoverAmount = segmentHoverProgress[index];
+
+        const outerRadius = baseRadius + hoverAmount * 12;
+        const inner = innerRadius - hoverAmount * 4;
 
         ctx.beginPath();
-        ctx.moveTo(centerX, centerY);
 
         ctx.arc(
             centerX,
             centerY,
-            radius,
+            outerRadius,
             currentAngle,
             endAngle
+        );
+
+        ctx.arc(
+            centerX,
+            centerY,
+            inner,
+            endAngle,
+            currentAngle,
+            true
         );
 
         ctx.closePath();
@@ -93,9 +110,14 @@ function drawChart(progress = 1) {
         ctx.fillStyle = colors[index % colors.length];
         ctx.fill();
 
+        /* normalize angles */
+
+        const start = (currentAngle + 2 * Math.PI) % (2 * Math.PI);
+        const end = (currentAngle + sliceAngle + 2 * Math.PI) % (2 * Math.PI);
+
         segments.push({
-            start: currentAngle,
-            end: endAngle,
+            start,
+            end,
             name: data.name,
             value: data.points
         });
@@ -105,25 +127,15 @@ function drawChart(progress = 1) {
 }
 
 /* =========================
-   Animation
+   Continuous animation loop
    ========================= */
 
-function animateChart() {
-
-    animationProgress += 0.02;
-
-    if (animationProgress > 1) {
-        animationProgress = 1;
-    }
-
+function animationLoop() {
     drawChart(animationProgress);
-
-    if (animationProgress < 1) {
-        requestAnimationFrame(animateChart);
-    }
+    requestAnimationFrame(animationLoop);
 }
 
-animateChart();
+animationLoop();
 
 /* =========================
    Hover interaction
@@ -146,16 +158,18 @@ canvas.addEventListener("mousemove", (e) => {
         ? angle + 2 * Math.PI
         : angle;
 
-    if (distance <= baseRadius + 20) {
+    if (distance <= baseRadius + 20 && distance >= innerRadius) {
 
-        const index = segments.findIndex(
-            s => adjustedAngle >= s.start && adjustedAngle <= s.end
-        );
+        const index = segments.findIndex(s => {
 
-        if (index !== hoverIndex) {
-            hoverIndex = index;
-            drawChart(animationProgress);
-        }
+            if (s.start < s.end) {
+                return adjustedAngle >= s.start && adjustedAngle <= s.end;
+            }
+
+            return adjustedAngle >= s.start || adjustedAngle <= s.end;
+        });
+
+        hoverIndex = index;
 
         const segment = segments[index];
 
@@ -173,7 +187,6 @@ canvas.addEventListener("mousemove", (e) => {
 
         hoverIndex = -1;
         tooltip.style.display = "none";
-        drawChart(animationProgress);
     }
 });
 
@@ -185,5 +198,4 @@ canvas.addEventListener("mouseleave", () => {
 
     hoverIndex = -1;
     tooltip.style.display = "none";
-    drawChart(animationProgress);
 });
