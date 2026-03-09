@@ -143,32 +143,15 @@
         <div class="profile_banner">
             <img src="../assets/User/banner.png" alt="banner" class="profile_banner_image">
         </div>
-
         <div class="profile_content">
-        
             <div class="profile_statistics">
-
                 <div class="profile_pie_container">
                     <canvas id="pieChart" width="200" height="200"></canvas>
                 </div>
-
-
                 <div class="last_edit">
                     <div class="profile_games" id="recentActivityWrap"></div>
                 </div>
-                <!-- Tooltip -->
-                <div id="tooltip"style=
-                        "position:absolute; 
-                        padding:5px 10px; 
-                        background:#333; 
-                        color:white; 
-                        border-radius:4px; 
-                        pointer-events:none; 
-                        display:none; 
-                        font-family:Arial; 
-                        font-size:14px;
-                        z-index:100;">
-                </div>
+                <div id="tooltip" class="chart-tooltip"></div>
             </div>
         </div>
     </div>      
