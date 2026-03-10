@@ -271,7 +271,29 @@ router.get("/games", async (req, res) => {
       }
     );
 
-    res.json(response.data);
+    let games = Array.isArray(response.data) ? response.data : [];
+
+    if (search) {
+      const q = search.toLowerCase().trim();
+
+      games = games.sort((a, b) => {
+        const aName = (a.name || "").toLowerCase();
+        const bName = (b.name || "").toLowerCase();
+
+        function score(name){
+          if (name === q) return 0;               // exact match
+          if (name.startsWith(q)) return 1;       // starts with
+          if (name.includes(" " + q)) return 2;   // word match
+          if (name.includes(q)) return 3;         // substring
+          return 4;
+        }
+
+        return score(aName) - score(bName);
+      });
+    }
+
+    res.json(games);
+
   } catch (err) {
     console.error(err.response?.data || err);
     res.status(500).json({ error: "Explore Games fehlgeschlagen" });
