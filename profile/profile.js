@@ -129,6 +129,10 @@ async function loadProfile(){
   const entries = await api("/api/library/me", { token });
 
   qs(".profile_username").textContent = me.username;
+  const descTitle = document.getElementById("playerDescriptionTitle");
+if (descTitle) {
+  descTitle.textContent = `${me.username}'s Description:`;
+}
   document.title = `${me.username || "Profile"} | MyGameList`;
 
   const joinedEl = document.getElementById("joinedAt");
