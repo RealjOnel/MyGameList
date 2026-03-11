@@ -99,6 +99,62 @@ const PLATFORM_MAP = {
   metaquest: [384, 386, 471], // Oculus Quest + Meta Quest 2 + Meta Quest 3
 };
 
+async function fetchGamesByCompanySearch(query, headers) {
+  const raw = String(query || "").trim();
+  if (!raw) return [];
+
+  const variants = [...new Set([
+    raw,
+    raw.replace(/['’`]/g, ""), // for example Chilla's Art -> Chillas Art
+  ].filter(Boolean))];
+
+  const clauses = variants.map(v => `name ~ *"${v.replaceAll('"', '\\"')}"*`);
+
+  // search companies by these name variants
+  const companiesResp = await axios.post(
+    "https://api.igdb.com/v4/companies",
+    `
+      fields id,name;
+      where ${clauses.join(" | ")};
+      limit 20;
+    `,
+    { headers, timeout: 15000 }
+  );
+
+  const companies = Array.isArray(companiesResp.data) ? companiesResp.data : [];
+  const companyIds = companies.map(c => c.id).filter(Boolean);
+
+  if (!companyIds.length) return [];
+
+  // get games for these companies (developer or publisher)
+  const gamesResp = await axios.post(
+    "https://api.igdb.com/v4/games",
+    `
+      fields
+        id,
+        name,
+        rating,
+        rating_count,
+        category,
+        first_release_date,
+        parent_game,
+        version_parent,
+        cover.image_id,
+        genres.name,
+        release_dates.date,
+        release_dates.platform.name,
+        involved_companies.company.name,
+        involved_companies.developer,
+        involved_companies.publisher;
+      where cover != null & involved_companies.company = (${companyIds.join(",")});
+      limit 80;
+    `,
+    { headers, timeout: 15000 }
+  );
+
+  return Array.isArray(gamesResp.data) ? gamesResp.data : [];
+}
+
 //  TRENDING GAMES (for Login Gallery)
 router.get("/trending", async (req, res) => {
   try {
@@ -187,15 +243,15 @@ router.get("/trending", async (req, res) => {
 //  filter out weird editions / DLC by name.
 router.get("/games", async (req, res) => {
   console.log("🔥 /games ROUTE HIT", req.query);
+
   try {
     const token = await getTwitchToken();
 
     const page = parseInt(req.query.page) || 1;
+
     // IGDB does not support a 'popularity' field on /games,
     // but it does support 'rating'. We treat 'rating' as our
     // default "popularity" proxy.
-
-    // sort logic
     const allowedSorts = ["name", "rating"];
     const sort = allowedSorts.includes(String(req.query.sort))
       ? String(req.query.sort)
@@ -207,13 +263,13 @@ router.get("/games", async (req, res) => {
       : (sort === "rating" ? "desc" : "asc");
 
     // Search logic
-    const search = req.query.search;
+    const search = String(req.query.search || "").trim();
 
-    // Sort by Genre logic
+    // Genre
     const genreKey = String(req.query.genre || "all").toLowerCase();
     const genreId = GENRE_MAP[genreKey];
 
-    // Sort by Platform logic
+    // Platform
     const platformKey = String(req.query.platform || "all").toLowerCase();
     const platformId = PLATFORM_MAP[platformKey];
 
@@ -221,8 +277,9 @@ router.get("/games", async (req, res) => {
     const offset = (page - 1) * limit;
 
     let whereClause = `cover != null`;
+
     if (search) {
-      const safeSearch = String(search).replaceAll('"', '\\"');
+      const safeSearch = search.replaceAll('"', '\\"');
       whereClause += ` & name ~ *"${safeSearch}"*`;
     }
 
@@ -273,6 +330,28 @@ router.get("/games", async (req, res) => {
 
     let games = Array.isArray(response.data) ? response.data : [];
 
+    // extra search: if user searched for a company name, also fetch games by company search and merge results
+    if (search) {
+      try {
+        const companyGames = await fetchGamesByCompanySearch(search, {
+          "Client-ID": process.env.TWITCH_CLIENT_ID,
+          Authorization: `Bearer ${token}`,
+        });
+
+        // Merge by id to avoid duplicates (company search can return games already in main search)
+        const merged = new Map();
+
+        for (const g of [...games, ...companyGames]) {
+          if (g?.id) merged.set(g.id, g);
+        }
+
+        games = [...merged.values()];
+      } catch (e) {
+        console.warn("company search failed:", e.response?.data || e.message);
+      }
+    }
+
+    // normal search results are sorted by IGDB's relevance/rating, but company search results are not sorted.
     if (search) {
       const q = search.toLowerCase().trim();
 
@@ -280,20 +359,45 @@ router.get("/games", async (req, res) => {
         const aName = (a.name || "").toLowerCase();
         const bName = (b.name || "").toLowerCase();
 
-        function score(name){
-          if (name === q) return 0;               // exact match
-          if (name.startsWith(q)) return 1;       // starts with
-          if (name.includes(" " + q)) return 2;   // word match
-          if (name.includes(q)) return 3;         // substring
-          return 4;
+        const aCompanies = (a.involved_companies || [])
+          .map(c => (c?.company?.name || "").toLowerCase())
+          .filter(Boolean);
+
+        const bCompanies = (b.involved_companies || [])
+          .map(c => (c?.company?.name || "").toLowerCase())
+          .filter(Boolean);
+
+        function score(name, companies) {
+          // titel stays most important for relevance ranking, then company matches.
+          if (name === q) return 0;                   // exact title
+          if (name.startsWith(q)) return 1;           // starts with
+          if (name.includes(" " + q)) return 2;       // word match
+          if (name.includes(q)) return 3;             // substring
+
+          if (companies.some(c => c === q)) return 4; // exact company
+          if (companies.some(c => c.includes(q))) return 5; // company substring
+
+          return 6;
         }
 
-        return score(aName) - score(bName);
+        const aScore = score(aName, aCompanies);
+        const bScore = score(bName, bCompanies);
+
+        if (aScore !== bScore) return aScore - bScore;
+
+        // if same relevance score, sort by rating (desc)
+        const aRating = Number.isFinite(a?.rating) ? a.rating : -1;
+        const bRating = Number.isFinite(b?.rating) ? b.rating : -1;
+        if (aRating !== bRating) return bRating - aRating;
+
+        // then more votes first
+        const aCount = Number.isFinite(a?.rating_count) ? a.rating_count : -1;
+        const bCount = Number.isFinite(b?.rating_count) ? b.rating_count : -1;
+        return bCount - aCount;
       });
     }
 
     res.json(games);
-
   } catch (err) {
     console.error(err.response?.data || err);
     res.status(500).json({ error: "Explore Games fehlgeschlagen" });
