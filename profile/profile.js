@@ -130,6 +130,11 @@ async function loadProfile(){
 
   const me = await api("/api/users/me", { token });
 
+  const navProfileLinks = document.querySelectorAll('a[href="./profile.html"]');
+  navProfileLinks.forEach(link => {
+    link.href = `./profile.html?username=${encodeURIComponent(me.username)}`;
+  });
+
   const profile = profileUsername
     ? await api(`/api/users/profile/${encodeURIComponent(profileUsername)}`, { token })
     : me;
@@ -139,6 +144,11 @@ async function loadProfile(){
     : [];
 
   qs(".profile_username").textContent = profile.username;
+
+  if (!profileUsername && profile?.username) {
+  const newUrl = `${window.location.pathname}?username=${encodeURIComponent(profile.username)}`;
+  window.history.replaceState({}, "", newUrl);
+}
 
   const descTitle = document.getElementById("playerDescriptionTitle");
   if (descTitle) {
