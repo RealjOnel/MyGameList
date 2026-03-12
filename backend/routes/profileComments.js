@@ -6,7 +6,7 @@ import { ProfileComment } from "../models/profileComment.js";
 const router = express.Router();
 
 const MAX_COMMENT_LENGTH = 100;
-const MAX_COMMENTS_PER_AUTHOR_PER_PROFILE = 3;
+const MAX_COMMENTS_PER_AUTHOR_PER_PROFILE = 10;
 const COMMENT_COOLDOWN_MS = 30 * 1000;
 
 // GET /api/profile-comments/:username
