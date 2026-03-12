@@ -4020,6 +4020,7 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 .sidebar {
     flex: 0.9;                      /* sidebar width */
     min-height: 100vh;              /* full height of the viewport */
+    height: 1350px;
 
     background: linear-gradient(
         to bottom,
