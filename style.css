@@ -4026,12 +4026,12 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
         #ffffff 0%,
         #f7f7f7 100%
     );
+    display: flex;
+    flex-direction: column;
 }
 
 .profile_identity {
-    flex: auto;
     margin-top: 30px;
-
     text-align: center;
 }
 .profile_icon {
@@ -4189,9 +4189,10 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 .profile_check_in {
     display: flex;
     flex-direction: column;
-}
-.profile_check_in h3 {
     margin-top: auto;
+}
+
+.profile_check_in h3 {
     margin-left: 40px;
 }
 
