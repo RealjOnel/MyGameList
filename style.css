@@ -3741,7 +3741,7 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 /* Version for Main Headlines */
 
 .section-title--gradient{
-    background: linear-gradient(90deg, #170f2a 0%, #2563eb 38%, #8b5cf6 78%, #0f172a 100%);
+    background: linear-gradient(90deg, #7c5cff 0%, #4f7cff 45%, #8b5cf6 100%);
     background-size: 200% auto;
     -webkit-background-clip: text;
     background-clip: text;
@@ -4040,22 +4040,28 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 }
 
 .profile_content {
-    display: flex;      /* STATISTIK LINKS / FAVORITEN RECHTS */
+    display: flex;      
     gap: 40px;
     padding: 20px;
 }
 
 .profile_statistics {
     display: flex;
-    flex-direction: row;   
-    align-items: left;   
+    flex-direction: row;
+    align-items: flex-start;   
+    gap: 40px;
     position: relative;
 }
 
 .profile_pie_container{
-    width:220px;
-    margin-top: 37px;
-    margin-bottom:30px;
+    width: 220px;
+    margin: 0;                
+    flex-shrink: 0;
+}
+
+.profile_block_title{
+    display: inline-block;
+    margin: 0 0 18px;
 }
 
 /* canvas styling */
@@ -4106,12 +4112,15 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 /*==========================
     Profile Comment
     ======================== */
+
 .profile_comments{
-    margin-top: 2%;
+    margin-top: 28px;
+    padding: 0 20px 24px;
 }
 
 .profile_comments h3{
-    margin-left: 9.5%;
+    margin: 0 0 12px;
+    padding-left: 9.5%;
 }
 
 .comment_section{
@@ -4120,21 +4129,22 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 }
 
 .comment_input{
+  font-family: sans-serif;
   display: block;
   width:90%;
-  height: auto;             /* Höhe passt sich Text an */
-  overflow: hidden;         /* versteckt Scrollbar */
+  height: auto;            
+  overflow: hidden;        
   margin: 0 auto;
-  padding: 10px 80px 10px 10px; /* rechts Platz für Button */
+  padding: 10px 80px 10px 10px; 
   border-radius:8px;
   border:1px solid #ccc;
   resize:vertical;
-  font-size: 16px;   /* <-- Hier die Schriftgröße einstellen */
-  line-height: 1.4;  /* optional, Zeilenabstand */
+  font-size: 16px;   
+  line-height: 1.4;  
 }
 
 .comment_wrapper {
-    position: relative;      /* Button absolut positionieren */
+    position: relative;      
     width: 90%;
     margin: 0 auto;
 }
@@ -4171,8 +4181,9 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
    Game title
    ========================= */
 
-.last_edit {
+.last_edit{
     width: 100%;
+    margin: 0;
 }
 
 .profile_games{
