@@ -143,8 +143,13 @@ router.delete("/comment/:commentId", requireAuth, async (req, res) => {
       return res.status(404).json({ message: "Comment not found" });
     }
 
-    if (String(comment.authorUserId) !== String(req.userId)) {
-      return res.status(403).json({ message: "You can only delete your own comments" });
+    const isAuthor = String(comment.authorUserId) === String(req.userId);
+    const isProfileOwner = String(comment.profileUserId) === String(req.userId);
+
+    if (!isAuthor && !isProfileOwner) {
+      return res.status(403).json({
+        message: "You can only delete your own comments or comments on your own profile",
+      });
     }
 
     await ProfileComment.deleteOne({ _id: comment._id });

@@ -50,11 +50,17 @@ async function api(path, { method = "GET", body, token } = {}) {
 }
 
 function canDeleteComment(comment) {
-  return (
+  const isAuthor =
     comment?.author?.username &&
     window.currentViewerUsername &&
-    comment.author.username === window.currentViewerUsername
-  );
+    comment.author.username === window.currentViewerUsername;
+
+  const isProfileOwner =
+    window.currentViewerUsername &&
+    window.currentProfileUsername &&
+    window.currentViewerUsername === window.currentProfileUsername;
+
+  return isAuthor || isProfileOwner;
 }
 
 function renderComments(comments = []) {
