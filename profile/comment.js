@@ -163,8 +163,14 @@ async function deleteComment(commentId) {
   const token = localStorage.getItem("token");
   if (!token || !commentId) return;
 
-  const ok = window.confirm("Delete this comment?");
-  if (!ok) return;
+  const ok = await openMglConfirm({
+  title: "Delete Comment",
+  text: "Do you really want to delete this comment?",
+  confirmText: "Delete",
+  cancelText: "Cancel",
+});
+
+if (!ok) return;
 
   try {
     await api(`/api/profile-comments/comment/${encodeURIComponent(commentId)}`, {

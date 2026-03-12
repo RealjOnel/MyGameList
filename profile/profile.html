@@ -237,12 +237,34 @@
 </footer>
 
     <script src="./piechart.js"></script>
+    <script src="../js/global/confirmBox.js"></script>
     <script type="module" src="./profile.js"></script>
     <script type="module" src="../js/global/nav-search.js"></script>
     <script src="../js/global/reveal.js"></script>
     <script src="../js/global/active.js"></script>
     <script src="../js/global/storeuser.js"></script>
     <script type="module" src="./comment.js"></script>
+
+    <div class="mgl-modal-backdrop" id="mglConfirmModal" hidden>
+        <div class="mgl-modal" role="dialog" aria-modal="true" aria-labelledby="mglConfirmTitle">
+            <div class="mgl-modal-head">
+            <h3 id="mglConfirmTitle">Confirm Action</h3>
+            </div>
+
+            <div class="mgl-modal-body">
+                <p id="mglConfirmText">Are you sure?</p>
+            </div>
+
+            <div class="mgl-modal-actions">
+            <button type="button" class="mgl-modal-btn mgl-modal-btn-cancel" id="mglConfirmCancel">
+                Cancel
+            </button>
+            <button type="button" class="mgl-modal-btn mgl-modal-btn-confirm" id="mglConfirmOk">
+                Confirm
+            </button>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>
