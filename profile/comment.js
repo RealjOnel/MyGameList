@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "../backend/config.js";
+import { showToast } from "../js/global/toast.js";
 
 const commentInput = document.querySelector(".comment_input");
 const commentButton = document.querySelector(".comment_button");
@@ -130,9 +131,13 @@ async function postComment() {
   if (!text) return;
 
   if (text.length > 100) {
-    alert("Comment must be 100 characters or less.");
-    return;
-  }
+  showToast({
+    title: "Comment too long",
+    message: "Comments can be up to 100 characters long.",
+    type: "error"
+  });
+  return;
+}
 
   const oldText = commentButton.textContent;
   commentButton.disabled = true;
@@ -150,9 +155,18 @@ async function postComment() {
     if (commentCounter) commentCounter.textContent = "0 / 100";
 
     await loadComments();
+    showToast({
+      title: "Comment posted",
+      message: "Your comment has been published.",
+      type: "success"
+    });
   } catch (err) {
     console.error(err);
-    alert(err.message || "Failed to post comment.");
+    showToast({
+      title: "Comment failed",
+      message: err.message || "Failed to post comment.",
+      type: "error"
+    });
   } finally {
     commentButton.disabled = false;
     commentButton.textContent = oldText;
@@ -179,9 +193,19 @@ if (!ok) return;
     });
 
     await loadComments();
+
+    showToast({
+      title: "Comment deleted",
+      message: "Your comment has been removed.",
+      type: "success"
+    });
   } catch (err) {
     console.error(err);
-    alert(err.message || "Failed to delete comment.");
+    showToast({
+      title: "Delete failed",
+      message: err.message || "Failed to delete comment.",
+      type: "error"
+    });
   }
 }
 
