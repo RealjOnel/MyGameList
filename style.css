@@ -4268,6 +4268,31 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
     font-weight: 600;
 }
 
+.profile_comment_delete{
+    margin-left: auto;
+    border: none;
+    background: transparent;
+    color: #dc2626;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 8px;
+    transition: background 0.18s ease, color 0.18s ease;
+}
+
+.profile_comment_delete:hover{
+    background: rgba(220, 38, 38, 0.08);
+    color: #b91c1c;
+}
+
+.profile_comment_head{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 /* =========================
    Game list container
    ========================= */

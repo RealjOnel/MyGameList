@@ -48,6 +48,14 @@ async function api(path, { method = "GET", body, token } = {}) {
   return data;
 }
 
+function canDeleteComment(comment) {
+  return (
+    comment?.author?.username &&
+    window.currentViewerUsername &&
+    comment.author.username === window.currentViewerUsername
+  );
+}
+
 function renderComments(comments = []) {
   if (!commentList) return;
 
@@ -56,29 +64,42 @@ function renderComments(comments = []) {
     return;
   }
 
-  commentList.innerHTML = comments.map((comment) => `
-    <div class="profile_comment_item">
-      <img
-        class="profile_comment_avatar"
-        src="${comment.author?.avatarUrl || "../assets/User/Default_User_Icon.png"}"
-        alt="${escapeHtml(comment.author?.username || "User")}"
-      >
+  commentList.innerHTML = comments.map((comment) => {
+    const showDelete = canDeleteComment(comment);
 
-      <div class="profile_comment_body">
-        <div class="profile_comment_head">
-          <a
-            class="profile_comment_username"
-            href="./profile.html?username=${encodeURIComponent(comment.author?.username || "")}"
-          >
-            ${escapeHtml(comment.author?.username || "Unknown User")}
-          </a>
-          <span class="profile_comment_time">${escapeHtml(formatCommentDate(comment.createdAt))}</span>
+    return `
+      <div class="profile_comment_item" data-comment-id="${escapeHtml(comment.id || "")}">
+        <img
+          class="profile_comment_avatar"
+          src="${comment.author?.avatarUrl || "../assets/User/Default_User_Icon.png"}"
+          alt="${escapeHtml(comment.author?.username || "User")}"
+        >
+
+        <div class="profile_comment_body">
+          <div class="profile_comment_head">
+            <a
+              class="profile_comment_username"
+              href="./profile.html?username=${encodeURIComponent(comment.author?.username || "")}"
+            >
+              ${escapeHtml(comment.author?.username || "Unknown User")}
+            </a>
+
+            <span class="profile_comment_time">${escapeHtml(formatCommentDate(comment.createdAt))}</span>
+
+            ${
+              showDelete
+                ? `<button class="profile_comment_delete" type="button" data-comment-id="${escapeHtml(comment.id || "")}">Delete</button>`
+                : ""
+            }
+          </div>
+
+          <div class="profile_comment_text">${escapeHtml(comment.text || "")}</div>
         </div>
-
-        <div class="profile_comment_text">${escapeHtml(comment.text || "")}</div>
       </div>
-    </div>
-  `).join("");
+    `;
+  }).join("");
+
+  bindDeleteButtons();
 }
 
 async function loadComments() {
@@ -113,7 +134,9 @@ async function postComment() {
     return;
   }
 
+  const oldText = commentButton.textContent;
   commentButton.disabled = true;
+  commentButton.textContent = "Posting...";
 
   try {
     await api(`/api/profile-comments/${encodeURIComponent(profileUsername)}`, {
@@ -132,7 +155,37 @@ async function postComment() {
     alert(err.message || "Failed to post comment.");
   } finally {
     commentButton.disabled = false;
+    commentButton.textContent = oldText;
   }
+}
+
+async function deleteComment(commentId) {
+  const token = localStorage.getItem("token");
+  if (!token || !commentId) return;
+
+  const ok = window.confirm("Delete this comment?");
+  if (!ok) return;
+
+  try {
+    await api(`/api/profile-comments/comment/${encodeURIComponent(commentId)}`, {
+      method: "DELETE",
+      token,
+    });
+
+    await loadComments();
+  } catch (err) {
+    console.error(err);
+    alert(err.message || "Failed to delete comment.");
+  }
+}
+
+function bindDeleteButtons() {
+  const buttons = document.querySelectorAll(".profile_comment_delete");
+  buttons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      deleteComment(btn.dataset.commentId).catch(console.error);
+    });
+  });
 }
 
 function initCommentInput() {
@@ -144,6 +197,10 @@ function initCommentInput() {
   };
 
   commentInput.addEventListener("input", function () {
+    if (this.value.length > 100) {
+      this.value = this.value.slice(0, 100);
+    }
+
     this.style.height = "auto";
     this.style.height = this.scrollHeight + "px";
     updateCounter();
