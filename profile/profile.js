@@ -125,30 +125,43 @@ async function loadProfile(){
     return;
   }
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const profileUsername = urlParams.get("username");
-
   const me = await api("/api/users/me", { token });
 
+  const params = new URLSearchParams(window.location.search);
+  const profileUsername = params.get("username");
+
+  let profile;
+
+  if (profileUsername) {
+    profile = await api(`/api/users/profile/${encodeURIComponent(profileUsername)}`, { token });
+  } else {
+    profile = me;
+  }
+
+  // keep URL clean with ?username= only for other profiles, own profile can be accessed via /profile.html without query param
+  if (!profileUsername && profile?.username) {
+    const newUrl = `${window.location.pathname}?username=${encodeURIComponent(profile.username)}`;
+    window.history.replaceState({}, "", newUrl);
+  }
+
+  // profil link in nav should always point to own profile, even when viewing other profiles
   const navProfileLinks = document.querySelectorAll('a[href="./profile.html"]');
   navProfileLinks.forEach(link => {
     link.href = `./profile.html?username=${encodeURIComponent(me.username)}`;
   });
 
-  const profile = profileUsername
-    ? await api(`/api/users/profile/${encodeURIComponent(profileUsername)}`, { token })
-    : me;
+  // load fitting library data for this profile (own profile shows own library, other profiles show their library)
+  const entries = await api(
+    `/api/library/profile/${encodeURIComponent(profile.username)}`,
+    { token }
+  );
 
-  const entries = profile.username === me.username
-    ? await api("/api/library/me", { token })
-    : [];
+  // global info for comments and other interactions
+  window.currentProfileUsername = profile.username;
+  window.currentViewerUsername = me.username;
 
+  // render base profile info
   qs(".profile_username").textContent = profile.username;
-
-  if (!profileUsername && profile?.username) {
-  const newUrl = `${window.location.pathname}?username=${encodeURIComponent(profile.username)}`;
-  window.history.replaceState({}, "", newUrl);
-}
 
   const descTitle = document.getElementById("playerDescriptionTitle");
   if (descTitle) {
@@ -163,9 +176,8 @@ async function loadProfile(){
   const lastEl = document.getElementById("lastOnline");
   if (lastEl) lastEl.textContent = `Last Online: ${formatDate(profile.lastLoginAt)}`;
 
-  // Favorites
+  // render favorites
   const favWrap = document.getElementById("profileFavorites");
-
   if (favWrap) {
     favWrap.innerHTML = "";
 
@@ -178,33 +190,38 @@ async function loadProfile(){
       })
       .slice(0, 8);
 
-    for (const e of top) {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "favourite_item";
+    if (!top.length) {
+      favWrap.innerHTML = `<div class="muted">No favorite games yet.</div>`;
+    } else {
+      for (const e of top) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "favourite_item";
 
-      btn.innerHTML = `
-        <div class="favourite_box">
-          <span class="cover_shimmer" aria-hidden="true"></span>
-          <img
-            src="${coverUrl(e.game.coverImageId)}"
-            class="favourite_icon"
-            alt="${e.game.name || "Game Cover"}"
-          >
-        </div>
-      `;
+        btn.innerHTML = `
+          <div class="favourite_box">
+            <span class="cover_shimmer" aria-hidden="true"></span>
+            <img
+              src="${coverUrl(e.game.coverImageId)}"
+              class="favourite_icon"
+              alt="${e.game.name || "Game Cover"}"
+            >
+          </div>
+        `;
 
-      btn.addEventListener("click", () => {
-        window.location.href = `../gamepage/game.html?id=${encodeURIComponent(e.game.igdbId)}`;
-      });
+        btn.addEventListener("click", () => {
+          window.location.href = `../gamepage/game.html?id=${encodeURIComponent(e.game.igdbId)}`;
+        });
 
-      favWrap.appendChild(btn);
+        favWrap.appendChild(btn);
+      }
     }
   }
 
-  // Recent Activity only for own profile for now
+  // Recent Activity
   renderRecentActivity(entries);
 
+  // Pie chart
   const counts = entries.reduce((acc, e) => {
     acc[e.status] = (acc[e.status] || 0) + 1;
     return acc;
@@ -214,9 +231,14 @@ async function loadProfile(){
     window.updateProfileChart(counts);
   }
 
-  // make profile username globally available for comment.js
-  window.currentProfileUsername = profile.username;
-  window.currentViewerUsername = me.username;
+  // comment box only for other profiles, not own profile
+  const commentHeading = document.querySelector(".profile_comments h3");
+  if (commentHeading) {
+    commentHeading.textContent =
+      profile.username === me.username
+        ? "Leave a Comment"
+        : `Leave a Comment for ${profile.username}`;
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {

@@ -24,7 +24,7 @@ router.get("/me", requireAuth, async (req, res) => {
 });
 
 // GET /api/users/profile/:username
-router.get("/profile/:username", async (req, res) => {
+router.get("/profile/:username", requireAuth, async (req, res) => {
   try {
     res.set("Cache-Control", "no-store");
 
@@ -34,7 +34,10 @@ router.get("/profile/:username", async (req, res) => {
     }
 
     const user = await User.findOne({ username }).select("username createdAt lastLoginAt");
-    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
     res.json({
       id: user._id,
@@ -44,7 +47,7 @@ router.get("/profile/:username", async (req, res) => {
     });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ message: "Failed to load profile" });
+    res.status(500).json({ message: "Failed to load profile user" });
   }
 });
 
