@@ -125,21 +125,33 @@ async function loadProfile(){
     return;
   }
 
-  const me = await api("/api/users/me", { token });
-  const entries = await api("/api/library/me", { token });
+  const urlParams = new URLSearchParams(window.location.search);
+  const profileUsername = urlParams.get("username");
 
-  qs(".profile_username").textContent = me.username;
+  const me = await api("/api/users/me", { token });
+
+  const profile = profileUsername
+    ? await api(`/api/users/profile/${encodeURIComponent(profileUsername)}`, { token })
+    : me;
+
+  const entries = profile.username === me.username
+    ? await api("/api/library/me", { token })
+    : [];
+
+  qs(".profile_username").textContent = profile.username;
+
   const descTitle = document.getElementById("playerDescriptionTitle");
-if (descTitle) {
-  descTitle.textContent = `${me.username}'s Description:`;
-}
-  document.title = `${me.username || "Profile"} | MyGameList`;
+  if (descTitle) {
+    descTitle.textContent = `${profile.username}'s Description:`;
+  }
+
+  document.title = `${profile.username || "Profile"} | MyGameList`;
 
   const joinedEl = document.getElementById("joinedAt");
-  if (joinedEl) joinedEl.textContent = `Joined: ${formatDate(me.createdAt)}`;
+  if (joinedEl) joinedEl.textContent = `Joined: ${formatDate(profile.createdAt)}`;
 
   const lastEl = document.getElementById("lastOnline");
-  if (lastEl) lastEl.textContent = `Last Online: ${formatDate(me.lastLoginAt)}`;
+  if (lastEl) lastEl.textContent = `Last Online: ${formatDate(profile.lastLoginAt)}`;
 
   // Favorites
   const favWrap = document.getElementById("profileFavorites");
@@ -180,20 +192,21 @@ if (descTitle) {
     }
   }
 
-  // Recent Activity
+  // Recent Activity only for own profile for now
   renderRecentActivity(entries);
 
-  // Pie chart counts
   const counts = entries.reduce((acc, e) => {
     acc[e.status] = (acc[e.status] || 0) + 1;
     return acc;
   }, {});
 
-  console.log("status counts", counts);
-
   if (typeof window.updateProfileChart === "function") {
     window.updateProfileChart(counts);
   }
+
+  // make profile username globally available for comment.js
+  window.currentProfileUsername = profile.username;
+  window.currentViewerUsername = me.username;
 }
 
 document.addEventListener("DOMContentLoaded", () => {

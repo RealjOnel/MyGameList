@@ -7,6 +7,7 @@ import cors from "cors";
 import igdbRoutes from "./routes/igdb.js";
 import libraryRoutes from "./routes/library.js";
 import userRoutes from "./routes/users.js";
+import profileCommentRoutes from "./routes/profileComments.js";
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use('/api', authRoutes);
 app.use("/api/igdb", igdbRoutes);
 app.use("/api/library", libraryRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/profile-comments", profileCommentRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

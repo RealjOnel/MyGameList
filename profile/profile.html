@@ -16,9 +16,6 @@
     <title>Loading... | MyGameList</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../style.css">
 </head>
 <body>
@@ -167,9 +164,15 @@
         <div class="profile_comments">
             <h3>Leave a Comment</h3>
             <div class="comment_wrapper">
-                <textarea class="comment_input" placeholder="Write your comment here..."></textarea>
+                <textarea class="comment_input" maxlength="100" placeholder="Write your comment here..."></textarea>
                 <button class="comment_button">Post</button>
             </div>
+
+            <div class="comment_meta">
+                <span class="comment_counter">0 / 100</span>
+            </div>
+
+            <div class="profile_comment_list" id="profileCommentList"></div>
         </div>
     </div>    
 

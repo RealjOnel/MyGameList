@@ -4167,6 +4167,107 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 .comment_button:hover{
     transform: scale(1.05);
 }
+
+.comment_meta{
+    width: 90%;
+    margin: 8px auto 0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.comment_counter{
+    font-size: 0.9rem;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.profile_comment_list{
+    width: 90%;
+    margin: 18px auto 0;
+    max-height: 420px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-right: 6px;
+}
+
+.profile_comment_list::-webkit-scrollbar{
+    width: 8px;
+}
+
+.profile_comment_list::-webkit-scrollbar-thumb{
+    background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+    border-radius: 999px;
+}
+
+.profile_comment_item{
+    display: flex;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 16px;
+    background: rgba(248, 250, 252, 0.95);
+    border: 1px solid rgba(203, 213, 225, 0.8);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.profile_comment_avatar{
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid rgba(59,130,246,0.25);
+    background: #fff;
+}
+
+.profile_comment_body{
+    min-width: 0;
+    flex: 1;
+}
+
+.profile_comment_head{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+
+.profile_comment_username{
+    font-weight: 800;
+    color: #2563eb;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.profile_comment_username:hover{
+    color: #7c3aed;
+    text-decoration: underline;
+}
+
+.profile_comment_time{
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.profile_comment_text{
+    color: #0f172a;
+    font-size: 0.96rem;
+    line-height: 1.45;
+    word-break: break-word;
+}
+
+.profile_comment_empty{
+    padding: 16px;
+    border-radius: 14px;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    color: #64748b;
+    font-weight: 600;
+}
+
 /* =========================
    Game list container
    ========================= */
