@@ -116,8 +116,10 @@ function setVariant(root, variant){
   const hint = root.querySelector(".nav-search-hint");
   const panel = root.querySelector(".nav-search-panel");
   const modePicker = root.querySelector(".nav-search-mode-picker");
+  const modeMenu = root.querySelector(".nav-search-mode-menu");
 
   panel.hidden = true;
+  if (modeMenu) modeMenu.hidden = true;
 
   if (variant === "page"){
     root.dataset.mode = "games";
@@ -330,6 +332,7 @@ function setupSearch(root){
     root.dataset.mode = next;
     localStorage.setItem(STORAGE_KEY, next);
     setActiveTab(root, next);
+    updateModePlaceholder(root);
     input.dispatchEvent(new Event("input", { bubbles: true }));
   }));
 
