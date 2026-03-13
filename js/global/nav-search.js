@@ -52,6 +52,10 @@ function getProfileHref(username = ""){
   return url.toString();
 }
 
+function getDefaultAvatarUrl(){
+  return `${window.location.origin}/assets/User/Default_User_Icon.png`;
+}
+
 function buildSearch(){
   const root = document.createElement("div");
   root.className = "nav-search";
@@ -60,8 +64,30 @@ function buildSearch(){
       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M21 21l-4.3-4.3m1.3-5.4a7.4 7.4 0 11-14.8 0 7.4 7.4 0 0114.8 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg>
+
       <input id="globalSearchInput" class="nav-search-field" type="text"
        placeholder="Search games, users, forum..." autocomplete="off" />
+
+      <div class="nav-search-mode-picker">
+        <button class="nav-search-mode-btn" type="button" aria-label="Choose search mode">
+          <i class="fa-solid fa-sliders"></i>
+        </button>
+
+        <div class="nav-search-mode-menu" hidden>
+          <button class="nav-search-mode-option" data-mode="games" type="button">
+            <i class="fa-solid fa-gamepad"></i>
+            <span>Games</span>
+          </button>
+          <button class="nav-search-mode-option" data-mode="users" type="button">
+            <i class="fa-solid fa-user"></i>
+            <span>Users</span>
+          </button>
+          <button class="nav-search-mode-option" data-mode="forum" type="button">
+            <i class="fa-solid fa-comments"></i>
+            <span>Forum</span>
+          </button>
+        </div>
+      </div>
     </div>
 
     <div class="nav-search-panel" hidden>
@@ -89,24 +115,22 @@ function setVariant(root, variant){
   const tabsWrap = root.querySelector(".nav-search-tabs");
   const hint = root.querySelector(".nav-search-hint");
   const panel = root.querySelector(".nav-search-panel");
+  const modePicker = root.querySelector(".nav-search-mode-picker");
 
-  // always close panel on mount/variant switch (prevents weird states)
   panel.hidden = true;
 
-  if (variant === "page"){ // EXPLORE
-    input.placeholder = "Search for games...";
+  if (variant === "page"){
     root.dataset.mode = "games";
     setActiveTab(root, "games");
+    updateModePlaceholder(root);
 
-    // hide tabs + make them unfocusable
     tabsWrap.hidden = true;
     tabsWrap.setAttribute("aria-hidden", "true");
     tabsWrap.querySelectorAll("button").forEach(b => (b.tabIndex = -1));
 
+    if (modePicker) modePicker.hidden = true;
     if (hint) hint.textContent = "Enter = search";
-  } else { // NAV
-    input.placeholder = "Search games, users, forum...";
-
+  } else {
     tabsWrap.hidden = false;
     tabsWrap.removeAttribute("aria-hidden");
     tabsWrap.querySelectorAll("button").forEach(b => (b.tabIndex = 0));
@@ -115,7 +139,9 @@ function setVariant(root, variant){
     if (!MODES.includes(mode)) mode = "games";
     root.dataset.mode = mode;
     setActiveTab(root, mode);
+    updateModePlaceholder(root);
 
+    if (modePicker) modePicker.hidden = false;
     if (hint) hint.textContent = "Enter = open full results";
   }
 }
@@ -240,15 +266,11 @@ function renderSuggestions(root, mode, items, q){
       const li = document.createElement("li");
       li.className = "nav-search-item";
 
-      const firstLetter = (user.username || "?").charAt(0).toUpperCase();
+      const avatar = user.avatarUrl || getDefaultAvatarUrl();
 
       li.innerHTML = `
         <div class="nav-search-thumb nav-search-thumb--user">
-          ${
-            user.avatarUrl
-              ? `<img src="${user.avatarUrl}" alt="">`
-              : `<span class="nav-search-user-fallback">${firstLetter}</span>`
-          }
+          <img src="${avatar}" alt="${user.username || "User"}">
         </div>
         <div class="nav-search-text">
           <div class="nav-search-title">${user.username}</div>
@@ -262,6 +284,8 @@ function renderSuggestions(root, mode, items, q){
 
       list.appendChild(li);
     }
+
+    return;
   }
 }
 
@@ -271,16 +295,35 @@ function setActiveTab(root, mode){
   });
 }
 
+function updateModePlaceholder(root){
+  const input = root.querySelector("#globalSearchInput");
+  const mode = root.dataset.mode || "games";
+
+  if (root.dataset.variant === "page"){
+    input.placeholder = "Search for games...";
+    return;
+  }
+
+  if (mode === "games") input.placeholder = "Search games...";
+  else if (mode === "users") input.placeholder = "Search users...";
+  else if (mode === "forum") input.placeholder = "Search forum...";
+  else input.placeholder = "Search games, users, forum...";
+}
+
 function setupSearch(root){
   const input = root.querySelector("#globalSearchInput");
   const panel = root.querySelector(".nav-search-panel");
   const tabs = root.querySelectorAll(".nav-search-tab");
+  const modeBtn = root.querySelector(".nav-search-mode-btn");
+  const modeMenu = root.querySelector(".nav-search-mode-menu");
+  const modeOptions = root.querySelectorAll(".nav-search-mode-option");
 
    // initial mode (nav defaults). variant switch can overwrite to "games"
   let mode = localStorage.getItem(STORAGE_KEY) || "games";
   if (!MODES.includes(mode)) mode = "games";
   root.dataset.mode = root.dataset.mode || mode;
   setActiveTab(root, root.dataset.mode);
+  updateModePlaceholder(root);
 
   tabs.forEach(t => t.addEventListener("click", () => {
     const next = t.dataset.mode;
@@ -289,6 +332,26 @@ function setupSearch(root){
     setActiveTab(root, next);
     input.dispatchEvent(new Event("input", { bubbles: true }));
   }));
+
+  if (modeBtn && modeMenu){
+  modeBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    modeMenu.hidden = !modeMenu.hidden;
+  });
+
+  modeOptions.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const next = btn.dataset.mode;
+      root.dataset.mode = next;
+      localStorage.setItem(STORAGE_KEY, next);
+      setActiveTab(root, next);
+      updateModePlaceholder(root);
+      modeMenu.hidden = true;
+      input.focus();
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+  });
+}
 
   const run = debounce(async () => {
   // On Explore page: do not show dropdown or fetch suggestions
@@ -328,7 +391,10 @@ function setupSearch(root){
 });
 
   document.addEventListener("click", (e) => {
-    if (!root.contains(e.target)) panel.hidden = true;
+    if (!root.contains(e.target)) {
+      panel.hidden = true;
+      if (modeMenu) modeMenu.hidden = true;
+    }
   });
 
   input.addEventListener("keydown", async (e) => {
