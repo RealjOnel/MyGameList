@@ -30,19 +30,44 @@ body {
 
 /* Default: shows nothing until decided */
 #loginBtn,
+#navUserWrap,
 #userMenu {
-  display: none;
+    transition: opacity 0.16s ease, transform 0.16s ease;
 }
 
-/* Logged out: show login */
-html[data-auth="out"] #loginBtn {
-  display: inline-block;
+.nav-user-wrap{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-left: 8px;
 }
 
-/* Logged in: show user */
-html[data-auth="in"] #userMenu {
-  display: inline-flex;
-  align-items: center;
+/* while auth is being decided: hide auth-dependent UI */
+/* loading: nichts Auth-bezogen zeigen */
+html[data-auth="loading"] #loginBtn,
+html[data-auth="loading"] #navUserWrap{
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* ausgeloggt */
+html[data-auth="out"] #loginBtn{
+    display: inline-flex !important;
+}
+
+html[data-auth="out"] #navUserWrap{
+    display: none !important;
+}
+
+/* eingeloggt */
+html[data-auth="in"] #loginBtn{
+    display: none !important;
+}
+
+html[data-auth="in"] #navUserWrap{
+    display: flex !important;
+    align-items: center;
 }
 
 [hidden] { display: none !important; }

@@ -61,7 +61,8 @@
 
         <button id="loginBtn" class="btn-login" onclick="window.location.href='../LoginPageAndLogic/login.html'">LOGIN</button>
 
-        <div id="friendBell" class="notif-bell" hidden>
+        <div class="nav-user-wrap" id="navUserWrap"> 
+        <div id="friendBell" class="notif-bell">
             <button id="friendBellBtn" class="notif-bell-btn" type="button" aria-label="Friend Notifications">
                 <i class="fa-regular fa-bell"></i>
                 <span id="friendBellBadge" class="notif-bell-badge" hidden>0</span>
@@ -79,14 +80,15 @@
         <img id="userIcon" src="../assets/User/Default_User_Icon.png" alt="User" class="user-icon">
 
         <div id="userDropdown" class="user-dropdown" aria-hidden="true">
-            <a class="dropdown-item" href="./profile.html">Profile</a>
-            <a class="dropdown-item" href="#">Settings</a>
+            <a class="dropdown-item" href="./profile/profile.html">Profile</a>
+            <a class="dropdown-item" href="./profile/settings.html">Settings</a>
 
             <div class="dropdown-divider"></div>
 
             <button id="logoutBtn" class="dropdown-item danger" type="button">Logout</button>
         </div>
         </div>
+        </div> 
     </div>
 </nav>
 
