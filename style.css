@@ -28,21 +28,43 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* Default: shows nothing until decided */
-#loginBtn,
-#userMenu {
-  display: none;
+/* =========================
+   Auth visibility handling
+   ========================= */
+
+#loginBtn {
+    display: inline-flex;
 }
 
-/* Logged out: show login */
+.nav-user-area {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    justify-self: end;
+}
+
+/* loading = nichts zeigen, damit nichts flackert */
+html[data-auth="loading"] #loginBtn,
+html[data-auth="loading"] .nav-user-area {
+    display: none !important;
+}
+
+/* ausgeloggt */
 html[data-auth="out"] #loginBtn {
-  display: inline-block;
+    display: inline-flex !important;
 }
 
-/* Logged in: show user */
-html[data-auth="in"] #userMenu {
-  display: inline-flex;
-  align-items: center;
+html[data-auth="out"] .nav-user-area {
+    display: none !important;
+}
+
+/* eingeloggt */
+html[data-auth="in"] #loginBtn {
+    display: none !important;
+}
+
+html[data-auth="in"] .nav-user-area {
+    display: flex !important;
 }
 
 [hidden] { display: none !important; }
@@ -53,7 +75,7 @@ html[data-auth="in"] #userMenu {
     align-items: center;
     column-gap: 32px;
 
-    padding: 1.35rem 4%;  /* This decides how far right the nav links are, we can change this if we have more stuff */
+    padding: 1.35rem 6%;  /* This decides how far right the nav links are, we can change this if we have more stuff */
     background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid #f1f5f9;
@@ -684,10 +706,24 @@ button {
    ========================= */
 
 .notif-bell {
-    position: relative;
-    display: flex;
-    align-items: center;
-    margin-right: 2px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-4px);
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0.18s;
+}
+
+html[data-auth="in"] .notif-bell {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s;
+}
+
+html[data-auth="out"] .notif-bell,
+html[data-auth="loading"] .notif-bell {
+    display: none !important;
 }
 
 .notif-bell-btn{

@@ -122,6 +122,20 @@
 
         <button id="loginBtn" class="btn-login" onclick="window.location.href='../LoginPageAndLogic/login.html'">LOGIN</button>
 
+        <div id="friendBell" class="notif-bell" hidden>
+            <button id="friendBellBtn" class="notif-bell-btn" type="button" aria-label="Friend Notifications">
+                <i class="fa-regular fa-bell"></i>
+                <span id="friendBellBadge" class="notif-bell-badge" hidden>0</span>
+            </button>
+
+            <div id="friendBellDropdown" class="notif-dropdown" aria-hidden="true">
+                <div class="notif-dropdown-head">Friend Requests</div>
+                <div id="friendBellList" class="notif-dropdown-list">
+                    <div class="notif-empty">No new notifications.</div>
+                </div>
+            </div>
+        </div>
+
         <div id="userMenu" class="user-menu">
         <img id="userIcon" src="../assets/User/Default_User_Icon.png" alt="User" class="user-icon">
 
@@ -439,6 +453,7 @@
 <script src="../js/global/active.js"></script>
 <script type="module" src="../js/ExplorePage/explore.js"></script>
 <script src="../js/global/storeuser.js"></script>
+<script type="module" src="../js/global/friendNotifications.js"></script>
 
 </body>
 </html>
