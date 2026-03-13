@@ -1,80 +1,145 @@
 import { API_BASE_URL } from "../backend/config.js";
 
+const form = document.getElementById("auth-form");
+const errorMsg = document.getElementById("error-msg");
+
+const emailGroup = document.getElementById("email-group");
+const confirmGroup = document.getElementById("confirm-password-group");
+
+const title = document.getElementById("auth-title");
+const subtitle = document.getElementById("auth-subtitle");
+const submitText = document.getElementById("submit-text");
+
+const tabs = document.querySelectorAll(".tab-btn");
+
+/* =========================
+   SWITCH LOGIN / REGISTER
+========================= */
+
 function switchAuth(e, type) {
-  const emailGroup = document.getElementById('email-group');
-  const title = document.getElementById('auth-title');
-  const subtitle = document.getElementById('auth-subtitle');
-  const submitText = document.getElementById('submit-text');
-  const tabs = document.querySelectorAll('.tab-btn');
 
-  tabs.forEach(t => t.classList.remove('active'));
-  if (e?.target) e.target.classList.add('active');
+  tabs.forEach(t => t.classList.remove("active"));
+  if (e?.target) e.target.classList.add("active");
 
-  if (type === 'register') {
-    emailGroup.style.display = 'block';
+  if (type === "register") {
+
+    emailGroup.style.display = "block";
+    confirmGroup.style.display = "block";
+
     title.innerHTML = 'Join the <span class="gradient-text">Gamers!</span>';
-    subtitle.textContent = 'Create your free MyGameList account.';
-    submitText.textContent = 'Register';
+    subtitle.textContent = "Create your free MyGameList account.";
+    submitText.textContent = "Register";
+
   } else {
-    emailGroup.style.display = 'none';
+
+    emailGroup.style.display = "none";
+    confirmGroup.style.display = "none";
+
     title.innerHTML = 'Welcome <span class="gradient-text">Back!</span>';
-    subtitle.textContent = 'Get back to track your Gaming History.';
-    submitText.textContent = 'Login';
+    subtitle.textContent = "Get back to track your Gaming History.";
+    submitText.textContent = "Login";
+
   }
 }
 
-document.querySelectorAll(".tab-btn").forEach(btn => {
+/* =========================
+   TAB EVENTS
+========================= */
+
+tabs.forEach(btn => {
   btn.addEventListener("click", (e) => {
     switchAuth(e, btn.dataset.type);
   });
 });
 
-const form = document.getElementById('auth-form');
-const errorMsg = document.getElementById('error-msg');
+/* =========================
+   FORM SUBMIT
+========================= */
 
-form.addEventListener('submit', async (e) => {
+form.addEventListener("submit", async (e) => {
+
   e.preventDefault();
 
-  // Detect if register or login
-  const isRegister = document.getElementById('submit-text').textContent === 'Register';
+  const isRegister = submitText.textContent === "Register";
 
-  // Read Inputs 
-  const username = form.querySelector('input[type="text"]').value;
-  const password = form.querySelector('input[type="password"]').value;
+  const username = form.querySelector('input[type="text"]').value.trim();
+  const password = form.querySelector('input[placeholder="Password"]').value.trim();
+
   const emailInput = form.querySelector('input[type="email"]');
-  const email = isRegister ? emailInput.value : undefined;
+  const email = emailInput ? emailInput.value.trim() : "";
 
-  // Validation
+  const confirmInput = document.querySelector("#confirm-password-group input");
+  const confirmPassword = confirmInput ? confirmInput.value.trim() : "";
+
+  /* =========================
+     VALIDATION
+  ========================= */
+
   if (!username || !password || (isRegister && !email)) {
-    errorMsg.textContent = 'Please fill all required fields';
+    showError("Please fill all required fields");
     return;
   }
 
-  // Choose Endpoint
-    const endpoint = isRegister
-      ? `${API_BASE_URL}/api/register`
-      : `${API_BASE_URL}/api/login`;
+  if (isRegister && password !== confirmPassword) {
+    showError("Passwords do not match");
+    return;
+  }
+
+  /* =========================
+     API REQUEST
+  ========================= */
+
+  const endpoint = isRegister
+    ? `${API_BASE_URL}/api/register`
+    : `${API_BASE_URL}/api/login`;
 
   try {
+
     const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, email })
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        username,
+        password,
+        email
+      })
     });
 
     const data = await res.json();
 
     if (!res.ok) {
-      errorMsg.textContent = data.message || 'Something went wrong';
-    } else {
-      console.log('✅ Success:', data);
-      errorMsg.textContent = '';
-      // z.B. Token speichern und weiterleiten
-      localStorage.setItem('token', data.token);
-      window.location.href = '../index.html'; 
+      showError(data.message || "Something went wrong");
+      return;
     }
+
+    console.log("✅ Success:", data);
+
+    localStorage.setItem("token", data.token);
+
+    window.location.href = "../index.html";
+
   } catch (err) {
+
     console.error(err);
-    errorMsg.textContent = 'Network error';
+    showError("Network error");
+
   }
+
 });
+
+/* =========================
+   ERROR HANDLING
+========================= */
+
+function showError(msg) {
+
+  errorMsg.style.display = "block";
+  errorMsg.textContent = msg;
+
+  errorMsg.classList.remove("shake");
+  void errorMsg.offsetWidth;
+  errorMsg.classList.add("shake");
+
+}
