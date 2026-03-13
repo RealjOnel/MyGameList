@@ -94,12 +94,10 @@
                 <button class="profile_button" onclick="window.location.href='#'">
                     Send Message
                 </button>
-                <button class="profile_button" onclick="window.location.href='#'">
-                    Add Friend
-                </button>
-
+                <button class="profile_button" id="friendActionBtn" type="button">Add Friend</button>
             </div>
         </div>
+
         <div class="profile_bio_section">
             <h3 id="playerDescriptionTitle">Player's Description:</h3>
             <div class="profile_bio_items">
@@ -111,29 +109,17 @@
                 </div>
             </div>
         </div>
+        
         <div class="profile_friendlist">
-            <h3>"Player's" Friends:</h3>
-            <div class="profile_friendlist_items">
-                <button class="friend_item" type="button">
-                    <img src="../assets/User/Default_User_Icon.png" alt="Friend Icon" class="friend_icon">
-                    <span class="friend_name">Friend 1</span>
-                </button>
-
-                <button class="friend_item" type="button">
-                    <img src="../assets/User/Default_User_Icon.png" alt="Friend Icon" class="friend_icon">
-                    <span class="friend_name">Friend 2</span>
-                </button>
-
-                <button class="friend_item" type="button">
-                    <img src="../assets/User/Default_User_Icon.png" alt="Friend Icon" class="friend_icon">
-                    <span class="friend_name">Friend 3</span>
-                </button>
-            </div>
+            <h3>Player's Friends:</h3>
+            <div class="profile_friendlist_items" id="profileFriendsList"></div> 
         </div>
+
         <div class="profile_check_in">
             <h3 id="joinedAt">Joined: -</h3>
             <h3 id="lastOnline">Last Online: -</h3>
         </div>
+
     </div>
     <div class="profile_main">
 

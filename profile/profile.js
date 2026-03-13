@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "../backend/config.js";
+import { showToast } from "../js/global/toast.js";
 
 function qs(sel){ return document.querySelector(sel); }
 
@@ -32,6 +33,10 @@ function coverUrl(coverImageId){
   return coverImageId
     ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${coverImageId}.jpg`
     : "../../assets/placeholder-cover.png";
+}
+
+function avatarUrl(avatar){
+  return avatar || "../assets/User/Default_User_Icon.png";
 }
 
 function formatDate(iso){
@@ -118,6 +123,212 @@ function renderRecentActivity(items){
   }
 }
 
+function renderFriendsList(friends = []){
+  const wrap = document.getElementById("profileFriendsList");
+  if (!wrap) return;
+
+  wrap.innerHTML = "";
+
+  if (!friends.length){
+    wrap.innerHTML = `<div class="muted">No friends yet.</div>`;
+    return;
+  }
+
+  for (const friend of friends) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "friend_item";
+
+    btn.innerHTML = `
+      <img src="${avatarUrl(friend.avatarUrl)}" alt="${friend.username || "Friend"}" class="friend_icon">
+      <span class="friend_name">${friend.username || "Unknown User"}</span>
+    `;
+
+    btn.addEventListener("click", () => {
+      window.location.href = `./profile.html?username=${encodeURIComponent(friend.username)}`;
+    });
+
+    wrap.appendChild(btn);
+  }
+}
+
+function applyFriendButtonState(button, status){
+  if (!button) return;
+
+  button.hidden = false;
+  button.disabled = false;
+  button.dataset.friendState = status;
+
+  switch (status) {
+    case "self":
+      button.hidden = true;
+      button.disabled = true;
+      button.textContent = "Your Profile";
+      break;
+
+    case "none":
+      button.textContent = "Add Friend";
+      break;
+
+    case "outgoing_request":
+      button.textContent = "Cancel Request";
+      break;
+
+    case "incoming_request":
+      button.textContent = "Accept Request";
+      break;
+
+    case "friends":
+      button.textContent = "Remove Friend";
+      break;
+
+    case "loading":
+      button.textContent = "Loading...";
+      button.disabled = true;
+      break;
+
+    default:
+      button.textContent = "Add Friend";
+      break;
+  }
+}
+
+async function setupFriendSection({ token, me, profile }) {
+  const button = document.getElementById("friendActionBtn");
+  const friendsTitle = document.querySelector(".profile_friendlist h3");
+
+  if (friendsTitle) {
+    friendsTitle.textContent = `${profile.username}'s Friends:`;
+  }
+
+  if (!button) return;
+
+  let currentStatus = "loading";
+  let currentRequestId = null;
+  let actionBusy = false;
+
+  async function refreshFriendData() {
+    applyFriendButtonState(button, "loading");
+
+    const [statusData, friendsData] = await Promise.all([
+      api(`/api/friends/status/${encodeURIComponent(profile.username)}`, { token }),
+      api(`/api/friends/list/${encodeURIComponent(profile.username)}`, { token }),
+    ]);
+
+    currentStatus = statusData?.status || "none";
+    currentRequestId = statusData?.requestId || null;
+
+    applyFriendButtonState(button, currentStatus);
+    renderFriendsList(friendsData?.friends || []);
+  }
+
+  button.addEventListener("click", async () => {
+    if (actionBusy) return;
+    if (currentStatus === "self") return;
+
+    actionBusy = true;
+    applyFriendButtonState(button, "loading");
+
+    try {
+      if (currentStatus === "none") {
+        await api(`/api/friends/request/${encodeURIComponent(profile.username)}`, {
+          method: "POST",
+          token,
+        });
+
+        showToast({
+          title: "Friend request sent",
+          message: `Your request to ${profile.username} has been sent.`,
+          type: "success"
+        });
+      }
+
+      else if (currentStatus === "incoming_request") {
+        if (!currentRequestId) {
+          throw new Error("Missing request id");
+        }
+
+        await api(`/api/friends/request/${encodeURIComponent(currentRequestId)}/accept`, {
+          method: "POST",
+          token,
+        });
+
+        showToast({
+          title: "Friend request accepted",
+          message: `You are now friends with ${profile.username}.`,
+          type: "success"
+        });
+      }
+
+      else if (currentStatus === "outgoing_request") {
+        const ok = await window.openMglConfirm({
+          title: "Cancel Friend Request",
+          text: `Do you want to cancel your friend request to ${profile.username}?`,
+          confirmText: "Cancel Request",
+          cancelText: "Keep"
+        });
+
+        if (!ok) {
+          actionBusy = false;
+          await refreshFriendData();
+          return;
+        }
+
+        await api(`/api/friends/request/${encodeURIComponent(profile.username)}`, {
+          method: "DELETE",
+          token,
+        });
+
+        showToast({
+          title: "Request cancelled",
+          message: `Your request to ${profile.username} has been cancelled.`,
+          type: "success"
+        });
+      }
+
+      else if (currentStatus === "friends") {
+        const ok = await window.openMglConfirm({
+          title: "Remove Friend",
+          text: `Do you really want to remove ${profile.username} from your friends list?`,
+          confirmText: "Remove",
+          cancelText: "Keep"
+        });
+
+        if (!ok) {
+          actionBusy = false;
+          await refreshFriendData();
+          return;
+        }
+
+        await api(`/api/friends/remove/${encodeURIComponent(profile.username)}`, {
+          method: "DELETE",
+          token,
+        });
+
+        showToast({
+          title: "Friend removed",
+          message: `${profile.username} has been removed from your friends list.`,
+          type: "success"
+        });
+      }
+
+      await refreshFriendData();
+    } catch (err) {
+      console.error(err);
+      showToast({
+        title: "Friend action failed",
+        message: err.message || "Something went wrong.",
+        type: "error"
+      });
+      await refreshFriendData();
+    } finally {
+      actionBusy = false;
+    }
+  });
+
+  await refreshFriendData();
+}
+
 async function loadProfile(){
   const token = localStorage.getItem("token");
   if (!token){
@@ -138,29 +349,24 @@ async function loadProfile(){
     profile = me;
   }
 
-  // keep URL clean with ?username= only for other profiles, own profile can be accessed via /profile.html without query param
   if (!profileUsername && profile?.username) {
     const newUrl = `${window.location.pathname}?username=${encodeURIComponent(profile.username)}`;
     window.history.replaceState({}, "", newUrl);
   }
 
-  // profil link in nav should always point to own profile, even when viewing other profiles
   const navProfileLinks = document.querySelectorAll('a[href="./profile.html"]');
   navProfileLinks.forEach(link => {
     link.href = `./profile.html?username=${encodeURIComponent(me.username)}`;
   });
 
-  // load fitting library data for this profile (own profile shows own library, other profiles show their library)
   const entries = await api(
     `/api/library/profile/${encodeURIComponent(profile.username)}`,
     { token }
   );
 
-  // global info for comments and other interactions
   window.currentProfileUsername = profile.username;
   window.currentViewerUsername = me.username;
 
-  // render base profile info
   qs(".profile_username").textContent = profile.username;
 
   const descTitle = document.getElementById("playerDescriptionTitle");
@@ -176,7 +382,6 @@ async function loadProfile(){
   const lastEl = document.getElementById("lastOnline");
   if (lastEl) lastEl.textContent = `Last Online: ${formatDate(profile.lastLoginAt)}`;
 
-  // render favorites
   const favWrap = document.getElementById("profileFavorites");
   if (favWrap) {
     favWrap.innerHTML = "";
@@ -218,10 +423,8 @@ async function loadProfile(){
     }
   }
 
-  // Recent Activity
   renderRecentActivity(entries);
 
-  // Pie chart
   const counts = entries.reduce((acc, e) => {
     acc[e.status] = (acc[e.status] || 0) + 1;
     return acc;
@@ -231,7 +434,6 @@ async function loadProfile(){
     window.updateProfileChart(counts);
   }
 
-  // comment box only for other profiles, not own profile
   const commentHeading = document.querySelector(".profile_comments h3");
   if (commentHeading) {
     commentHeading.textContent =
@@ -239,6 +441,8 @@ async function loadProfile(){
         ? "Leave a Comment"
         : `Leave a Comment for ${profile.username}`;
   }
+
+  await setupFriendSection({ token, me, profile });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
