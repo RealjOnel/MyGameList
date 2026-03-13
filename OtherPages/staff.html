@@ -28,10 +28,10 @@
     <div class="nav-search-slot" id="navSearchSlot"></div>
     
     <div class="nav-links">
-        <a href="./features.html" class="nav-item">Features</a>
+        <a href="../OtherPages/features.html" class="nav-item">Features</a>
     
         <div class="nav-item dropdown">
-            <a href="./explore.html">Games</a>
+            <a href="../OtherPages/explore.html">Games</a>
             <ul class="dropdown-menu">
                 <li><a href="#">Trending Games</a></li>
                 <li><a href="#">Upcoming Games</a></li>
@@ -40,9 +40,9 @@
         </div>
 
         <div class="nav-item dropdown">
-            <a href="./statistics.html">Statistics</a>
+            <a href="../OtherPages/statistics.html">Statistics</a>
             <ul class="dropdown-menu">
-                <li><a href="./methodology.html">Our Methodology</a></li>
+                <li><a href="../OtherPages/methodology.html">Our Methodology</a></li>
                 <li><a href="#">Top Games</a></li>
                 <li><a href="#">Hidden Gems</a></li>
                 <li><a href="#">Overhyped Titles</a></li>
@@ -50,18 +50,19 @@
         </div>
 
         <div class="nav-item dropdown">
-            <a href="./help.html">Help</a>
+            <a href="../OtherPages/help.html">Help</a>
             <ul class="dropdown-menu">
-                <li><a href="./about.html">About</a></li>
-                <li><a href="./faq.html">FAQ</a></li>
-                <li><a href="./support.html">Support</a></li>
-                <li><a href="./staff.html">Staff</a></li>
+                <li><a href="../OtherPages/about.html">About</a></li>
+                <li><a href="../OtherPages/faq.html">FAQ</a></li>
+                <li><a href="../OtherPages/support.html">Support</a></li>
+                <li><a href="../OtherPages/staff.html">Staff</a></li>
             </ul>
         </div>
 
-        <button id="loginBtn" class="btn-login" onclick="window.location.href='../LoginPageAndLogic/login.html'">LOGIN</button>
+        <button id="loginBtn" class="btn-login" onclick="window.location.href='./LoginPageAndLogic/login.html'">LOGIN</button>
 
-        <div id="friendBell" class="notif-bell" hidden>
+      <div class="nav-user-wrap" id="navUserWrap"> 
+        <div id="friendBell" class="notif-bell">
             <button id="friendBellBtn" class="notif-bell-btn" type="button" aria-label="Friend Notifications">
                 <i class="fa-regular fa-bell"></i>
                 <span id="friendBellBadge" class="notif-bell-badge" hidden>0</span>
@@ -75,18 +76,19 @@
             </div>
         </div>
 
-        <div id="userMenu" class="user-menu">
-        <img id="userIcon" src="../assets/User/Default_User_Icon.png" alt="User" class="user-icon">
+            <div id="userMenu" class="user-menu">
+                <img id="userIcon" src="../assets/User/Default_User_Icon.png" alt="User" class="user-icon">
 
-        <div id="userDropdown" class="user-dropdown" aria-hidden="true">
-            <a class="dropdown-item" href="../profile/profile.html">Profile</a>
-            <a class="dropdown-item" href="#">Settings</a>
+                <div id="userDropdown" class="user-dropdown" aria-hidden="true">
+                    <a class="dropdown-item" href="../profile/profile.html">Profile</a>
+                    <a class="dropdown-item" href="../profile/settings.html">Settings</a>s
 
-            <div class="dropdown-divider"></div>
+                    <div class="dropdown-divider"></div>
 
-            <button id="logoutBtn" class="dropdown-item danger" type="button">Logout</button>
-        </div>
-        </div>
+                    <button id="logoutBtn" class="dropdown-item danger" type="button">Logout</button>
+                </div>
+            </div>
+        </div> 
     </div>
 </nav>
 
