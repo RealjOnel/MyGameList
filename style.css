@@ -460,6 +460,30 @@ html[data-auth="in"] #navUserWrap{
   background: transparent;
 }
 
+/* Nav User Search */
+
+.nav-search-thumb--user{
+  border-radius: 50%;
+  background: linear-gradient(145deg, #eef2ff, #f8fafc);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.nav-search-thumb--user img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.nav-search-user-fallback{
+  font-size: 1rem;
+  font-weight: 900;
+  color: #2563eb;
+}
+
 /* Dropdown */
 
 .dropdown {

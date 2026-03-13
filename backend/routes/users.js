@@ -23,6 +23,60 @@ router.get("/me", requireAuth, async (req, res) => {
   }
 });
 
+function escapeRegex(str = "") {
+  return String(str).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// GET /api/users/search?q=...
+router.get("/search", async (req, res) => {
+  try {
+    res.set("Cache-Control", "no-store");
+
+    const q = String(req.query.q || "").trim();
+    if (!q) {
+      return res.json({ users: [] });
+    }
+
+    const safe = escapeRegex(q);
+
+    const users = await User.find({
+      username: { $regex: safe, $options: "i" }
+    })
+      .select("username")
+      .limit(20);
+
+    const qLower = q.toLowerCase();
+
+    const scored = users
+      .map((user) => {
+        const name = String(user.username || "");
+        const lower = name.toLowerCase();
+
+        let score = 99;
+        if (lower === qLower) score = 0;
+        else if (lower.startsWith(qLower)) score = 1;
+        else if (lower.includes(qLower)) score = 2;
+
+        return {
+          id: user._id,
+          username: user.username,
+          avatarUrl: null,
+          score,
+        };
+      })
+      .sort((a, b) => {
+        if (a.score !== b.score) return a.score - b.score;
+        return a.username.localeCompare(b.username);
+      })
+      .slice(0, 8);
+
+    res.json({ users: scored });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "Failed to search users" });
+  }
+});
+
 // GET /api/users/profile/:username
 router.get("/profile/:username", requireAuth, async (req, res) => {
   try {
