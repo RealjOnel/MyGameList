@@ -28,43 +28,21 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* =========================
-   Auth visibility handling
-   ========================= */
-
-#loginBtn {
-    display: inline-flex;
+/* Default: shows nothing until decided */
+#loginBtn,
+#userMenu {
+  display: none;
 }
 
-.nav-user-area {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    justify-self: end;
-}
-
-/* loading = nichts zeigen, damit nichts flackert */
-html[data-auth="loading"] #loginBtn,
-html[data-auth="loading"] .nav-user-area {
-    display: none !important;
-}
-
-/* ausgeloggt */
+/* Logged out: show login */
 html[data-auth="out"] #loginBtn {
-    display: inline-flex !important;
+  display: inline-block;
 }
 
-html[data-auth="out"] .nav-user-area {
-    display: none !important;
-}
-
-/* eingeloggt */
-html[data-auth="in"] #loginBtn {
-    display: none !important;
-}
-
-html[data-auth="in"] .nav-user-area {
-    display: flex !important;
+/* Logged in: show user */
+html[data-auth="in"] #userMenu {
+  display: inline-flex;
+  align-items: center;
 }
 
 [hidden] { display: none !important; }
