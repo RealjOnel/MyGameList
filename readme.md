@@ -79,18 +79,18 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
             </div>
         </div>
 
-        <div id="userMenu" class="user-menu">
-        <img id="userIcon" src="./assets/User/Default_User_Icon.png" alt="User" class="user-icon">
+            <div id="userMenu" class="user-menu">
+                <img id="userIcon" src="./assets/User/Default_User_Icon.png" alt="User" class="user-icon">
 
-        <div id="userDropdown" class="user-dropdown" aria-hidden="true">
-            <a class="dropdown-item" href="./profile/profile.html">Profile</a>
-            <a class="dropdown-item" href="./profile/settings.html">Settings</a>
+                <div id="userDropdown" class="user-dropdown" aria-hidden="true">
+                    <a class="dropdown-item" href="./profile/profile.html">Profile</a>
+                    <a class="dropdown-item" href="./profile/settings.html">Settings</a>
 
-            <div class="dropdown-divider"></div>
+                    <div class="dropdown-divider"></div>
 
-            <button id="logoutBtn" class="dropdown-item danger" type="button">Logout</button>
-        </div>
-        </div>
+                    <button id="logoutBtn" class="dropdown-item danger" type="button">Logout</button>
+                </div>
+            </div>
         </div> 
     </div>
 </nav>
