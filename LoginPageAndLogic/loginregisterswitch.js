@@ -12,6 +12,8 @@ const submitText = document.getElementById("submit-text");
 
 const tabs = document.querySelectorAll(".tab-btn");
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;  /* Email validising*/
+
 /* =========================
    SWITCH LOGIN / REGISTER
 ========================= */
@@ -78,6 +80,11 @@ form.addEventListener("submit", async (e) => {
   if (!username || !password || (isRegister && !email)) {
     showError("Please fill all required fields");
     return;
+  }
+
+  if (isRegister && !emailRegex.test(email)) {
+  showError("Please enter a valid email address");
+  return;
   }
 
   if (isRegister && password !== confirmPassword) {
