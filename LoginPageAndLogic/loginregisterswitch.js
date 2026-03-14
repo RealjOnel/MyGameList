@@ -12,7 +12,7 @@ const submitText = document.getElementById("submit-text");
 
 const tabs = document.querySelectorAll(".tab-btn");
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;  /* Email validising*/
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;  /* email validation*/
 
 /* =========================
    SWITCH LOGIN / REGISTER
