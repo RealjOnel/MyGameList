@@ -337,9 +337,16 @@ function setupSearch(root){
   }));
 
   if (modeBtn && modeMenu){
-  modeBtn.addEventListener("click", (e) => {
+    modeBtn.addEventListener("click", (e) => {
     e.stopPropagation();
+    panel.hidden = true;
     modeMenu.hidden = !modeMenu.hidden;
+  });
+
+  input.addEventListener("focus", () => {
+    if (modeMenu) modeMenu.hidden = true;
+    if (root.dataset.variant === "page") return;
+    if (input.value.trim()) panel.hidden = false;
   });
 
   modeOptions.forEach(btn => {
