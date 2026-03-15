@@ -4,6 +4,7 @@ import { requireAuth } from "../middleware/authMiddleware.js";
 import { getTwitchToken } from "../services/twitchToken.js";
 import { Game } from "../models/game.js";
 import { UserGameEntry } from "../models/userGameEntry.js";
+import { User } from "../models/user.js";
 
 const router = express.Router();
 
@@ -184,6 +185,49 @@ router.get("/me", requireAuth, async (req, res) => {
   } catch (e) {
     console.error(e);
     res.status(500).json({ message: "Failed to fetch library" });
+  }
+});
+
+// GET /api/library/profile/:username
+router.get("/profile/:username", requireAuth, async (req, res) => {
+  try {
+    const username = String(req.params.username || "").trim();
+    if (!username) {
+      return res.status(400).json({ message: "Username is required" });
+    }
+
+    const user = await User.findOne({ username }).select("_id username");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const items = await UserGameEntry.find({ userId: user._id })
+      .sort({ updatedAt: -1 })
+      .populate("gameId");
+
+    const out = items.map(it => ({
+      id: it._id,
+      status: it.status,
+      rating: it.rating,
+      playtimeHours: it.playtimeHours,
+      notes: it.notes,
+      createdAt: it.createdAt,
+      updatedAt: it.updatedAt,
+      isFavorite: !!it.isFavorite,
+      favoriteAddedAt: it.favoriteAddedAt ?? null,
+      game: it.gameId ? {
+        igdbId: it.gameId.igdbId,
+        name: it.gameId.name,
+        coverImageId: it.gameId.coverImageId,
+        firstReleaseDate: it.gameId.firstReleaseDate,
+        metacriticRating: it.gameId.metacriticRating,
+      } : null
+    }));
+
+    res.json(out);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "Failed to fetch profile library" });
   }
 });
 

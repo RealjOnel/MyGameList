@@ -64,18 +64,34 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
 
         <button id="loginBtn" class="btn-login" onclick="window.location.href='./LoginPageAndLogic/login.html'">LOGIN</button>
 
-        <div id="userMenu" class="user-menu">
-        <img id="userIcon" src="./assets/User/Default_User_Icon.png" alt="User" class="user-icon">
+      <div class="nav-user-wrap" id="navUserWrap"> 
+        <div id="friendBell" class="notif-bell">
+            <button id="friendBellBtn" class="notif-bell-btn" type="button" aria-label="Friend Notifications">
+                <i class="fa-regular fa-bell"></i>
+                <span id="friendBellBadge" class="notif-bell-badge" hidden>0</span>
+            </button>
 
-        <div id="userDropdown" class="user-dropdown" aria-hidden="true">
-            <a class="dropdown-item" href="./OtherPages/profile.html">Profile</a>
-            <a class="dropdown-item" href="./OtherPages/settings.html">Settings</a>
-
-            <div class="dropdown-divider"></div>
-
-            <button id="logoutBtn" class="dropdown-item danger" type="button">Logout</button>
+            <div id="friendBellDropdown" class="notif-dropdown" aria-hidden="true">
+                <div class="notif-dropdown-head">Friend Requests</div>
+                <div id="friendBellList" class="notif-dropdown-list">
+                    <div class="notif-empty">No new notifications.</div>
+                </div>
+            </div>
         </div>
-        </div>
+
+            <div id="userMenu" class="user-menu">
+                <img id="userIcon" src="./assets/User/Default_User_Icon.png" alt="User" class="user-icon">
+
+                <div id="userDropdown" class="user-dropdown" aria-hidden="true">
+                    <a class="dropdown-item" href="./profile/profile.html">Profile</a>
+                    <a class="dropdown-item" href="./profile/settings.html">Settings</a>
+
+                    <div class="dropdown-divider"></div>
+
+                    <button id="logoutBtn" class="dropdown-item danger" type="button">Logout</button>
+                </div>
+            </div>
+        </div> 
     </div>
 </nav>
 
@@ -89,9 +105,9 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
         <div class="footer-links">
             <div class="link-group">
                 <h4>Platform</h4>
-                <a href="#">Explore</a>
+                <a href="../OtherPages/explore.html">Games</a>
                 <a href="#">Top Games</a>
-                <a href="#">Statistics</a>
+                <a href="../OtherPages/statistics.html">Statistics</a>
             </div>
             <div class="link-group">
                 <h4>Community</h4>
@@ -101,17 +117,17 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
             </div>
             <div class="link-group">
                 <h4>Legal</h4>
-                <a href="./terms_of_service.html">Terms of Service</a>
-                <a href="./legal_notice.html">Legal Notice</a>                
-                <a href="./privacy_policy.html">Privacy Policy</a>
+                <a href="../OtherPages/terms_of_service.html">Terms of Service</a>
+                <a href="../OtherPages/legal_notice.html">Legal Notice</a>                
+                <a href="../OtherPages/privacy_policy.html">Privacy Policy</a>
                 <a href="#">Cookie Policy</a>
             </div>
             <div class="link-group">
                 <h4>Help</h4>
-                <a href="#">About</a>
-                <a href="#">FAQ</a>
-                <a href="#">Support</a>
-                <a href="#">Staff</a>
+                <a href="../OtherPages/about.html">About</a>
+                <a href="../OtherPages/faq.html">FAQ</a>
+                <a href="../OtherPages/support.html">Support</a>
+                <a href="../OtherPages/staff.html">Staff</a>
             </div>
         </div>
     </div>
@@ -120,10 +136,35 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
     </div>
 </footer>
 
+    <script src="../js/global/confirmBox.js"></script>
     <script type="module" src="../js/global/nav-search.js"></script>
     <script src="../js/global/reveal.js"></script>
     <script src="../js/global/active.js"></script>
     <script src="../js/global/storeuser.js"></script>
+    <script type="module" src="../js/global/friendNotifications.js"></script>
+
+    <div class="mgl-modal-backdrop" id="mglConfirmModal" hidden>
+        <div class="mgl-modal" role="dialog" aria-modal="true" aria-labelledby="mglConfirmTitle">
+            <div class="mgl-modal-head">
+            <h3 id="mglConfirmTitle">Confirm Action</h3>
+            </div>
+
+            <div class="mgl-modal-body">
+                <p id="mglConfirmText">Are you sure?</p>
+            </div>
+
+            <div class="mgl-modal-actions">
+            <button type="button" class="mgl-modal-btn mgl-modal-btn-cancel" id="mglConfirmCancel">
+                Cancel
+            </button>
+            <button type="button" class="mgl-modal-btn mgl-modal-btn-confirm" id="mglConfirmOk">
+                Confirm
+            </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
 </body>
 </html>```

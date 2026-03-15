@@ -140,7 +140,13 @@ async function patchEntry(patch){
 
 const statusUI = wireDropdown(statusDD, async (val) => {
   if (val === "__remove__") {
-    const ok = window.confirm("Remove this game from your list?");
+    const ok = await openMglConfirm({
+      title: "Remove Game",
+      text: "Do you really want to remove this game from your list?",
+      confirmText: "Remove",
+      cancelText: "Cancel",
+    });
+
     if (!ok) return;
 
     try {

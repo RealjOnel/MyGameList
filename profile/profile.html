@@ -28,10 +28,10 @@
     <div class="nav-search-slot" id="navSearchSlot"></div>
 
     <div class="nav-links">
-        <a href="./features.html" class="nav-item">Features</a>
+        <a href="../OtherPages/features.html" class="nav-item">Features</a>
     
         <div class="nav-item dropdown">
-            <a href="./explore.html">Games</a>
+            <a href="../OtherPages/explore.html">Games</a>
             <ul class="dropdown-menu">
                 <li><a href="#">Trending Games</a></li>
                 <li><a href="#">Upcoming Games</a></li>
@@ -40,9 +40,9 @@
         </div>
 
         <div class="nav-item dropdown">
-            <a href="./statistics.html">Statistics</a>
+            <a href="../OtherPages/statistics.html">Statistics</a>
             <ul class="dropdown-menu">
-                <li><a href="./methodology.html">Our Methodology</a></li>
+                <li><a href="../OtherPages/methodology.html">Our Methodology</a></li>
                 <li><a href="#">Top Games</a></li>
                 <li><a href="#">Hidden Gems</a></li>
                 <li><a href="#">Overhyped Titles</a></li>
@@ -50,29 +50,45 @@
         </div>
 
         <div class="nav-item dropdown">
-            <a href="./help.html">Help</a>
+            <a href="../OtherPages/help.html">Help</a>
             <ul class="dropdown-menu">
-                <li><a href="./about.html">About</a></li>
-                <li><a href="./faq.html">FAQ</a></li>
-                <li><a href="./support.html">Support</a></li>
-                <li><a href="./staff.html">Staff</a></li>
+                <li><a href="../OtherPages/about.html">About</a></li>
+                <li><a href="../OtherPages/faq.html">FAQ</a></li>
+                <li><a href="../OtherPages/support.html">Support</a></li>
+                <li><a href="../OtherPages/staff.html">Staff</a></li>
             </ul>
         </div>
 
         <button id="loginBtn" class="btn-login" onclick="window.location.href='../LoginPageAndLogic/login.html'">LOGIN</button>
 
+        <div class="nav-user-wrap" id="navUserWrap"> 
+        <div id="friendBell" class="notif-bell">
+            <button id="friendBellBtn" class="notif-bell-btn" type="button" aria-label="Friend Notifications">
+                <i class="fa-regular fa-bell"></i>
+                <span id="friendBellBadge" class="notif-bell-badge" hidden>0</span>
+            </button>
+
+            <div id="friendBellDropdown" class="notif-dropdown" aria-hidden="true">
+                <div class="notif-dropdown-head">Friend Requests</div>
+                <div id="friendBellList" class="notif-dropdown-list">
+                    <div class="notif-empty">No new notifications.</div>
+                </div>
+            </div>
+        </div>
+
         <div id="userMenu" class="user-menu">
         <img id="userIcon" src="../assets/User/Default_User_Icon.png" alt="User" class="user-icon">
 
         <div id="userDropdown" class="user-dropdown" aria-hidden="true">
-            <a class="dropdown-item" href="./profile.html">Profile</a>
-            <a class="dropdown-item" href="./OtherPages/settings.html">Settings</a>
+            <a class="dropdown-item" href="profile.html">Profile</a>
+            <a class="dropdown-item" href="./profile/settings.html">Settings</a>
 
             <div class="dropdown-divider"></div>
 
             <button id="logoutBtn" class="dropdown-item danger" type="button">Logout</button>
         </div>
         </div>
+        </div> 
     </div>
 </nav>
 
@@ -94,14 +110,12 @@
                 <button class="profile_button" onclick="window.location.href='#'">
                     Send Message
                 </button>
-                <button class="profile_button" onclick="window.location.href='#'">
-                    Add Friend
-                </button>
-
+                <button class="profile_button" id="friendActionBtn" type="button">Add Friend</button>
             </div>
         </div>
+
         <div class="profile_bio_section">
-            <h3>"Player's" Description:</h3>
+            <h3 id="playerDescriptionTitle">Player's Description:</h3>
             <div class="profile_bio_items">
                 <div class="profile_bio_content">
                     <div class="bio_line">Name: #Test#</div>
@@ -111,69 +125,59 @@
                 </div>
             </div>
         </div>
+        
         <div class="profile_friendlist">
-            <h3>"Player's" Friends:</h3>
-            <div class="profile_friendlist_items">
-                <button class="friend_item" type="button">
-                    <img src="../assets/User/Default_User_Icon.png" alt="Friend Icon" class="friend_icon">
-                    <span class="friend_name">Friend 1</span>
-                </button>
-
-                <button class="friend_item" type="button">
-                    <img src="../assets/User/Default_User_Icon.png" alt="Friend Icon" class="friend_icon">
-                    <span class="friend_name">Friend 2</span>
-                </button>
-
-                <button class="friend_item" type="button">
-                    <img src="../assets/User/Default_User_Icon.png" alt="Friend Icon" class="friend_icon">
-                    <span class="friend_name">Friend 3</span>
-                </button>
-            </div>
+            <h3>Player's Friends:</h3>
+            <div class="profile_friendlist_items" id="profileFriendsList"></div> 
         </div>
+
         <div class="profile_check_in">
             <h3 id="joinedAt">Joined: -</h3>
             <h3 id="lastOnline">Last Online: -</h3>
         </div>
+
     </div>
     <div class="profile_main">
 
-        <!-- ===================== -->
         <!-- banner -->
-        <!-- ===================== -->
         <div class="profile_banner">
             <img src="../assets/User/banner.png" alt="banner" class="profile_banner_image">
         </div>
 
         <div class="profile_content">
-        
-            <div class="profile_statistics">
 
+            <div class="profile_statistics">
                 <div class="profile_pie_container">
+                    <h3 class="section-title section-title--metal section-title--glow section-title--long profile_block_title">Total Games</h3>
                     <canvas id="pieChart" width="200" height="200"></canvas>
                 </div>
 
-
                 <div class="last_edit">
+                    <h3 class="section-title section-title--metal section-title--glow section-title--long profile_block_title">Recent Activity</h3>
                     <div class="profile_games" id="recentActivityWrap"></div>
                 </div>
 
-
-                <!-- Tooltip -->
-                <div id="tooltip"
-                    style="position:absolute; 
-                        padding:5px 10px; 
-                        background:#333; 
-                        color:white; 
-                        border-radius:4px; 
-                        pointer-events:none; 
-                        display:none; 
-                        font-family:Arial; 
-                        font-size:14px;
-                        z-index:100;">
-                </div>
+                <div id="tooltip" class="chart-tooltip"></div>
             </div>
+
         </div>
-    </div>      
+
+        <!-- COMMENT FIELD -->
+        <div class="profile_comments">
+            <h3>Leave a Comment</h3>
+            <div class="comment_wrapper">
+                <textarea class="comment_input" maxlength="100" placeholder="Write your comment here..."></textarea>
+                <button class="comment_button">Post</button>
+            </div>
+
+            <div class="comment_meta">
+                <span class="comment_counter">0 / 100</span>
+            </div>
+
+            <div class="profile_comment_list" id="profileCommentList"></div>
+        </div>
+    </div>    
+
     <div class="user_data">
         <div class="profile_right">
             <div class="profile_empty">
@@ -181,13 +185,32 @@
             </div>
             <div class="profile_favs">
                 <div class="profile_favourites">
-                    <h3 class="section-title section-title--metal section-title--glow section-title--long">Favorite Games</h3>
+                    <h3 class="section-title section-title--gradient section-title--glow section-title--long">Favorite Games</h3>
                     <div class="profile_favourites_items" id="profileFavorites"></div>
                 </div>
             </div>
 
-            <div class="profile_reviews">
+            <div class="profile_activity">
                 Reviews
+                <button class="activity_item">
+                    <div class="activity_card">
+                        <div class="activity_iconclass">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co66n7.jpg" class="activity_icon" alt="Grand Theft Auto V: Story Mode">
+                        </div>
+                        <div class="activity_contentclass">
+                            <div class="activity_top">
+                                <h3>GTA</h3>
+                                <p> Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. </p>
+                            </div>
+                            <div class="activity_bottom">
+                                <p class="activity_rating">Rating</p>
+                               <p>
+                                08/03/2026
+                               </p>
+                            </div>
+                        </div>
+                    </div>
+                </button>
             </div>
         </div>
     </div>
@@ -203,9 +226,9 @@
         <div class="footer-links">
             <div class="link-group">
                 <h4>Platform</h4>
-                <a href="#">Explore</a>
+                <a href="../OtherPages/explore.html">Games</a>
                 <a href="#">Top Games</a>
-                <a href="#">Statistics</a>
+                <a href="../OtherPages/statistics.html">Statistics</a>
             </div>
             <div class="link-group">
                 <h4>Community</h4>
@@ -215,17 +238,17 @@
             </div>
             <div class="link-group">
                 <h4>Legal</h4>
-                <a href="./terms_of_service.html">Terms of Service</a>
-                <a href="./legal_notice.html">Legal Notice</a>                
-                <a href="./privacy_policy.html">Privacy Policy</a>
+                <a href="../OtherPages/terms_of_service.html">Terms of Service</a>
+                <a href="../OtherPages/legal_notice.html">Legal Notice</a>                
+                <a href="../OtherPages/privacy_policy.html">Privacy Policy</a>
                 <a href="#">Cookie Policy</a>
             </div>
             <div class="link-group">
                 <h4>Help</h4>
-                <a href="#">About</a>
-                <a href="#">FAQ</a>
-                <a href="#">Support</a>
-                <a href="#">Staff</a>
+                <a href="../OtherPages/about.html">About</a>
+                <a href="../OtherPages/faq.html">FAQ</a>
+                <a href="../OtherPages/support.html">Support</a>
+                <a href="../OtherPages/staff.html">Staff</a>
             </div>
         </div>
     </div>
@@ -234,11 +257,38 @@
     </div>
 </footer>
 
+    <script src="./piechart.js"></script>
+    <script src="../js/global/confirmBox.js"></script>
     <script type="module" src="./profile.js"></script>
     <script type="module" src="../js/global/nav-search.js"></script>
     <script src="../js/global/reveal.js"></script>
     <script src="../js/global/active.js"></script>
     <script src="../js/global/storeuser.js"></script>
-    <script src="./piechart.js"></script>
+    <script type="module" src="./comment.js"></script>
+    <script type="module" src="../js/global/friendNotifications.js"></script>
+
+    <div class="mgl-modal-backdrop" id="mglConfirmModal" hidden>
+        <div class="mgl-modal" role="dialog" aria-modal="true" aria-labelledby="mglConfirmTitle">
+            <div class="mgl-modal-head">
+            <h3 id="mglConfirmTitle">Confirm Action</h3>
+            </div>
+
+            <div class="mgl-modal-body">
+                <p id="mglConfirmText">Are you sure?</p>
+            </div>
+
+            <div class="mgl-modal-actions">
+            <button type="button" class="mgl-modal-btn mgl-modal-btn-cancel" id="mglConfirmCancel">
+                Cancel
+            </button>
+            <button type="button" class="mgl-modal-btn mgl-modal-btn-confirm" id="mglConfirmOk">
+                Confirm
+            </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
 </body>
 </html>

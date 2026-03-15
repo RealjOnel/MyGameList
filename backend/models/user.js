@@ -6,11 +6,17 @@ const userSchema = new mongoose.Schema(
     email: { type: String, unique: true },
     passwordHash: { type: String, required: true },
 
+    friends: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: []
+    }],
+
     createdAt: { type: Date, default: Date.now },
     lastLoginAt: { type: Date, default: null },
     updatedAt: { type: Date, default: Date.now },
   },
-  { timestamps: false } // we handle it ourselves now
+  { timestamps: false }
 );
 
 export const User = mongoose.model("User", userSchema);
