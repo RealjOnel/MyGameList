@@ -6,6 +6,8 @@ const endEl = document.getElementById("endOfList");
 
 const URL_SEARCH = (new URLSearchParams(window.location.search).get("search") || "").trim();
 let bootSearch = URL_SEARCH;
+let activeController = null;
+let latestRequestId = 0;
 
 function getSearchInput(){
   return document.getElementById("globalSearchInput") || document.querySelector(".search-input");
@@ -466,31 +468,46 @@ gameGrid.innerHTML = `
 }
 
 async function loadGames(reset = false) {
-  if (isLoading) return;
-  isLoading = true;
-
-  if (!reset && !hasMore) {
-  setLoadingUI(false);
-  setEndUI(true);
-  if (observer) observer.disconnect();
-  if (sentinel) sentinel.hidden = true;
-  return;
-}
-
+  // New search / new filters / new sort:
+  // cancel the old request instead of silently ignoring the new one
   if (reset) {
+    if (activeController) {
+      activeController.abort();
+      activeController = null;
+    }
+
     currentPage = 1;
-    gameGrid.innerHTML = "";
-  }
-
-  if (reset) {
     hasMore = true;
+    gameGrid.innerHTML = "";
     setEndUI(false);
     setLoadingUI(false);
+
+    if (sentinel) sentinel.hidden = false;
+    if (observer) observer.disconnect();
+    setupInfiniteScroll();
+  } else {
+    if (isLoading) return;
+
+    if (!hasMore) {
+      setLoadingUI(false);
+      setEndUI(true);
+      if (observer) observer.disconnect();
+      if (sentinel) sentinel.hidden = true;
+      return;
+    }
   }
+
+  const controller = new AbortController();
+  activeController = controller;
+
+  const requestId = ++latestRequestId;
+  const pageToLoad = currentPage;
+
+  isLoading = true;
 
   try {
     const params = new URLSearchParams({
-      page: currentPage,
+      page: pageToLoad,
       sort: sortBy,
       order: sortOrder
     });
@@ -505,32 +522,50 @@ async function loadGames(reset = false) {
     if (selectedPlatform !== "all") {
       params.append("platform", selectedPlatform);
     }
-    
+
     setLoadingUI(true);
 
     const res = await fetch(
-      `${API_BASE_URL}/api/igdb/games?${params.toString()}`
+      `${API_BASE_URL}/api/igdb/games?${params.toString()}`,
+      {
+        signal: controller.signal,
+        cache: "no-store"
+      }
     );
 
     const games = await res.json();
-    hasMore = Array.isArray(games) && games.length === PAGE_SIZE;
 
-    if (!hasMore){
+    // ignore stale responses
+    if (requestId !== latestRequestId) return;
+
+    const safeGames = Array.isArray(games) ? games : [];
+
+    hasMore = safeGames.length === PAGE_SIZE;
+
+    if (!hasMore) {
       setEndUI(true);
-      setLoadingUI(false); // <- loader gone and stays gone
+    } else {
+      setEndUI(false);
     }
 
-    renderGames(games);
+    renderGames(safeGames);
 
-    if (games.length > 0) {
-      currentPage++;
+    if (safeGames.length > 0) {
+      currentPage = pageToLoad + 1;
     }
 
   } catch (err) {
+    if (err.name === "AbortError") {
+      return;
+    }
     console.error(err);
   } finally {
-    isLoading = false;
-    setLoadingUI(false);
+    // only the currently active request may clear loading state
+    if (activeController === controller) {
+      activeController = null;
+      isLoading = false;
+      setLoadingUI(false);
+    }
   }
 }
 
@@ -610,12 +645,12 @@ document.addEventListener("input", (e) => {
   const t = e.target;
   if (!(t instanceof HTMLInputElement)) return;
 
-  // react only to our search input
   if (!(t.id === "globalSearchInput" || t.classList.contains("search-input"))) return;
 
   clearTimeout(searchTimeout);
+
   searchTimeout = setTimeout(() => {
-    bootSearch = "";    
+    bootSearch = "";
     loadGames(true);
-}, 300);
+  }, 220);
 });
