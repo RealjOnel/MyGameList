@@ -452,22 +452,29 @@ function mountSearch(){
   const navSlot = document.getElementById("navSearchSlot");
   if (!navSlot) return;
 
-  const pageSlot = document.getElementById("pageSearchSlot"); // exists only on explore
+  const pageSlot = document.getElementById("pageSearchSlot");
   const existing = document.querySelector(".nav-search");
-  const root = existing || buildSearch();
-
-  if (!existing) setupSearch(root);
-
   const isExplore = !!pageSlot;
   const target = pageSlot || navSlot;
 
-  // already mounted correctly, but variant might be wrong after bfcache/pageshow
+  // first mount: no FLIP, just append
+  if (!existing){
+    const root = buildSearch();
+    setupSearch(root);
+    target.appendChild(root);
+    setVariant(root, isExplore ? "page" : "nav");
+    return;
+  }
+
+  const root = existing;
+
+  // already in correct slot
   if (root.parentElement === target){
     setVariant(root, isExplore ? "page" : "nav");
     return;
   }
 
-  // animate move + apply correct variant during FLIP
+  // only use FLIP when actually moving an already-mounted element
   moveWithFlip(root, target, () => setVariant(root, isExplore ? "page" : "nav"));
 }
 
