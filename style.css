@@ -3335,28 +3335,29 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
     margin-bottom: 5rem;
 }
 
-.section-title {
+.section-staff {
     display: flex;
-    align-items: center;
-    gap: 1.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
     margin-bottom: 2.5rem;
 }
 
-.section-title h2 {
+.section-staff h2 {
     font-size: 1.8rem;
     color: var(--primary);
     white-space: nowrap;
 }
 
-.section-title h2 i {
+.section-staff h2 i {
     color: var(--accent);
     margin-right: 10px;
 }
 
-.section-title .line {
+.section-staff .line {
     width: 100%;
     height: 1px;
-    background: rgba(0,0,0,0.1);
+    background: rgba(0,0,0,0.18);
 }
 
 .staff-grid {
@@ -3428,6 +3429,10 @@ html[data-theme="mgl"] .theme-bg .bg-new-stripe{
 /* Role Color Testers */
 .role-badge.tester_lead { background: rgba(32, 102, 148, 0.14); color: #2d7fb8; }
 .role-badge.tester { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+
+/* Role Color Product Management */
+.role-badge.pm-lead { background: rgba(14, 165, 233, 0.12); color: #0284c7; }
+.role-badge.pm { background: rgba(6, 182, 212, 0.12); color: #0891b2; }
 
 /* Role Color Designer & Social Media */
 .role-badge.designer { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
