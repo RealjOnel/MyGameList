@@ -99,18 +99,57 @@ const PLATFORM_MAP = {
   metaquest: [384, 386, 471], // Oculus Quest + Meta Quest 2 + Meta Quest 3
 };
 
+// HELPERS FOR SUBSEQUENT SEARCH LOGIC (loose search, company search etc.)
+
+function escapeIgdbString(value = "") {
+  return String(value).replaceAll('"', '\\"').trim();
+}
+
+function normalizeLooseSearch(value = "") {
+  return String(value)
+    .replace(/['’`]/g, "")               // remove apostrophes
+    .replace(/[.:\-–—_/\\]+/g, " ")      // replace punctuation with spaces
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function buildLooseMatchClauses(field, rawValue) {
+  const raw = String(rawValue || "").trim();
+  if (!raw) return [];
+
+  const normalized = normalizeLooseSearch(raw);
+
+  const variants = [...new Set([
+    raw,
+    normalized
+  ].filter(Boolean))];
+
+  const clauses = variants.map(v => `${field} ~ *"${escapeIgdbString(v)}"*`);
+
+  const tokens = normalized.split(" ").filter(Boolean).slice(0, 6);
+
+  // This is the important fallback:
+  // "Game Subtitle" can still match "Game: Subtitle" or "Game - Subtitle"
+  if (tokens.length >= 2) {
+    clauses.push(
+      `(${tokens.map(token => `${field} ~ *"${escapeIgdbString(token)}"*`).join(" & ")})`
+    );
+  }
+
+  return [...new Set(clauses)];
+}
+
+function normalizeSearchScore(value = "") {
+  return normalizeLooseSearch(String(value || "").toLowerCase());
+}
+
 async function fetchGamesByCompanySearch(query, headers) {
   const raw = String(query || "").trim();
   if (!raw) return [];
 
-  const variants = [...new Set([
-    raw,
-    raw.replace(/['’`]/g, ""), // for example Chilla's Art -> Chillas Art
-  ].filter(Boolean))];
+  const clauses = buildLooseMatchClauses("name", raw);
+  if (!clauses.length) return [];
 
-  const clauses = variants.map(v => `name ~ *"${v.replaceAll('"', '\\"')}"*`);
-
-  // search companies by these name variants
   const companiesResp = await axios.post(
     "https://api.igdb.com/v4/companies",
     `
@@ -126,7 +165,6 @@ async function fetchGamesByCompanySearch(query, headers) {
 
   if (!companyIds.length) return [];
 
-  // get games for these companies (developer or publisher)
   const gamesResp = await axios.post(
     "https://api.igdb.com/v4/games",
     `
@@ -279,8 +317,11 @@ router.get("/games", async (req, res) => {
     let whereClause = `cover != null`;
 
     if (search) {
-      const safeSearch = search.replaceAll('"', '\\"');
-      whereClause += ` & name ~ *"${safeSearch}"*`;
+      const nameClauses = buildLooseMatchClauses("name", search);
+
+      if (nameClauses.length) {
+        whereClause += ` & (${nameClauses.join(" | ")})`;
+      }
     }
 
     if (genreId != null) {
@@ -353,18 +394,18 @@ router.get("/games", async (req, res) => {
 
     // normal search results are sorted by IGDB's relevance/rating, but company search results are not sorted.
     if (search) {
-      const q = search.toLowerCase().trim();
+       const q = normalizeSearchScore(search);
 
       games = games.sort((a, b) => {
-        const aName = (a.name || "").toLowerCase();
-        const bName = (b.name || "").toLowerCase();
+        const aName = normalizeSearchScore(a.name || "");
+        const bName = normalizeSearchScore(b.name || "");
 
         const aCompanies = (a.involved_companies || [])
-          .map(c => (c?.company?.name || "").toLowerCase())
+          .map(c => normalizeSearchScore(c?.company?.name || ""))
           .filter(Boolean);
 
         const bCompanies = (b.involved_companies || [])
-          .map(c => (c?.company?.name || "").toLowerCase())
+          .map(c => normalizeSearchScore(c?.company?.name || ""))
           .filter(Boolean);
 
         function score(name, companies) {
