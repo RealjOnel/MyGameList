@@ -105,12 +105,46 @@ function escapeIgdbString(value = "") {
   return String(value).replaceAll('"', '\\"').trim();
 }
 
-function normalizeLooseSearch(value = "") {
+function stripDiacritics(value = "") {
   return String(value)
-    .replace(/['’`]/g, "")               // remove apostrophes
-    .replace(/[.:\-–—_/\\]+/g, " ")      // replace punctuation with spaces
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function normalizeLooseSearch(value = "") {
+  return stripDiacritics(String(value))
+    .replace(/['’`]/g, "")
+    .replace(/[.:\-–—_/\\]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function buildTokenVariants(token = "") {
+  const base = normalizeLooseSearch(token).replace(/\s+/g, "").trim();
+  if (!base) return [];
+
+  const variants = new Set([base]);
+
+  // Keep short abbreviations like "dr"
+  if (base.length === 2) {
+    return [base];
+  }
+
+  // Singular fallback for inputs like "hawks" -> "hawk"
+  // or "chillas" -> "chilla"
+  if (base.endsWith("s") && base.length > 3) {
+    variants.add(base.slice(0, -1));
+  }
+
+  // Extra prefix fallback for long words.
+  // This helps with titles containing accented characters like Pokémon,
+  // because "pok" can still match while "poke" may fail.
+  if (base.length >= 7) {
+    variants.add(base.slice(0, 4));
+    variants.add(base.slice(0, 3));
+  }
+
+  return [...variants].filter(v => v.length >= 2);
 }
 
 function buildLooseMatchClauses(field, rawValue) {
@@ -118,25 +152,41 @@ function buildLooseMatchClauses(field, rawValue) {
   if (!raw) return [];
 
   const normalized = normalizeLooseSearch(raw);
+  const clauses = new Set();
 
-  const variants = [...new Set([
-    raw,
-    normalized
-  ].filter(Boolean))];
+  // direct raw query
+  clauses.add(`${field} ~ *"${escapeIgdbString(raw)}"*`);
 
-  const clauses = variants.map(v => `${field} ~ *"${escapeIgdbString(v)}"*`);
-
-  const tokens = normalized.split(" ").filter(Boolean).slice(0, 6);
-
-  // This is the important fallback:
-  // "Game Subtitle" can still match "Game: Subtitle" or "Game - Subtitle"
-  if (tokens.length >= 2) {
-    clauses.push(
-      `(${tokens.map(token => `${field} ~ *"${escapeIgdbString(token)}"*`).join(" & ")})`
-    );
+  // punctuation/diacritic stripped full query
+  if (normalized && normalized !== raw) {
+    clauses.add(`${field} ~ *"${escapeIgdbString(normalized)}"*`);
   }
 
-  return [...new Set(clauses)];
+  // token-based fallback
+  const tokens = normalized.split(" ").filter(Boolean).slice(0, 6);
+
+  const tokenGroups = tokens
+    .map(token => {
+      const tokenVariants = buildTokenVariants(token);
+
+      // prevent empty groups like ()
+      if (!tokenVariants.length) return null;
+
+      if (tokenVariants.length === 1) {
+        return `${field} ~ *"${escapeIgdbString(tokenVariants[0])}"*`;
+      }
+
+      return `(${tokenVariants
+        .map(v => `${field} ~ *"${escapeIgdbString(v)}"*`)
+        .join(" | ")})`;
+    })
+    .filter(Boolean);
+
+  if (tokenGroups.length) {
+    clauses.add(`(${tokenGroups.join(" & ")})`);
+  }
+
+  return [...clauses];
 }
 
 function normalizeSearchScore(value = "") {
