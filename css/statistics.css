@@ -25,7 +25,7 @@
 .stats-cta {
     display: flex;
     justify-content: center;
-    gap: 1.5rem;
+    gap: 2.1rem;
     margin-top: 2.5rem;
 }
 
@@ -36,31 +36,6 @@
     text-decoration: none !important;
     transition: all 0.3s ease;
     display: inline-block;
-}
-
-.btn-primary {
-    background: var(--accent);
-    color: white !important;
-    border: none;
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-    background: #2563eb; 
-}
-
-.btn-secondary {
-    background: white;
-    color: #1e293b !important;
-    border: 1px solid #e2e8f0;
-}
-
-.btn-secondary:hover {
-    background: #f8fafc;
-    border-color: #cbd5e1;
-    transform: translateY(-2px);
 }
 
 /* Grid für die Weiterleitungen */

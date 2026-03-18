@@ -648,34 +648,41 @@ button {
     justify-content: center;
 }
 
+.hero-btns { display: flex; gap: 2rem; justify-content: center; }
+
 .btn-primary {
-    background-color: var(--primary);
-    color: white;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+    background: var(--accent);
+    color: white !important;
+    border: none;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    text-decoration: none !important;
 }
 
 .btn-primary:hover {
-    background-color: #000;
-    transform: translateY(-2px); 
-    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    background: #2563eb;
+}
+
+.btn-secondary {
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid rgba(15, 23, 42, 0.10);
+    background: rgba(248, 250, 252, 0.9);
+    font-weight: 800;
+    cursor: pointer;
+    text-decoration: none !important;
+}
+
+.btn-secondary:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
 }
 
 .btn-primary:active {
     transform: translateY(0); 
 }
-
-
-.btn-secondary {
-    background-color: #f1f5f9;
-    color: var(--text-main);
-    margin-left: 10px;
-}
-
-.btn-secondary:hover {
-    background-color: #e2e8f0;
-    color: var(--primary);
-}
-
 
 .btn-login {
     background-color: var(--primary);
@@ -769,33 +776,6 @@ button {
 .reveal.active {
     opacity: 1;
     transform: translateY(0);
-}
-
-/* Buttons  */
-
-.btn-primary {
-    background: var(--accent);
-    color: white !important;
-    border: none;
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-    background: #2563eb; 
-}
-
-.btn-secondary {
-    background: white;
-    color: #1e293b !important;
-    border: 1px solid #e2e8f0;
-}
-
-.btn-secondary:hover {
-    background: #f8fafc;
-    border-color: #cbd5e1;
-    transform: translateY(-2px);
 }
 
 /* =========================
