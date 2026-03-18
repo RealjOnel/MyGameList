@@ -3,11 +3,21 @@
    ========================================================================== */
 
 :root {
-    --primary: #0f172a;
-    --accent: #3b82f6;
+    --bg-body: #fafafa;
+    --button: #f8fafc;
+    --bg-card: #eff6ff;
+    --color-border: #cbd5e1;
+    --text-muted: #64748b;    
     --text-main: #1e293b;
-    --text-muted: #64748b;
-    --bg-body: #ffffff;
+    --primary: #0f172a;
+
+    --accent: #3b82f6;
+
+    --playing: #10b981;
+    --complete: #3b82f6;
+    --on-hold: #f59e0b;
+    --dropped:#ef4444;
+    --planned:#94a3b8;
     --radius: 20px;
 }
 

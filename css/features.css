@@ -4,7 +4,7 @@
 
 /* Features Page Specifics */
 .features-main {
-    background-color: #f8fafc;
+    background-color: var(--button);
     min-height: 100vh;
     padding: 6rem 8%;
     text-align: center;
@@ -18,7 +18,7 @@
 .features-header h1 {
     font-size: 3.5rem;
     margin-bottom: 1.5rem;
-    color: #0f172a;
+    color: var(--primary);
 }
 
 .bento-grid {
@@ -29,13 +29,13 @@
 }
 
 .bento-item {
-    background: #ffffff;
+    background: var(--bg-body);
     border-radius: 24px;
     padding: 2.5rem;
     text-align: left;
     position: relative;
     overflow: hidden;
-    border: 1px solid #e2e8f0; 
+    border: 1px solid var(--button); 
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 
                 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     
@@ -64,7 +64,7 @@
     letter-spacing: 1.2px;
     margin-bottom: 1.5rem;
     display: inline-block;
-    background: #eff6ff;
+    background: var(--bg-card);
     padding: 4px 12px;
     border-radius: 20px;
 }
@@ -73,11 +73,11 @@
     font-size: 1.8rem;
     font-weight: 700;
     margin-bottom: 1rem;
-    color: #1e293b;
+    color: var(--text-primary);
 }
 
 .bento-item p {
-    color: #64748b;
+    color: var(--text-mutet);
     line-height: 1.6;
     font-size: 0.95rem;
 }
@@ -99,11 +99,11 @@
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.playing { background: #10b981; } 
-.completed { background: #3b82f6; } 
-.on-hold { background: #f59e0b; } 
-.dropped { background: #ef4444; } 
-.planned { background: #94a3b8; } 
+.playing { background: var(--playing); } 
+.completed { background: var(--complete); } 
+.on-hold { background: var(--on-hold); } 
+.dropped { background: var(--dropped); } 
+.planned { background: var(--planned); } 
 
 /* Rating Visual */
 .rating-visual {
@@ -130,12 +130,12 @@
 
 .search-simulation {
     margin-top: 1.5rem;
-    background: #f1f5f9;
+    background:var(--button) ;
     padding: 10px 15px;
     border-radius: 10px;
     font-family: monospace;
-    color: #64748b;
-    border: 1px solid #e2e8f0;
+    color: var(--text-mutet);
+    border: 1px solid var(--color-border);
 }
 
 .cursor {
