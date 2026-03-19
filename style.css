@@ -21,6 +21,12 @@
     --radius: 20px;
 }
 
+/* Different Muted Style for Profile Page (THIS IS IN GLOBAL STYLES SO WE CAN REUSE IT FOR OTHER SITES) */
+.muted {
+    color: #94a3b8;
+    font-weight: 700;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 .gradient-text {
