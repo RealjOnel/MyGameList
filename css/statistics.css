@@ -4,7 +4,7 @@
 
 .stats-page {
     padding: 6rem 10%;
-    background: #f8fafc;
+    background: var(--bg-body);
 }
 
 .stats-hero {
@@ -110,7 +110,7 @@
     position: absolute;
     bottom: -40px; 
     white-space: nowrap; 
-    color: #475569;
+    color: var(--text-main);
     font-weight: 700;
     font-size: 1rem;
     letter-spacing: 0.5px;

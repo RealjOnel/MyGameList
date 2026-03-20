@@ -13,12 +13,7 @@
     flex: 0.9;                      /* sidebar width */
     min-height: 100vh;              /* full height of the viewport */
     height: 1350px;
-
-    background: linear-gradient(
-        to bottom,
-        #ffffff 0%,
-        #f7f7f7 100%
-    );
+    background-color: var(--bg-body);
     display: flex;
     flex-direction: column;
 }
@@ -32,7 +27,7 @@
     width: auto;
     border-radius: 50%;
 
-    border: 4px solid #3b82f6;
+    border: 4px solid var(--accent);
     padding: 5px;
     background: linear-gradient(145deg, #ffffff, #e6e6e6);
     box-shadow: 0 10px 25px rgba(59,130,246,0.25);
@@ -43,7 +38,7 @@
     width: auto;
     border-radius: 50%;
 
-    border: 4px solid #22c55e;
+    border: 4px solid var(--playing);
     padding: 5px;
     background: linear-gradient(145deg, #ffffff, #e6e6e6);
     box-shadow: 0 10px 25px rgba(28, 192, 88, 0.35);
@@ -68,7 +63,7 @@
 }
 
 .profile_button {
-    background-color: #3b82f6; 
+    background-color: var(--accent); 
     color: white;
     padding: 10px 20px;
     border-radius: 15px;
@@ -83,7 +78,7 @@
 }
 
 .profile_button:hover {
-    background-color: #60a5fa; 
+    background-color: var(--accent-2); 
     transform: translateY(-3px) scale(1.02);
     box-shadow: 0 10px 25px rgba(59,130,246,0.25);
 }
@@ -105,7 +100,7 @@
 
 .profile_bio_content {
     text-align: left;
-    background-color: #f8fafc; 
+    background-color: var(--button); 
     color: rgb(0, 0, 0);
     padding: 10px 20px;
     border-radius: 15px;
@@ -194,14 +189,14 @@
         /* profile Main Section */
 .profile_main {
     flex: 2;
-    outline: #c4c4c4 solid 1px;
+    outline: var(--color-border) solid 1px;
     display: flex;
     flex-direction: column;
 }
 
 .profile_banner {
     height: 150px;
-    outline: #c4c4c4 solid 1px;
+    outline: var(--color-border) solid 1px;
 }
 
 .profile_banner_image {
@@ -250,7 +245,7 @@
     font-size: 13px;
     font-weight: 600;
 
-    color: #0f172a;
+    color: var(--primary);
 
     background:
         linear-gradient(135deg, rgba(255,255,255,0.95), rgba(248,250,252,0.92));
@@ -308,7 +303,7 @@
   margin: 0 auto;
   padding: 10px 80px 10px 10px; 
   border-radius:8px;
-  border:1px solid #ccc;
+  border:1px solid var(--color-border);
   resize:vertical;
   font-size: 16px;   
   line-height: 1.4;  
@@ -348,7 +343,7 @@
 
 .comment_counter{
     font-size: 0.9rem;
-    color: #64748b;
+    color: var(--text-muted);
     font-weight: 600;
 }
 
@@ -389,7 +384,7 @@
     object-fit: cover;
     flex-shrink: 0;
     border: 2px solid rgba(59,130,246,0.25);
-    background: #fff;
+    background: var(--bg-body);
 }
 
 .profile_comment_body{
@@ -407,7 +402,7 @@
 
 .profile_comment_username{
     font-weight: 800;
-    color: #2563eb;
+    color: var(--accent);
     text-decoration: none;
     transition: color 0.2s ease;
 }
@@ -419,12 +414,12 @@
 
 .profile_comment_time{
     font-size: 0.85rem;
-    color: #64748b;
+    color: var(--text-muted);
     font-weight: 600;
 }
 
 .profile_comment_text{
-    color: #0f172a;
+    color: var(--primary);
     font-size: 0.96rem;
     line-height: 1.45;
     word-break: break-word;
@@ -433,9 +428,9 @@
 .profile_comment_empty{
     padding: 16px;
     border-radius: 14px;
-    background: #f8fafc;
-    border: 1px dashed #cbd5e1;
-    color: #64748b;
+    background: var(--button);
+    border: 1px dashed var(--color-border);
+    color: var(--text-muted);
     font-weight: 600;
 }
 
@@ -443,7 +438,7 @@
     margin-left: auto;
     border: none;
     background: transparent;
-    color: #dc2626;
+    color: var(--dropped);
     font-size: 0.85rem;
     font-weight: 700;
     cursor: pointer;
@@ -454,7 +449,7 @@
 
 .profile_comment_delete:hover{
     background: rgba(220, 38, 38, 0.08);
-    color: #b91c1c;
+    color: var(--dropped);
 }
 
 .profile_comment_head{
@@ -497,10 +492,10 @@
     height: 210px;
     min-width: 0;
     padding: 0;
-    border: 1px solid #f1f5f9;
+    border: 1px solid var(--button);
     border-radius: 18px;
     overflow: hidden;
-    background: #f8fafc;
+    background: var(--button);
     cursor: pointer;
     box-shadow: 0 6px 18px rgba(0,0,0,0.08);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -522,7 +517,7 @@
     width: 150px;
     height: 100%;
     overflow: hidden;
-    background: #e5e7eb;
+    background: var(--bg-card);
 }
 
 .pg_icon{
@@ -560,7 +555,7 @@
     font-size: 1.05rem;
     font-weight: 800;
     line-height: 1.2;
-    color: #0f172a;
+    color: var(--primary);
     overflow: hidden;
     text-overflow: ellipsis;
     word-break: break-word;
@@ -573,13 +568,13 @@
 .pg_state{
     font-size: 0.95rem;
     font-weight: 500;
-    color: #0f172a;
+    color: var(--primary);
     text-align: left;
     line-height: 1.25;
 }
 
 .pg_state.last_edit{
-    color: #475569;
+    color: var(--text-main);
 }
 
 .pg_state_completed,
@@ -593,31 +588,31 @@
 
 .pg_state.last_edit{
     margin-top: auto;
-    color: #475569;
+    color: var(--text-main);
 }
 
 .pg_state_completed{
-    color: #2d7fb8;
+    color: var(--complete);
     font-weight: 700;
 }
 
 .pg_state_dropped{
-    color: rgba(211, 27, 27, 0.77);
+    color: var(--dropped);
     font-weight: 700;
 }
 
 .pg_state_onhold{
-    color: rgba(180, 162, 0, 0.95);
+    color:var(--dropped);
     font-weight: 700;
 }
 
 .pg_state_planed{
-    color: #6b7280;
+    color: var(--planned);
     font-weight: 700;
 }
 
 .pg_state_playing{
-    color: rgba(60, 170, 40, 0.9);
+    color: var(--playing);
     font-weight: 700;
 }
 
@@ -646,7 +641,7 @@
 .profile_favs {
     flex: auto;
     height: auto;
-    border-top: 1px solid #c4c4c4;
+    border-top: 1px solid var(--color-border);
 }
 
 .profile_favourites {
@@ -775,7 +770,7 @@
 
 .profile_activity {
     flex: auto;
-    border-top: 1px solid #c4c4c4;
+    border-top: 1px solid var(--color-border);
     height: auto;
     display: flex;
     flex-direction: column;
@@ -789,10 +784,10 @@
     height: 210px;
     min-width: 0;
     padding: 0;
-    border: 1px solid #f1f5f9;
+    border: 1px solid var(--button);
     border-radius: 18px;
     overflow: hidden;
-    background: #f8fafc;
+    background: var(--button);
     cursor: pointer;
     box-shadow: 0 6px 18px rgba(0,0,0,0.08);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -815,7 +810,7 @@
     flex: 0 0 150px;
     height: 100%;
     overflow: hidden;
-    background: #e5e7eb;
+    background: var(--bg-card);
     display: flex;
 }
 
@@ -839,7 +834,7 @@
     font-size: 16px;
     margin-top: 15px;
     margin-bottom: auto;
-    color: #0f172a;
+    color: var(--primary);
     line-height: 1.6;
 
     display: -webkit-box;
@@ -852,13 +847,13 @@
 .activity_bottom {
     margin-top: auto;
     text-align: left;
-    color: #475569;
+    color: var(--text-main);
     line-height: 1.6;
 }
 .activity_rating {
     font-size: 0.95rem;
     font-weight: 500;
-    color: #0f172a;
+    color: var(--primary);
     text-align: left;
     line-height: 1.25;
 }

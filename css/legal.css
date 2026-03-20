@@ -45,7 +45,7 @@
 }
 
 .legal-lead a {
-    color: #3b82f6;
+    color: var(--accent);
     text-decoration: none; 
 }
 

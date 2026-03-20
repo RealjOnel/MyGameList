@@ -11,15 +11,15 @@
     justify-content: center; 
     position: relative;
     overflow: hidden;
-    background: #0f172a; 
+    background: var(--primary); 
 }
 
 .auth-page .logo {
-    color: white
+    color: var(--bg-body)
 }
 
 .auth-header {
-    color: white
+    color: var(--bg-body)
 }
 
 .auth-page .auth-overlay {
@@ -180,7 +180,7 @@
 }
 
 .auth-page .dropdown-menu {
-    background-color: #000;
+    background-color: var(--primary);
 }
 
 .auth-page .auth-deco-line {

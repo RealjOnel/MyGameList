@@ -8,7 +8,7 @@
 }
 
 .tof-lead {
-    color: #3b82f6;
+    color: var(--accent);
     text-decoration: none; 
     font-size: 1.25rem;
     color: var(--text-muted);
@@ -19,7 +19,7 @@
     
 }
 .tof-head {
-    color: #3b82f6;
+    color: var(--accent);
     text-decoration: none; 
     font-size: 1.25rem;
     color: var(--text-muted);
