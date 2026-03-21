@@ -11,6 +11,7 @@ const DEFAULT_SETTINGS = Object.freeze({
       discord: "",
       youtube: "",
       twitch: "",
+      steam: "",
       website: "",
     },
     optionalFields: {
@@ -112,6 +113,7 @@ function sanitizeSettingsPayload(raw = {}) {
         discord: typeof raw.profile.links.discord === "string" ? trimString(raw.profile.links.discord, 200) : undefined,
         youtube: typeof raw.profile.links.youtube === "string" ? trimString(raw.profile.links.youtube, 200) : undefined,
         twitch: typeof raw.profile.links.twitch === "string" ? trimString(raw.profile.links.twitch, 200) : undefined,
+        steam: typeof raw.profile.links.steam === "string" ? trimString(raw.profile.links.steam, 200) : undefined,
         website: typeof raw.profile.links.website === "string" ? trimString(raw.profile.links.website, 200) : undefined,
       };
     }

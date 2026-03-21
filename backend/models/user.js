@@ -8,6 +8,7 @@ const settingsSchema = new mongoose.Schema(
         discord: { type: String, default: "", trim: true },
         youtube: { type: String, default: "", trim: true },
         twitch: { type: String, default: "", trim: true },
+        steam: { type: String, default: "", trim: true },
         website: { type: String, default: "", trim: true },
       },
       optionalFields: {

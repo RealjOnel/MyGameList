@@ -1102,7 +1102,7 @@ html[data-auth="loading"] .notif-bell {
   position: fixed;
   top: 24px;
   right: 24px;
-  z-index: 99999;
+  z-index: 100001;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1455,8 +1455,7 @@ html[data-auth="loading"] .notif-bell {
 .settings-backdrop{
     position: absolute;
     inset: 0;
-    background: rgba(15, 23, 42, 0.55);
-    backdrop-filter: blur(10px);
+    background: rgba(15, 23, 42, 0.72);
 }
 
 .settings-modal{

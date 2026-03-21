@@ -10,6 +10,7 @@ const DEFAULT_SETTINGS = Object.freeze({
       discord: "",
       youtube: "",
       twitch: "",
+      steam: "",
       website: ""
     },
     optionalFields: {
@@ -158,6 +159,7 @@ function renderProfileSocialLinks(settings) {
     { key: "discord", icon: "fa-brands fa-discord", label: "Discord" },
     { key: "youtube", icon: "fa-brands fa-youtube", label: "YouTube" },
     { key: "twitch", icon: "fa-brands fa-twitch", label: "Twitch" },
+    { key: "steam", icon: "fa-brands fa-steam", label: "Steam" },
     { key: "website", icon: "fa-solid fa-globe", label: "Website" }
   ]
     .map((item) => ({
