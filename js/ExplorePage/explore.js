@@ -9,6 +9,14 @@ let bootSearch = URL_SEARCH;
 let activeController = null;
 let latestRequestId = 0;
 
+function reducedMotionEnabled() {
+  return document.documentElement.dataset.reducedMotion === "true";
+}
+
+function liveSearchEnabled() {
+  return document.documentElement.dataset.liveSearch !== "false";
+}
+
 function getSearchInput(){
   return document.getElementById("globalSearchInput") || document.querySelector(".search-input");
 }
@@ -144,6 +152,13 @@ function setThemeWithWipe(nextTheme) {
 
   const currentTheme = root.dataset.theme || "mgl";
   if (currentTheme === nextTheme) return;
+
+    if (reducedMotionEnabled()) {
+      root.dataset.theme = nextTheme;
+      svg.classList.remove("is-wiping");
+      applyBgVars(svg, nextTheme, nextTheme);
+      return;
+    }
 
   // prepare variables
   applyBgVars(svg, currentTheme, nextTheme);
@@ -647,10 +662,27 @@ document.addEventListener("input", (e) => {
 
   if (!(t.id === "globalSearchInput" || t.classList.contains("search-input"))) return;
 
+  if (!liveSearchEnabled()) return;
+
   clearTimeout(searchTimeout);
 
   searchTimeout = setTimeout(() => {
     bootSearch = "";
     loadGames(true);
   }, 220);
+});
+
+document.addEventListener("keydown", (e) => {
+  const t = e.target;
+  if (!(t instanceof HTMLInputElement)) return;
+
+  if (!(t.id === "globalSearchInput" || t.classList.contains("search-input"))) return;
+  if (e.key !== "Enter") return;
+
+  if (liveSearchEnabled()) return;
+
+  e.preventDefault();
+  clearTimeout(searchTimeout);
+  bootSearch = "";
+  loadGames(true);
 });

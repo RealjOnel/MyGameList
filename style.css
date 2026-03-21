@@ -2019,3 +2019,82 @@ html[data-auth="loading"] .notif-bell {
         align-items: flex-start;
     }
 }
+
+/* FOR COMPACT INTERFACE SETTINGS */
+
+/* ==========================================
+   GLOBAL CUSTOMIZATION SETTINGS
+   ========================================== */
+
+/* Compact Interface */
+html[data-compact-ui="true"] .navbar{
+    padding: 1rem 5%;
+}
+
+html[data-compact-ui="true"] .nav-search-input{
+    height: 42px;
+    padding: 0 10px;
+}
+
+html[data-compact-ui="true"] .nav-search-mode-btn{
+    width: 30px;
+    height: 30px;
+}
+
+html[data-compact-ui="true"] .dropdown-btn{
+    padding: 0.65rem 1rem;
+    min-width: 150px;
+}
+
+html[data-compact-ui="true"] .view-toggle{
+    padding: 4px;
+}
+
+html[data-compact-ui="true"] .view-btn{
+    width: 38px;
+    height: 34px;
+}
+
+html[data-compact-ui="true"] .game-grid[data-view="grid"]{
+    --card-min: 200px;
+    --card-max: 236px;
+    gap: 1.8rem;
+}
+
+html[data-compact-ui="true"] .game-grid[data-view="compact"]{
+    --card-min: 128px;
+    --card-max: 164px;
+    gap: 1.1rem;
+}
+
+html[data-compact-ui="true"] .game-info{
+    padding: 0.95rem 0.95rem 0.7rem;
+}
+
+html[data-compact-ui="true"] .game-actions{
+    padding: 0 0.95rem 0.95rem;
+}
+
+html[data-compact-ui="true"] .game-info h4{
+    font-size: 1rem;
+}
+
+html[data-compact-ui="true"] .game-sub{
+    font-size: 0.8rem;
+}
+
+/* Reduced Motion */
+html[data-reduced-motion="true"] *,
+html[data-reduced-motion="true"] *::before,
+html[data-reduced-motion="true"] *::after{
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+}
+
+html[data-reduced-motion="true"] .theme-bg.is-wiping .wipe-reveal,
+html[data-reduced-motion="true"] .theme-bg.is-wiping .wipe-hide{
+    animation: none !important;
+    transform: scaleX(1) !important;
+}
