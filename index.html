@@ -289,14 +289,18 @@
 
               <label class="settings-row settings-row--stack">
                 <div>
-                  <span class="settings-label">Profile Description</span>
-                  <span class="settings-help">Short bio for your profile. Max 100 characters.</span>
+                    <span class="settings-label">Profile Description</span>
+                    <span class="settings-help">Short bio for your profile. Max 100 characters.</span>
                 </div>
                 <div class="settings-field-wrap">
-                  <textarea class="settings-textarea" maxlength="100" placeholder="Tell other users something about yourself..."></textarea>
-                  <span class="settings-note">0 / 100 characters</span>
+                    <textarea
+                    class="settings-textarea"
+                    maxlength="100"
+                    placeholder="Tell other users something about yourself..."
+                    data-setting="profile.bio"></textarea>
+                    <span class="settings-note" id="settingsBioCounter">0 / 100 characters</span>
                 </div>
-              </label>
+                </label>
 
               <div class="settings-subsection">
                 <h5>External Links</h5>
@@ -306,7 +310,7 @@
                     <span class="settings-label">Discord</span>
                     <span class="settings-help">Optional social link shown on your profile.</span>
                   </div>
-                  <input class="settings-input" type="text" placeholder="discord.gg/yourlink">
+                  <input class="settings-input" type="text" placeholder="discord.gg/yourlink" data-setting="profile.links.discord">
                 </label>
 
                 <label class="settings-row">
@@ -314,7 +318,7 @@
                     <span class="settings-label">YouTube</span>
                     <span class="settings-help">Add your YouTube channel if you want.</span>
                   </div>
-                  <input class="settings-input" type="text" placeholder="youtube.com/@yourchannel">
+                  <input class="settings-input" type="text" placeholder="youtube.com/@yourchannel" data-setting="profile.links.youtube">
                 </label>
 
                 <label class="settings-row">
@@ -322,7 +326,7 @@
                     <span class="settings-label">Twitch</span>
                     <span class="settings-help">Add your Twitch profile.</span>
                   </div>
-                  <input class="settings-input" type="text" placeholder="twitch.tv/yourname">
+                  <input class="settings-input" type="text" placeholder="twitch.tv/yourname" data-setting="profile.links.twitch">
                 </label>
 
                 <label class="settings-row">
@@ -330,7 +334,7 @@
                     <span class="settings-label">Website</span>
                     <span class="settings-help">Optional personal website or portfolio link.</span>
                   </div>
-                  <input class="settings-input" type="text" placeholder="https://yourwebsite.com">
+                  <input class="settings-input" type="text" placeholder="https://yourwebsite.com" data-setting="profile.links.website">
                 </label>
               </div>
 
@@ -342,7 +346,7 @@
                     <span class="settings-label">Location</span>
                     <span class="settings-help">Only shown if filled in.</span>
                   </div>
-                  <input class="settings-input" type="text" placeholder="e.g. Germany">
+                  <input class="settings-input" type="text" placeholder="e.g. Germany" data-setting="profile.optionalFields.location">
                 </label>
 
                 <label class="settings-row">
@@ -350,7 +354,7 @@
                     <span class="settings-label">Favorite Genre</span>
                     <span class="settings-help">Only shown if filled in.</span>
                   </div>
-                  <input class="settings-input" type="text" placeholder="e.g. RPG">
+                  <input class="settings-input" type="text" placeholder="e.g. RPG" data-setting="profile.optionalFields.favoriteGenre">
                 </label>
 
                 <label class="settings-row">
@@ -358,7 +362,7 @@
                     <span class="settings-label">Favorite Platform</span>
                     <span class="settings-help">Only shown if filled in.</span>
                   </div>
-                  <input class="settings-input" type="text" placeholder="e.g. PlayStation 2">
+                  <input class="settings-input" type="text" placeholder="e.g. PlayStation 2" data-setting="profile.optionalFields.favoritePlatform">
                 </label>
               </div>
             </div>
@@ -406,7 +410,7 @@
                     <span class="settings-label">Show Friends List</span>
                     <span class="settings-help">Display your friend list on your profile page.</span>
                   </div>
-                  <input class="settings-switch" type="checkbox" checked>
+                  <input class="settings-switch" type="checkbox" checked data-setting="social.showFriendsList">
                 </label>
 
                 <label class="settings-row">
@@ -414,7 +418,7 @@
                     <span class="settings-label">Show Reviews</span>
                     <span class="settings-help">Allow users to see your reviews publicly.</span>
                   </div>
-                  <input class="settings-switch" type="checkbox" checked>
+                  <input class="settings-switch" type="checkbox" checked data-setting="social.showReviews">
                 </label>
 
                 <label class="settings-row">
@@ -422,7 +426,7 @@
                     <span class="settings-label">Show Forum Activity</span>
                     <span class="settings-help">Display your forum presence on your profile.</span>
                   </div>
-                  <input class="settings-switch" type="checkbox" checked>
+                  <input class="settings-switch" type="checkbox" checked data-setting="social.showForumActivity">
                 </label>
 
                 <label class="settings-row">
@@ -430,7 +434,7 @@
                     <span class="settings-label">Show Favorite Games</span>
                     <span class="settings-help">Display your favorite games publicly.</span>
                   </div>
-                  <input class="settings-switch" type="checkbox" checked>
+                  <input class="settings-switch" type="checkbox" checked data-setting="social.showFavoriteGames">
                 </label>
 
                 <label class="settings-row">
@@ -438,7 +442,7 @@
                     <span class="settings-label">Show Activity History</span>
                     <span class="settings-help">Let other users see your recent activity.</span>
                   </div>
-                  <input class="settings-switch" type="checkbox" checked>
+                  <input class="settings-switch" type="checkbox" checked data-setting="social.showActivityHistory">
                 </label>
 
                 <label class="settings-row">
@@ -446,7 +450,7 @@
                     <span class="settings-label">Allow Profile Comments</span>
                     <span class="settings-help">Let others leave comments on your profile.</span>
                   </div>
-                  <input class="settings-switch" type="checkbox" checked>
+                  <input class="settings-switch" type="checkbox" checked data-setting="social.allowProfileComments">
                 </label>
               </div>
             </div>
@@ -500,7 +504,7 @@
                   <span class="settings-label">Public Profile</span>
                   <span class="settings-help">Allow your whole profile page to be visible to other users.</span>
                 </div>
-                <input class="settings-switch" type="checkbox" checked>
+                <input class="settings-switch" type="checkbox" checked data-setting="privacy.publicProfile">
               </label>
 
               <label class="settings-row">
@@ -508,7 +512,7 @@
                   <span class="settings-label">Show Profile in Search</span>
                   <span class="settings-help">Let other users find your profile through search.</span>
                 </div>
-                <input class="settings-switch" type="checkbox" checked>
+                <input class="settings-switch" type="checkbox" checked data-setting="privacy.showProfileInSearch">
               </label>
 
               <label class="settings-row">
@@ -516,7 +520,7 @@
                   <span class="settings-label">Allow Direct Friend Requests</span>
                   <span class="settings-help">Let other users send you friend requests normally.</span>
                 </div>
-                <input class="settings-switch" type="checkbox" checked>
+                <input class="settings-switch" type="checkbox" checked data-setting="privacy.allowDirectFriendRequests">
               </label>
 
               <div class="settings-subsection">
@@ -535,7 +539,7 @@
                     <span class="settings-label">Preference Cookies</span>
                     <span class="settings-help">Store UI preferences and settings choices.</span>
                   </div>
-                  <input class="settings-switch" type="checkbox" checked>
+                  <input class="settings-switch" type="checkbox" checked data-setting="privacy.cookies.preferences">
                 </label>
 
                 <label class="settings-row">
@@ -543,7 +547,7 @@
                     <span class="settings-label">Analytics Cookies</span>
                     <span class="settings-help">Help improve the platform through usage insights.</span>
                   </div>
-                  <input class="settings-switch" type="checkbox">
+                  <input class="settings-switch" type="checkbox" data-setting="privacy.cookies.analytics">
                 </label>
               </div>
             </div>
@@ -559,10 +563,10 @@
                   <span class="settings-label">Default Explore View</span>
                   <span class="settings-help">Choose how the games page opens by default.</span>
                 </div>
-                <select class="settings-select">
-                  <option>Grid</option>
-                  <option>Compact</option>
-                  <option>Table</option>
+                <select class="settings-select" data-setting="customization.defaultExploreView">
+                    <option value="grid">Grid</option>
+                    <option value="compact">Compact</option>
+                    <option value="table">Table</option>
                 </select>
               </label>
 
@@ -571,7 +575,7 @@
                   <span class="settings-label">Compact Interface</span>
                   <span class="settings-help">Use a tighter spacing style where supported.</span>
                 </div>
-                <input class="settings-switch" type="checkbox">
+                <input class="settings-switch" type="checkbox" data-setting="customization.compactInterface">
               </label>
 
               <label class="settings-row">
@@ -579,7 +583,7 @@
                   <span class="settings-label">Reduced Motion</span>
                   <span class="settings-help">Reduce transitions and animated effects.</span>
                 </div>
-                <input class="settings-switch" type="checkbox">
+                <input class="settings-switch" type="checkbox" data-setting="customization.reducedMotion">
               </label>
 
               <label class="settings-row">
@@ -587,7 +591,7 @@
                   <span class="settings-label">Live Search Suggestions</span>
                   <span class="settings-help">Show live search suggestions while typing.</span>
                 </div>
-                <input class="settings-switch" type="checkbox" checked>
+                <input class="settings-switch" type="checkbox" checked data-setting="customization.liveSearchSuggestions">
               </label>
             </div>
           </section>
