@@ -82,7 +82,7 @@
 
                 <div id="userDropdown" class="user-dropdown" aria-hidden="true">
                     <a class="dropdown-item" href="./profile/profile.html">Profile</a>
-                    <a class="dropdown-item" href="./profile/settings.html">Settings</a>
+                    <button id="openSettingsBtn" class="dropdown-item" type="button">Settings</button>
 
                     <div class="dropdown-divider"></div>
 
@@ -188,6 +188,420 @@
     <script src="./js/global/storeuser.js"></script>
     <script type="module" src="./js/global/nav-search.js"></script>
     <script type="module" src="./js/global/friendNotifications.js"></script>
+    <script type="module" src="./js/global/settings.js"></script>
+
+    <!-- SETTINGS FLEXBOX -->
+
+<div id="settingsOverlay" class="settings-overlay" aria-hidden="true" hidden>
+  <div class="settings-backdrop" data-close-settings></div>
+
+  <section class="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="settings-shell">
+      <aside class="settings-sidebar">
+        <div class="settings-sidebar-head">
+          <h2 id="settingsTitle">Settings</h2>
+          <p>Manage your MyGameList profile and preferences</p>
+        </div>
+
+        <nav class="settings-nav" aria-label="Settings Navigation">
+          <button class="settings-tab active" type="button" data-settings-tab="profile">
+            <i class="fa-solid fa-user-pen"></i>
+            <span>Profile</span>
+          </button>
+
+          <button class="settings-tab" type="button" data-settings-tab="social">
+            <i class="fa-solid fa-user-group"></i>
+            <span>Social</span>
+          </button>
+
+          <button class="settings-tab" type="button" data-settings-tab="account">
+            <i class="fa-solid fa-envelope-circle-check"></i>
+            <span>Account</span>
+          </button>
+
+          <button class="settings-tab" type="button" data-settings-tab="privacy">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Privacy</span>
+          </button>
+
+          <button class="settings-tab" type="button" data-settings-tab="customization">
+            <i class="fa-solid fa-palette"></i>
+            <span>Customization</span>
+          </button>
+        </nav>
+      </aside>
+
+      <div class="settings-content">
+        <div class="settings-topbar">
+          <div>
+            <h3 class="settings-panel-title">Settings</h3>
+            <p class="settings-panel-sub">Control how your profile looks and what other users can see.</p>
+          </div>
+
+          <button id="closeSettingsBtn" class="settings-close" type="button" aria-label="Close settings">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="settings-panels">
+
+          <!-- PROFILE -->
+          <section class="settings-panel active" data-settings-panel="profile">
+            <div class="settings-group">
+              <h4>Profile Appearance</h4>
+
+              <div class="settings-card-grid">
+                <div class="settings-media-card">
+                  <span class="settings-label">Profile Picture</span>
+                  <span class="settings-help">Upload a new avatar for your public profile.</span>
+                  <div class="settings-media-preview avatar-preview">
+                    <img src="../assets/User/Default_User_Icon.png" alt="Profile Preview">
+                  </div>
+                  <label class="settings-file-btn">
+                    <input type="file" accept="image/*" hidden>
+                    Change Picture
+                  </label>
+                </div>
+
+                <div class="settings-media-card">
+                  <span class="settings-label">Profile Banner</span>
+                  <span class="settings-help">Set the banner shown at the top of your profile.</span>
+                  <div class="settings-media-preview banner-preview">
+                    <span>Banner Preview</span>
+                  </div>
+                  <label class="settings-file-btn">
+                    <input type="file" accept="image/*" hidden>
+                    Change Banner
+                  </label>
+                </div>
+              </div>
+
+              <label class="settings-row settings-row--stack">
+                <div>
+                  <span class="settings-label">Username</span>
+                  <span class="settings-help">Your public name. Can only be changed once every 14 days.</span>
+                </div>
+                <div class="settings-field-wrap">
+                  <input class="settings-input" type="text" value="jOnel">
+                  <span class="settings-note">Next change available in 9 days</span>
+                </div>
+              </label>
+
+              <label class="settings-row settings-row--stack">
+                <div>
+                  <span class="settings-label">Profile Description</span>
+                  <span class="settings-help">Short bio for your profile. Max 100 characters.</span>
+                </div>
+                <div class="settings-field-wrap">
+                  <textarea class="settings-textarea" maxlength="100" placeholder="Tell other users something about yourself..."></textarea>
+                  <span class="settings-note">0 / 100 characters</span>
+                </div>
+              </label>
+
+              <div class="settings-subsection">
+                <h5>External Links</h5>
+
+                <label class="settings-row">
+                  <div>
+                    <span class="settings-label">Discord</span>
+                    <span class="settings-help">Optional social link shown on your profile.</span>
+                  </div>
+                  <input class="settings-input" type="text" placeholder="discord.gg/yourlink">
+                </label>
+
+                <label class="settings-row">
+                  <div>
+                    <span class="settings-label">YouTube</span>
+                    <span class="settings-help">Add your YouTube channel if you want.</span>
+                  </div>
+                  <input class="settings-input" type="text" placeholder="youtube.com/@yourchannel">
+                </label>
+
+                <label class="settings-row">
+                  <div>
+                    <span class="settings-label">Twitch</span>
+                    <span class="settings-help">Add your Twitch profile.</span>
+                  </div>
+                  <input class="settings-input" type="text" placeholder="twitch.tv/yourname">
+                </label>
+
+                <label class="settings-row">
+                  <div>
+                    <span class="settings-label">Website</span>
+                    <span class="settings-help">Optional personal website or portfolio link.</span>
+                  </div>
+                  <input class="settings-input" type="text" placeholder="https://yourwebsite.com">
+                </label>
+              </div>
+
+              <div class="settings-subsection">
+                <h5>Optional Profile Fields</h5>
+
+                <label class="settings-row">
+                  <div>
+                    <span class="settings-label">Location</span>
+                    <span class="settings-help">Only shown if filled in.</span>
+                  </div>
+                  <input class="settings-input" type="text" placeholder="e.g. Germany">
+                </label>
+
+                <label class="settings-row">
+                  <div>
+                    <span class="settings-label">Favorite Genre</span>
+                    <span class="settings-help">Only shown if filled in.</span>
+                  </div>
+                  <input class="settings-input" type="text" placeholder="e.g. RPG">
+                </label>
+
+                <label class="settings-row">
+                  <div>
+                    <span class="settings-label">Favorite Platform</span>
+                    <span class="settings-help">Only shown if filled in.</span>
+                  </div>
+                  <input class="settings-input" type="text" placeholder="e.g. PlayStation 2">
+                </label>
+              </div>
+            </div>
+          </section>
+
+          <!-- SOCIAL -->
+          <section class="settings-panel" data-settings-panel="social">
+            <div class="settings-group">
+              <h4>Social & Visibility</h4>
+
+              <div class="settings-subsection">
+                <h5>Friends</h5>
+
+                <div class="settings-friends-box">
+                  <div class="settings-friends-head">
+                    <span class="settings-label">Manage Friends</span>
+                    <button class="btn-secondary" type="button">View All Friends</button>
+                  </div>
+
+                  <div class="settings-friends-list">
+                    <div class="settings-friend-item">
+                      <div class="settings-friend-main">
+                        <img src="../assets/User/Default_User_Icon.png" alt="Friend">
+                        <span>Nico_BigMac</span>
+                      </div>
+                      <button class="settings-remove-btn" type="button">Remove</button>
+                    </div>
+
+                    <div class="settings-friend-item">
+                      <div class="settings-friend-main">
+                        <img src="../assets/User/Default_User_Icon.png" alt="Friend">
+                        <span>philfv</span>
+                      </div>
+                      <button class="settings-remove-btn" type="button">Remove</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="settings-subsection">
+                <h5>Visibility Settings</h5>
+
+                <label class="settings-row">
+                  <div>
+                    <span class="settings-label">Show Friends List</span>
+                    <span class="settings-help">Display your friend list on your profile page.</span>
+                  </div>
+                  <input class="settings-switch" type="checkbox" checked>
+                </label>
+
+                <label class="settings-row">
+                  <div>
+                    <span class="settings-label">Show Reviews</span>
+                    <span class="settings-help">Allow users to see your reviews publicly.</span>
+                  </div>
+                  <input class="settings-switch" type="checkbox" checked>
+                </label>
+
+                <label class="settings-row">
+                  <div>
+                    <span class="settings-label">Show Forum Activity</span>
+                    <span class="settings-help">Display your forum presence on your profile.</span>
+                  </div>
+                  <input class="settings-switch" type="checkbox" checked>
+                </label>
+
+                <label class="settings-row">
+                  <div>
+                    <span class="settings-label">Show Favorite Games</span>
+                    <span class="settings-help">Display your favorite games publicly.</span>
+                  </div>
+                  <input class="settings-switch" type="checkbox" checked>
+                </label>
+
+                <label class="settings-row">
+                  <div>
+                    <span class="settings-label">Show Activity History</span>
+                    <span class="settings-help">Let other users see your recent activity.</span>
+                  </div>
+                  <input class="settings-switch" type="checkbox" checked>
+                </label>
+
+                <label class="settings-row">
+                  <div>
+                    <span class="settings-label">Allow Profile Comments</span>
+                    <span class="settings-help">Let others leave comments on your profile.</span>
+                  </div>
+                  <input class="settings-switch" type="checkbox" checked>
+                </label>
+              </div>
+            </div>
+          </section>
+
+          <!-- ACCOUNT -->
+          <section class="settings-panel" data-settings-panel="account">
+            <div class="settings-group">
+              <h4>Account Data</h4>
+
+              <label class="settings-row settings-row--stack">
+                <div>
+                  <span class="settings-label">Email Address</span>
+                  <span class="settings-help">Used for login, account verification and future recovery.</span>
+                </div>
+                <div class="settings-field-wrap">
+                  <input class="settings-input" type="email" value="name@example.com">
+                  <span class="settings-note">Current account email</span>
+                </div>
+              </label>
+
+              <label class="settings-row settings-row--stack">
+                <div>
+                  <span class="settings-label">Change Password</span>
+                  <span class="settings-help">Choose a strong password you do not recycle elsewhere. Humans adore reusing passwords for some reason.</span>
+                </div>
+                <div class="settings-password-grid">
+                  <input class="settings-input" type="password" placeholder="Current password">
+                  <input class="settings-input" type="password" placeholder="New password">
+                  <input class="settings-input" type="password" placeholder="Confirm new password">
+                </div>
+              </label>
+
+              <div class="settings-subsection">
+                <h5>Account Security</h5>
+                <div class="settings-info-box">
+                  <span class="settings-label">More security tools can be added later</span>
+                  <span class="settings-help">Examples: active sessions, recent logins, logout from all devices.</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- PRIVACY -->
+          <section class="settings-panel" data-settings-panel="privacy">
+            <div class="settings-group">
+              <h4>Privacy Settings</h4>
+
+              <label class="settings-row">
+                <div>
+                  <span class="settings-label">Public Profile</span>
+                  <span class="settings-help">Allow your whole profile page to be visible to other users.</span>
+                </div>
+                <input class="settings-switch" type="checkbox" checked>
+              </label>
+
+              <label class="settings-row">
+                <div>
+                  <span class="settings-label">Show Profile in Search</span>
+                  <span class="settings-help">Let other users find your profile through search.</span>
+                </div>
+                <input class="settings-switch" type="checkbox" checked>
+              </label>
+
+              <label class="settings-row">
+                <div>
+                  <span class="settings-label">Allow Direct Friend Requests</span>
+                  <span class="settings-help">Let other users send you friend requests normally.</span>
+                </div>
+                <input class="settings-switch" type="checkbox" checked>
+              </label>
+
+              <div class="settings-subsection">
+                <h5>Cookie Preferences</h5>
+
+                <label class="settings-row">
+                  <div>
+                    <span class="settings-label">Essential Cookies</span>
+                    <span class="settings-help">Required for core site functionality.</span>
+                  </div>
+                  <input class="settings-switch" type="checkbox" checked disabled>
+                </label>
+
+                <label class="settings-row">
+                  <div>
+                    <span class="settings-label">Preference Cookies</span>
+                    <span class="settings-help">Store UI preferences and settings choices.</span>
+                  </div>
+                  <input class="settings-switch" type="checkbox" checked>
+                </label>
+
+                <label class="settings-row">
+                  <div>
+                    <span class="settings-label">Analytics Cookies</span>
+                    <span class="settings-help">Help improve the platform through usage insights.</span>
+                  </div>
+                  <input class="settings-switch" type="checkbox">
+                </label>
+              </div>
+            </div>
+          </section>
+
+          <!-- CUSTOMIZATION -->
+          <section class="settings-panel" data-settings-panel="customization">
+            <div class="settings-group">
+              <h4>Customization</h4>
+
+              <label class="settings-row">
+                <div>
+                  <span class="settings-label">Default Explore View</span>
+                  <span class="settings-help">Choose how the games page opens by default.</span>
+                </div>
+                <select class="settings-select">
+                  <option>Grid</option>
+                  <option>Compact</option>
+                  <option>Table</option>
+                </select>
+              </label>
+
+              <label class="settings-row">
+                <div>
+                  <span class="settings-label">Compact Interface</span>
+                  <span class="settings-help">Use a tighter spacing style where supported.</span>
+                </div>
+                <input class="settings-switch" type="checkbox">
+              </label>
+
+              <label class="settings-row">
+                <div>
+                  <span class="settings-label">Reduced Motion</span>
+                  <span class="settings-help">Reduce transitions and animated effects.</span>
+                </div>
+                <input class="settings-switch" type="checkbox">
+              </label>
+
+              <label class="settings-row">
+                <div>
+                  <span class="settings-label">Live Search Suggestions</span>
+                  <span class="settings-help">Show live search suggestions while typing.</span>
+                </div>
+                <input class="settings-switch" type="checkbox" checked>
+              </label>
+            </div>
+          </section>
+
+        </div>
+
+        <div class="settings-actions settings-actions--sticky">
+          <button class="btn-secondary" type="button">Cancel</button>
+          <button class="btn-primary" type="button">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
     
 </body>
 </html>
