@@ -3,6 +3,75 @@ import { API_BASE_URL } from "../../backend/config.js";
 const STORAGE_KEY = "navSearchMode";
 const MODES = ["games", "users", "forum"];
 
+const DEFAULT_CUSTOMIZATION = Object.freeze({
+  defaultExploreView: "grid",
+  compactInterface: false,
+  reducedMotion: false,
+  liveSearchSuggestions: true
+});
+
+function normalizeCustomization(raw = {}) {
+  return {
+    defaultExploreView: ["grid", "compact", "table"].includes(raw?.defaultExploreView)
+      ? raw.defaultExploreView
+      : "grid",
+    compactInterface: Boolean(raw?.compactInterface),
+    reducedMotion: Boolean(raw?.reducedMotion),
+    liveSearchSuggestions: raw?.liveSearchSuggestions !== false
+  };
+}
+
+function liveSearchSuggestionsEnabled() {
+  return document.documentElement.dataset.liveSearch !== "false";
+}
+
+function applyCustomization(customizationRaw = {}) {
+  const customization = normalizeCustomization(customizationRaw);
+  const root = document.documentElement;
+
+  root.dataset.defaultExploreView = customization.defaultExploreView;
+  root.dataset.compactUi = customization.compactInterface ? "true" : "false";
+  root.dataset.reducedMotion = customization.reducedMotion ? "true" : "false";
+  root.dataset.liveSearch = customization.liveSearchSuggestions ? "true" : "false";
+
+  window.mglCustomization = customization;
+
+  window.dispatchEvent(
+    new CustomEvent("mgl:customization-applied", {
+      detail: { customization }
+    })
+  );
+
+  return customization;
+}
+
+async function loadCustomizationSettings() {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    return applyCustomization();
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/users/settings`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      cache: "no-store"
+    });
+
+    if (!res.ok) {
+      throw new Error(`Settings request failed (${res.status})`);
+    }
+
+    const data = await res.json();
+    return applyCustomization(data?.settings?.customization);
+  } catch (err) {
+    console.error("Failed to load customization settings", err);
+    return applyCustomization();
+  }
+}
+
 function debounce(fn, ms){
   let t;
   return (...args) => {
@@ -144,7 +213,7 @@ function setVariant(root, variant){
     updateModePlaceholder(root);
 
     if (modePicker) modePicker.hidden = false;
-    if (hint) hint.textContent = "Enter = open full results";
+    if (hint) hint.textContent = liveSearchSuggestionsEnabled() ? "Enter = open full results" : "Enter = search";
   }
 }
 
@@ -370,6 +439,11 @@ function setupSearch(root){
     return;
   }
 
+  if (!liveSearchSuggestionsEnabled()) {
+    panel.hidden = true;
+    return;
+  }
+
   const modeNow = root.dataset.mode || "games";
   const q = input.value.trim();
 
@@ -396,9 +470,10 @@ function setupSearch(root){
   input.addEventListener("input", run);
 
   input.addEventListener("focus", () => {
-  if (root.dataset.variant === "page") return; // no dropdown on explore
-  if (input.value.trim()) panel.hidden = false;
-});
+    if (root.dataset.variant === "page") return;
+    if (!liveSearchSuggestionsEnabled()) return;
+    if (input.value.trim()) panel.hidden = false;
+  });
 
   document.addEventListener("click", (e) => {
     if (!root.contains(e.target)) {
@@ -480,3 +555,27 @@ function mountSearch(){
 
 document.addEventListener("DOMContentLoaded", mountSearch);
 window.addEventListener("pageshow", mountSearch);
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadCustomizationSettings().catch((err) => {
+    console.error("Customization init failed", err);
+  });
+});
+
+window.addEventListener("mgl:settings-saved", (e) => {
+  applyCustomization(e.detail?.settings?.customization);
+
+  document.querySelectorAll(".nav-search-panel").forEach((panel) => {
+    panel.hidden = true;
+  });
+
+  document.querySelectorAll(".nav-search").forEach((root) => {
+    const hint = root.querySelector(".nav-search-hint");
+    if (!hint) return;
+
+    hint.textContent =
+      root.dataset.variant === "page" || !liveSearchSuggestionsEnabled()
+        ? "Enter = search"
+        : "Enter = open full results";
+  });
+});
