@@ -82,7 +82,7 @@
 
         <div id="userDropdown" class="user-dropdown" aria-hidden="true">
             <a class="dropdown-item" href="profile.html">Profile</a>
-            <a class="dropdown-item" href="./profile/settings.html">Settings</a>
+            <button id="openSettingsBtn" class="dropdown-item" type="button">Settings</button>
 
             <div class="dropdown-divider"></div>
 
@@ -99,10 +99,7 @@
             <img src="../assets/User/Default_User_Icon.png" alt="User Icon" id="profile_log" class="profile_icon ">
             <h2 class="profile_username">Username</h2>
         </div>
-        <div class="profile_socials">
-                <a href="#"> <img src="../assets/discord-icon.svg" alt="Discord Icon"></a>
-                <a href="#"> <img src="../assets/steam-icon.svg" alt="Steam Icon"></a>
-        </div>
+        <div class="profile_socials" id="profileSocialLinks"></div>
         <div class="profile_actionbuttons">
             <div class="profile_actionbuttons">
                 <button class="profile_button" onclick="window.location.href='#'">      
@@ -118,16 +115,13 @@
         <div class="profile_bio_section">
             <h3 id="playerDescriptionTitle">Player's Description:</h3>
             <div class="profile_bio_items">
-                <div class="profile_bio_content">
-                    <div class="bio_line">Name: #Test#</div>
-                    <div class="bio_line">Age: #19#</div>
-                    <div class="bio_line">Gender: #Male#</div>
-                    <div class="bio_line">Favorite Genres: #Action, RPG, Strategy#</div>
+                <div class="profile_bio_content" id="profileBioContent">
+                    <div class="muted">No profile details yet.</div>
                 </div>
             </div>
         </div>
         
-        <div class="profile_friendlist">
+        <div class="profile_friendlist" id="profileFriendsSection">
             <h3>Player's Friends:</h3>
             <div class="profile_friendlist_items" id="profileFriendsList"></div> 
         </div>
@@ -153,7 +147,7 @@
                     <canvas id="pieChart" width="200" height="200"></canvas>
                 </div>
 
-                <div class="last_edit">
+                <div class="last_edit" id="profileRecentActivitySection">
                     <h3 class="section-title section-title--metal section-title--glow section-title--long profile_block_title">Recent Activity</h3>
                     <div class="profile_games" id="recentActivityWrap"></div>
                 </div>
@@ -164,7 +158,7 @@
         </div>
 
         <!-- COMMENT FIELD -->
-        <div class="profile_comments">
+        <div class="profile_comments" id="profileCommentsSection">
             <h3>Leave a Comment</h3>
             <div class="comment_wrapper">
                 <textarea class="comment_input" maxlength="100" placeholder="Write your comment here..."></textarea>
@@ -184,14 +178,14 @@
             <div class="profile_empty">
                 Empty
             </div>
-            <div class="profile_favs">
+            <div class="profile_favs" id="profileFavoritesSection">
                 <div class="profile_favourites">
                     <h3 class="section-title section-title--gradient section-title--glow section-title--long">Favorite Games</h3>
                     <div class="profile_favourites_items" id="profileFavorites"></div>
                 </div>
             </div>
 
-            <div class="profile_activity">
+            <div class="profile_activity" id="profileReviewsSection">
                 Reviews
                 <button class="activity_item">
                     <div class="activity_card">

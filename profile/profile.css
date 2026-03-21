@@ -44,14 +44,37 @@
     box-shadow: 0 10px 25px rgba(28, 192, 88, 0.35);
 }
 
-.profile_socials {
+.profile_socials{
     text-align: center;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 10px;
 }
 
-.profile_socials img {
-    height: 30px;
-    width: auto;
-    margin: 10px;
+.profile_social_link{
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    background: linear-gradient(145deg, #ffffff, #eef2ff);
+    color: #3b82f6;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+}
+
+.profile_social_link:hover{
+    transform: translateY(-2px);
+    color: #7c3aed;
+    box-shadow: 0 10px 24px rgba(59,130,246,0.18);
+}
+
+.profile_social_link i{
+    font-size: 18px;
 }
 
 .profile_actionbuttons {

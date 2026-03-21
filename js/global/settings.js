@@ -1,12 +1,239 @@
+import { API_BASE_URL } from "../../backend/config.js";
+import { showToast } from "./toast.js";
+
 const settingsOverlay = document.getElementById("settingsOverlay");
 const openSettingsBtn = document.getElementById("openSettingsBtn");
 const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+const cancelSettingsBtn = document.getElementById("settingsCancelBtn");
+const saveSettingsBtn = document.getElementById("settingsSaveBtn");
+const bioField = document.querySelector('[data-setting="profile.bio"]');
+const bioCounter = document.getElementById("settingsBioCounter");
 
-function openSettings() {
+const DEFAULT_SETTINGS = Object.freeze({
+  profile: {
+    bio: "",
+    links: {
+      discord: "",
+      youtube: "",
+      twitch: "",
+      website: ""
+    },
+    optionalFields: {
+      location: "",
+      favoriteGenre: "",
+      favoritePlatform: ""
+    }
+  },
+  social: {
+    showFriendsList: true,
+    showReviews: true,
+    showForumActivity: true,
+    showFavoriteGames: true,
+    showActivityHistory: true,
+    allowProfileComments: true
+  },
+  privacy: {
+    publicProfile: true,
+    showProfileInSearch: true,
+    allowDirectFriendRequests: true,
+    cookies: {
+      preferences: true,
+      analytics: false
+    }
+  },
+  customization: {
+    defaultExploreView: "grid",
+    compactInterface: false,
+    reducedMotion: false,
+    liveSearchSuggestions: true
+  }
+});
+
+function cloneDefaults() {
+  return JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+}
+
+function isPlainObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value);
+}
+
+function deepMerge(target, source) {
+  const out = { ...target };
+
+  for (const [key, value] of Object.entries(source || {})) {
+    if (isPlainObject(value) && isPlainObject(out[key])) {
+      out[key] = deepMerge(out[key], value);
+    } else {
+      out[key] = value;
+    }
+  }
+
+  return out;
+}
+
+function getToken() {
+  return localStorage.getItem("token");
+}
+
+async function api(path, { method = "GET", body, token } = {}) {
+  const headers = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+  if (body) headers["Content-Type"] = "application/json";
+
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+    cache: "no-store"
+  });
+
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : {};
+
+  if (!res.ok) {
+    throw new Error(data?.message || `Request failed (${res.status})`);
+  }
+
+  return data;
+}
+
+function getSettingFields() {
+  return [...document.querySelectorAll("[data-setting]")];
+}
+
+function setByPath(obj, path, value) {
+  const parts = path.split(".");
+  let ref = obj;
+
+  for (let i = 0; i < parts.length - 1; i++) {
+    const key = parts[i];
+    if (!isPlainObject(ref[key])) ref[key] = {};
+    ref = ref[key];
+  }
+
+  ref[parts[parts.length - 1]] = value;
+}
+
+function getByPath(obj, path) {
+  return path.split(".").reduce((acc, key) => acc?.[key], obj);
+}
+
+function readFieldValue(field) {
+  if (field instanceof HTMLInputElement && field.type === "checkbox") {
+    return field.checked;
+  }
+  return field.value;
+}
+
+function writeFieldValue(field, value) {
+  if (field instanceof HTMLInputElement && field.type === "checkbox") {
+    field.checked = Boolean(value);
+    return;
+  }
+
+  field.value = value ?? "";
+}
+
+function normalizeSettings(raw) {
+  return deepMerge(cloneDefaults(), raw || {});
+}
+
+function collectSettingsFromForm() {
+  const settings = cloneDefaults();
+
+  for (const field of getSettingFields()) {
+    const path = field.dataset.setting;
+    if (!path) continue;
+    setByPath(settings, path, readFieldValue(field));
+  }
+
+  return settings;
+}
+
+function populateSettingsForm(settings) {
+  const merged = normalizeSettings(settings);
+
+  for (const field of getSettingFields()) {
+    const path = field.dataset.setting;
+    if (!path) continue;
+    writeFieldValue(field, getByPath(merged, path));
+  }
+
+  updateBioCounter();
+}
+
+function updateBioCounter() {
+  if (!bioField || !bioCounter) return;
+  const current = bioField.value.length;
+  const max = Number(bioField.getAttribute("maxlength") || 100);
+  bioCounter.textContent = `${current} / ${max} characters`;
+}
+
+async function loadSettingsIntoForm() {
+  const token = getToken();
+  if (!token) throw new Error("You need to be logged in.");
+
+  const data = await api("/api/users/settings", { token });
+  populateSettingsForm(data?.settings);
+  return data?.settings;
+}
+
+async function saveSettingsFromForm() {
+  const token = getToken();
+  if (!token) throw new Error("You need to be logged in.");
+
+  const settings = collectSettingsFromForm();
+
+  if (saveSettingsBtn) {
+    saveSettingsBtn.disabled = true;
+    saveSettingsBtn.textContent = "Saving...";
+  }
+
+  try {
+    const data = await api("/api/users/settings", {
+      method: "PATCH",
+      token,
+      body: settings
+    });
+
+    populateSettingsForm(data?.settings);
+
+    window.dispatchEvent(
+      new CustomEvent("mgl:settings-saved", {
+        detail: { settings: data?.settings }
+      })
+    );
+
+    showToast({
+      title: "Settings saved",
+      message: "Your settings have been updated successfully.",
+      type: "success"
+    });
+  } finally {
+    if (saveSettingsBtn) {
+      saveSettingsBtn.disabled = false;
+      saveSettingsBtn.textContent = "Save Changes";
+    }
+  }
+}
+
+async function openSettings() {
   if (!settingsOverlay) return;
+
   settingsOverlay.hidden = false;
   settingsOverlay.setAttribute("aria-hidden", "false");
   document.body.style.overflow = "hidden";
+
+  try {
+    await loadSettingsIntoForm();
+  } catch (err) {
+    console.error(err);
+    showToast({
+      title: "Settings failed to load",
+      message: err.message || "Could not load settings.",
+      type: "error"
+    });
+  }
 }
 
 function closeSettings() {
@@ -16,16 +243,43 @@ function closeSettings() {
   document.body.style.overflow = "";
 }
 
+function closeUserDropdownIfOpen() {
+  const userDropdown = document.getElementById("userDropdown");
+  if (userDropdown) {
+    userDropdown.classList.remove("open");
+    userDropdown.setAttribute("aria-hidden", "true");
+  }
+}
+
 if (openSettingsBtn) {
-  openSettingsBtn.addEventListener("click", (e) => {
+  openSettingsBtn.addEventListener("click", async (e) => {
     e.preventDefault();
     closeUserDropdownIfOpen();
-    openSettings();
+    await openSettings();
   });
 }
 
 if (closeSettingsBtn) {
   closeSettingsBtn.addEventListener("click", closeSettings);
+}
+
+if (cancelSettingsBtn) {
+  cancelSettingsBtn.addEventListener("click", closeSettings);
+}
+
+if (saveSettingsBtn) {
+  saveSettingsBtn.addEventListener("click", async () => {
+    try {
+      await saveSettingsFromForm();
+    } catch (err) {
+      console.error(err);
+      showToast({
+        title: "Save failed",
+        message: err.message || "Could not save settings.",
+        type: "error"
+      });
+    }
+  });
 }
 
 document.addEventListener("click", (e) => {
@@ -58,11 +312,6 @@ settingsTabs.forEach((tab) => {
   });
 });
 
-/* helper so the user dropdown does not stay open behind the modal */
-function closeUserDropdownIfOpen() {
-  const userDropdown = document.getElementById("userDropdown");
-  if (userDropdown) {
-    userDropdown.classList.remove("open");
-    userDropdown.setAttribute("aria-hidden", "true");
-  }
+if (bioField) {
+  bioField.addEventListener("input", updateBioCounter);
 }

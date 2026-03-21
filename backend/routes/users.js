@@ -257,7 +257,8 @@ router.get("/search", async (req, res) => {
     const safe = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
     const users = await User.find({
-      username: { $regex: safe, $options: "i" }
+      username: { $regex: safe, $options: "i" },
+      "settings.privacy.showProfileInSearch": { $ne: false }
     })
       .select("username")
       .sort({ username: 1 })
@@ -286,17 +287,25 @@ router.get("/profile/:username", requireAuth, async (req, res) => {
       return res.status(400).json({ message: "Username is required" });
     }
 
-    const user = await User.findOne({ username }).select("username createdAt lastLoginAt");
+    const user = await User.findOne({ username }).select("username createdAt lastLoginAt settings");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    const settings = normalizeSettings(user.settings);
+    const isSelf = String(user._id) === String(req.userId);
+
+    if (!isSelf && settings.privacy.publicProfile === false) {
+      return res.status(403).json({ message: "This profile is private" });
     }
 
     res.json({
       id: user._id,
       username: user.username,
       createdAt: user.createdAt ?? user._id.getTimestamp(),
-      lastLoginAt: user.lastLoginAt ?? null
+      lastLoginAt: user.lastLoginAt ?? null,
+      settings
     });
   } catch (e) {
     console.error(e);

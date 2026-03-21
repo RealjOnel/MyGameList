@@ -1,7 +1,73 @@
 import { API_BASE_URL } from "../backend/config.js";
 import { showToast } from "../js/global/toast.js";
 
-function qs(sel){ return document.querySelector(sel); }
+function qs(sel) { return document.querySelector(sel); }
+
+const DEFAULT_SETTINGS = Object.freeze({
+  profile: {
+    bio: "",
+    links: {
+      discord: "",
+      youtube: "",
+      twitch: "",
+      website: ""
+    },
+    optionalFields: {
+      location: "",
+      favoriteGenre: "",
+      favoritePlatform: ""
+    }
+  },
+  social: {
+    showFriendsList: true,
+    showReviews: true,
+    showForumActivity: true,
+    showFavoriteGames: true,
+    showActivityHistory: true,
+    allowProfileComments: true
+  },
+  privacy: {
+    publicProfile: true,
+    showProfileInSearch: true,
+    allowDirectFriendRequests: true,
+    cookies: {
+      preferences: true,
+      analytics: false
+    }
+  },
+  customization: {
+    defaultExploreView: "grid",
+    compactInterface: false,
+    reducedMotion: false,
+    liveSearchSuggestions: true
+  }
+});
+
+function cloneDefaults() {
+  return JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+}
+
+function isPlainObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value);
+}
+
+function deepMerge(target, source) {
+  const out = { ...target };
+
+  for (const [key, value] of Object.entries(source || {})) {
+    if (isPlainObject(value) && isPlainObject(out[key])) {
+      out[key] = deepMerge(out[key], value);
+    } else {
+      out[key] = value;
+    }
+  }
+
+  return out;
+}
+
+function normalizeSettings(raw) {
+  return deepMerge(cloneDefaults(), raw || {});
+}
 
 async function api(path, { token, method = "GET", body } = {}) {
   const headers = {};
@@ -29,22 +95,22 @@ async function api(path, { token, method = "GET", body } = {}) {
   return data;
 }
 
-function coverUrl(coverImageId){
+function coverUrl(coverImageId) {
   return coverImageId
     ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${coverImageId}.jpg`
     : "../../assets/placeholder-cover.png";
 }
 
-function avatarUrl(avatar){
+function avatarUrl(avatar) {
   return avatar || "../assets/User/Default_User_Icon.png";
 }
 
-function formatDate(iso){
+function formatDate(iso) {
   if (!iso) return "—";
   return new Date(iso).toLocaleDateString("en-GB");
 }
 
-function formatDateTime(iso){
+function formatDateTime(iso) {
   if (!iso) return "—";
   return new Date(iso).toLocaleString("en-GB", {
     day: "2-digit",
@@ -55,7 +121,7 @@ function formatDateTime(iso){
   });
 }
 
-function statusLabel(status){
+function statusLabel(status) {
   return ({
     playing: "Currently Playing",
     planned: "Planned",
@@ -65,7 +131,7 @@ function statusLabel(status){
   })[status] || "Unknown";
 }
 
-function statusClass(status){
+function statusClass(status) {
   return ({
     playing: "pg_state_playing",
     planned: "pg_state_planed",
@@ -75,7 +141,96 @@ function statusClass(status){
   })[status] || "pg_state";
 }
 
-function renderRecentActivity(items){
+function normalizeExternalUrl(raw) {
+  if (!raw) return null;
+  const value = String(raw).trim();
+  if (!value) return null;
+  if (/^https?:\/\//i.test(value)) return value;
+  return `https://${value}`;
+}
+
+function renderProfileSocialLinks(settings) {
+  const wrap = document.getElementById("profileSocialLinks");
+  if (!wrap) return;
+
+  const links = settings?.profile?.links || {};
+  const items = [
+    { key: "discord", icon: "fa-brands fa-discord", label: "Discord" },
+    { key: "youtube", icon: "fa-brands fa-youtube", label: "YouTube" },
+    { key: "twitch", icon: "fa-brands fa-twitch", label: "Twitch" },
+    { key: "website", icon: "fa-solid fa-globe", label: "Website" }
+  ]
+    .map((item) => ({
+      ...item,
+      href: normalizeExternalUrl(links[item.key])
+    }))
+    .filter((item) => item.href);
+
+  wrap.innerHTML = "";
+
+  if (!items.length) {
+    wrap.innerHTML = `<div class="muted">No social links added.</div>`;
+    return;
+  }
+
+  for (const item of items) {
+    const a = document.createElement("a");
+    a.href = item.href;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.className = "profile_social_link";
+    a.setAttribute("aria-label", item.label);
+    a.title = item.label;
+    a.innerHTML = `<i class="${item.icon}"></i>`;
+    wrap.appendChild(a);
+  }
+}
+
+function renderProfileBio(settings) {
+  const wrap = document.getElementById("profileBioContent");
+  if (!wrap) return;
+
+  const profile = settings?.profile || {};
+  const optional = profile.optionalFields || {};
+  const rows = [];
+
+  if (profile.bio) rows.push({ label: "Bio", value: profile.bio });
+  if (optional.location) rows.push({ label: "Location", value: optional.location });
+  if (optional.favoriteGenre) rows.push({ label: "Favorite Genre", value: optional.favoriteGenre });
+  if (optional.favoritePlatform) rows.push({ label: "Favorite Platform", value: optional.favoritePlatform });
+
+  wrap.innerHTML = "";
+
+  if (!rows.length) {
+    wrap.innerHTML = `<div class="muted">No profile details yet.</div>`;
+    return;
+  }
+
+  for (const row of rows) {
+    const line = document.createElement("div");
+    line.className = "bio_line";
+    line.textContent = `${row.label}: ${row.value}`;
+    wrap.appendChild(line);
+  }
+}
+
+function applyProfileVisibility(settings) {
+  const social = settings?.social || {};
+
+  const friendsSection = document.getElementById("profileFriendsSection");
+  const favoritesSection = document.getElementById("profileFavoritesSection");
+  const recentActivitySection = document.getElementById("profileRecentActivitySection");
+  const commentsSection = document.getElementById("profileCommentsSection");
+  const reviewsSection = document.getElementById("profileReviewsSection");
+
+  if (friendsSection) friendsSection.hidden = !social.showFriendsList;
+  if (favoritesSection) favoritesSection.hidden = !social.showFavoriteGames;
+  if (recentActivitySection) recentActivitySection.hidden = !social.showActivityHistory;
+  if (commentsSection) commentsSection.hidden = !social.allowProfileComments;
+  if (reviewsSection) reviewsSection.hidden = !social.showReviews;
+}
+
+function renderRecentActivity(items) {
   const wrap = document.getElementById("recentActivityWrap");
   if (!wrap) return;
 
@@ -86,12 +241,12 @@ function renderRecentActivity(items){
     .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
     .slice(0, 4);
 
-  if (!recent.length){
+  if (!recent.length) {
     wrap.innerHTML = `<div class="muted">No recent activity yet.</div>`;
     return;
   }
 
-  for (const e of recent){
+  for (const e of recent) {
     const btn = document.createElement("button");
     btn.className = "pg_item";
     btn.type = "button";
@@ -123,13 +278,13 @@ function renderRecentActivity(items){
   }
 }
 
-function renderFriendsList(friends = []){
+function renderFriendsList(friends = []) {
   const wrap = document.getElementById("profileFriendsList");
   if (!wrap) return;
 
   wrap.innerHTML = "";
 
-  if (!friends.length){
+  if (!friends.length) {
     wrap.innerHTML = `<div class="muted">No friends yet.</div>`;
     return;
   }
@@ -152,7 +307,7 @@ function renderFriendsList(friends = []){
   }
 }
 
-function applyFriendButtonState(button, status){
+function applyFriendButtonState(button, status) {
   if (!button) return;
 
   button.hidden = false;
@@ -241,12 +396,8 @@ async function setupFriendSection({ token, me, profile }) {
           message: `Your request to ${profile.username} has been sent.`,
           type: "success"
         });
-      }
-
-      else if (currentStatus === "incoming_request") {
-        if (!currentRequestId) {
-          throw new Error("Missing request id");
-        }
+      } else if (currentStatus === "incoming_request") {
+        if (!currentRequestId) throw new Error("Missing request id");
 
         await api(`/api/friends/request/${encodeURIComponent(currentRequestId)}/accept`, {
           method: "POST",
@@ -258,9 +409,7 @@ async function setupFriendSection({ token, me, profile }) {
           message: `You are now friends with ${profile.username}.`,
           type: "success"
         });
-      }
-
-      else if (currentStatus === "outgoing_request") {
+      } else if (currentStatus === "outgoing_request") {
         const ok = await window.openMglConfirm({
           title: "Cancel Friend Request",
           text: `Do you want to cancel your friend request to ${profile.username}?`,
@@ -284,9 +433,7 @@ async function setupFriendSection({ token, me, profile }) {
           message: `Your request to ${profile.username} has been cancelled.`,
           type: "success"
         });
-      }
-
-      else if (currentStatus === "friends") {
+      } else if (currentStatus === "friends") {
         const ok = await window.openMglConfirm({
           title: "Remove Friend",
           text: `Do you really want to remove ${profile.username} from your friends list?`,
@@ -329,9 +476,9 @@ async function setupFriendSection({ token, me, profile }) {
   await refreshFriendData();
 }
 
-async function loadProfile(){
+async function loadProfile() {
   const token = localStorage.getItem("token");
-  if (!token){
+  if (!token) {
     window.location.href = "../../LoginPageAndLogic/login.html";
     return;
   }
@@ -339,33 +486,36 @@ async function loadProfile(){
   const me = await api("/api/users/me", { token });
 
   const params = new URLSearchParams(window.location.search);
-  const profileUsername = params.get("username");
+  const requestedUsername = params.get("username");
+  const targetUsername = requestedUsername || me.username;
 
   let profile;
-
-  if (profileUsername) {
-    profile = await api(`/api/users/profile/${encodeURIComponent(profileUsername)}`, { token });
-  } else {
-    profile = me;
+  try {
+    profile = await api(`/api/users/profile/${encodeURIComponent(targetUsername)}`, { token });
+  } catch (err) {
+    if (requestedUsername) {
+      showToast({
+        title: "Profile unavailable",
+        message: err.message || "Could not open that profile.",
+        type: "error"
+      });
+      window.location.href = `./profile.html?username=${encodeURIComponent(me.username)}`;
+      return;
+    }
+    throw err;
   }
 
-  if (!profileUsername && profile?.username) {
+  if (!requestedUsername && profile?.username) {
     const newUrl = `${window.location.pathname}?username=${encodeURIComponent(profile.username)}`;
     window.history.replaceState({}, "", newUrl);
   }
 
-  const navProfileLinks = document.querySelectorAll('a[href="./profile.html"]');
+  const navProfileLinks = document.querySelectorAll('a[href="profile.html"]');
   navProfileLinks.forEach(link => {
     link.href = `./profile.html?username=${encodeURIComponent(me.username)}`;
   });
 
-  const entries = await api(
-    `/api/library/profile/${encodeURIComponent(profile.username)}`,
-    { token }
-  );
-
-  window.currentProfileUsername = profile.username;
-  window.currentViewerUsername = me.username;
+  const profileSettings = normalizeSettings(profile.settings);
 
   qs(".profile_username").textContent = profile.username;
 
@@ -381,6 +531,18 @@ async function loadProfile(){
 
   const lastEl = document.getElementById("lastOnline");
   if (lastEl) lastEl.textContent = `Last Online: ${formatDate(profile.lastLoginAt)}`;
+
+  renderProfileSocialLinks(profileSettings);
+  renderProfileBio(profileSettings);
+  applyProfileVisibility(profileSettings);
+
+  const entries = await api(
+    `/api/library/profile/${encodeURIComponent(profile.username)}`,
+    { token }
+  );
+
+  window.currentProfileUsername = profile.username;
+  window.currentViewerUsername = me.username;
 
   const favWrap = document.getElementById("profileFavorites");
   if (favWrap) {
@@ -446,5 +608,18 @@ async function loadProfile(){
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  loadProfile().catch(err => console.error(err));
+  loadProfile().catch(err => {
+    console.error(err);
+    showToast({
+      title: "Profile failed to load",
+      message: err.message || "Something went wrong while loading the profile.",
+      type: "error"
+    });
+  });
+});
+
+window.addEventListener("mgl:settings-saved", () => {
+  loadProfile().catch(err => {
+    console.error(err);
+  });
 });
