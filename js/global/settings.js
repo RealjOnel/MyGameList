@@ -1,13 +1,7 @@
 import { API_BASE_URL } from "../../backend/config.js";
 import { showToast } from "./toast.js";
 
-const settingsOverlay = document.getElementById("settingsOverlay");
-const openSettingsBtn = document.getElementById("openSettingsBtn");
-const closeSettingsBtn = document.getElementById("closeSettingsBtn");
-const cancelSettingsBtn = document.getElementById("settingsCancelBtn");
-const saveSettingsBtn = document.getElementById("settingsSaveBtn");
-const bioField = document.querySelector('[data-setting="profile.bio"]');
-const bioCounter = document.getElementById("settingsBioCounter");
+let isInitialized = false;
 
 const DEFAULT_SETTINGS = Object.freeze({
   profile: {
@@ -16,6 +10,7 @@ const DEFAULT_SETTINGS = Object.freeze({
       discord: "",
       youtube: "",
       twitch: "",
+      steam: "",
       website: ""
     },
     optionalFields: {
@@ -163,7 +158,11 @@ function populateSettingsForm(settings) {
 }
 
 function updateBioCounter() {
+  const bioField = document.querySelector('[data-setting="profile.bio"]');
+  const bioCounter = document.getElementById("settingsBioCounter");
+
   if (!bioField || !bioCounter) return;
+
   const current = bioField.value.length;
   const max = Number(bioField.getAttribute("maxlength") || 100);
   bioCounter.textContent = `${current} / ${max} characters`;
@@ -182,6 +181,7 @@ async function saveSettingsFromForm() {
   const token = getToken();
   if (!token) throw new Error("You need to be logged in.");
 
+  const saveSettingsBtn = document.getElementById("settingsSaveBtn");
   const settings = collectSettingsFromForm();
 
   if (saveSettingsBtn) {
@@ -217,7 +217,12 @@ async function saveSettingsFromForm() {
   }
 }
 
+function getOverlay() {
+  return document.getElementById("settingsOverlay");
+}
+
 async function openSettings() {
+  const settingsOverlay = getOverlay();
   if (!settingsOverlay) return;
 
   settingsOverlay.hidden = false;
@@ -237,7 +242,9 @@ async function openSettings() {
 }
 
 function closeSettings() {
+  const settingsOverlay = getOverlay();
   if (!settingsOverlay) return;
+
   settingsOverlay.hidden = true;
   settingsOverlay.setAttribute("aria-hidden", "true");
   document.body.style.overflow = "";
@@ -251,67 +258,84 @@ function closeUserDropdownIfOpen() {
   }
 }
 
-if (openSettingsBtn) {
-  openSettingsBtn.addEventListener("click", async (e) => {
-    e.preventDefault();
-    closeUserDropdownIfOpen();
-    await openSettings();
+function setupTabs() {
+  const settingsTabs = document.querySelectorAll(".settings-tab");
+  const settingsPanels = document.querySelectorAll(".settings-panel");
+
+  settingsTabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const target = tab.dataset.settingsTab;
+
+      settingsTabs.forEach((btn) => {
+        btn.classList.toggle("active", btn === tab);
+      });
+
+      settingsPanels.forEach((panel) => {
+        panel.classList.toggle("active", panel.dataset.settingsPanel === target);
+      });
+    });
   });
 }
 
-if (closeSettingsBtn) {
-  closeSettingsBtn.addEventListener("click", closeSettings);
-}
+export function initSettingsModal() {
+  if (isInitialized) return;
 
-if (cancelSettingsBtn) {
-  cancelSettingsBtn.addEventListener("click", closeSettings);
-}
+  const settingsOverlay = getOverlay();
+  if (!settingsOverlay) return;
 
-if (saveSettingsBtn) {
-  saveSettingsBtn.addEventListener("click", async () => {
-    try {
-      await saveSettingsFromForm();
-    } catch (err) {
-      console.error(err);
-      showToast({
-        title: "Save failed",
-        message: err.message || "Could not save settings.",
-        type: "error"
-      });
+  const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+  const cancelSettingsBtn = document.getElementById("settingsCancelBtn");
+  const saveSettingsBtn = document.getElementById("settingsSaveBtn");
+  const bioField = document.querySelector('[data-setting="profile.bio"]');
+
+  document.addEventListener("click", async (e) => {
+    const openTrigger = e.target.closest("[data-open-settings]");
+    if (openTrigger) {
+      e.preventDefault();
+      closeUserDropdownIfOpen();
+      await openSettings();
+      return;
+    }
+
+    const closeTrigger = e.target.closest("[data-close-settings]");
+    if (closeTrigger) {
+      closeSettings();
     }
   });
-}
 
-document.addEventListener("click", (e) => {
-  const closeTrigger = e.target.closest("[data-close-settings]");
-  if (closeTrigger) {
-    closeSettings();
+  if (closeSettingsBtn) {
+    closeSettingsBtn.addEventListener("click", closeSettings);
   }
-});
 
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && settingsOverlay && !settingsOverlay.hidden) {
-    closeSettings();
+  if (cancelSettingsBtn) {
+    cancelSettingsBtn.addEventListener("click", closeSettings);
   }
-});
 
-const settingsTabs = document.querySelectorAll(".settings-tab");
-const settingsPanels = document.querySelectorAll(".settings-panel");
-
-settingsTabs.forEach((tab) => {
-  tab.addEventListener("click", () => {
-    const target = tab.dataset.settingsTab;
-
-    settingsTabs.forEach((btn) => {
-      btn.classList.toggle("active", btn === tab);
+  if (saveSettingsBtn) {
+    saveSettingsBtn.addEventListener("click", async () => {
+      try {
+        await saveSettingsFromForm();
+      } catch (err) {
+        console.error(err);
+        showToast({
+          title: "Save failed",
+          message: err.message || "Could not save settings.",
+          type: "error"
+        });
+      }
     });
+  }
 
-    settingsPanels.forEach((panel) => {
-      panel.classList.toggle("active", panel.dataset.settingsPanel === target);
-    });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && settingsOverlay && !settingsOverlay.hidden) {
+      closeSettings();
+    }
   });
-});
 
-if (bioField) {
-  bioField.addEventListener("input", updateBioCounter);
+  if (bioField) {
+    bioField.addEventListener("input", updateBioCounter);
+  }
+
+  setupTabs();
+  isInitialized = true;
 }
