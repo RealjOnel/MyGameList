@@ -791,7 +791,7 @@
 
 
 
-.profile_activity {
+.profile_review {
     flex: auto;
     border-top: 1px solid var(--color-border);
     height: auto;
@@ -801,7 +801,7 @@
     gap: 12px;
 }
 
-.activity_item{
+.review_item{
     display: flex;
     width: 100%;
     height: 210px;
@@ -818,18 +818,18 @@
     margin-left: 0;
 }
 
-.activity_item:hover{
+.review_item:hover{
     transform: translateY(-2px);
     box-shadow: 0 12px 24px rgba(0,0,0,0.12);
 }
 
-.activity_card {
+.review_card {
     display: flex;
     width: 100%;
     height: 100%; 
 }
 
-.activity_iconclass {
+.review_iconclass {
     flex: 0 0 150px;
     height: 100%;
     overflow: hidden;
@@ -837,13 +837,13 @@
     display: flex;
 }
 
-.activity_icon {
+.review_icon {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.activity_contentclass {
+.review_contentclass {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -851,7 +851,7 @@
     min-width: 0;
 }
 
-.activity_top p {
+.review_top p {
     flex: 0 0 auto;
     font-weight: 600;
     font-size: 16px;
@@ -868,30 +868,54 @@
     overflow: hidden;
 }
 
-.activity_bottom {
+.review_bottom {
     display: flex;
     flex-direction: row;
-    margin-top: auto;
+    margin-top: auto; 
     color: var(--text-main);
     line-height: 1.6;
+    align-items: center; 
 }
-.activity_text{
+.review_text{
     flex: 1;
     text-align: left;
 }
-.activity_likes{
+.review_likes{
     flex: 1;
-    display: flex;              /* makes items sit next to each other */
-    justify-content: flex-end;  /* pushes everything to the right */
-    align-items: center;        /* vertical alignment (like your date) */
-    gap: 6px;                   /* space between number and icon */
+    display: flex;              
+    justify-content: flex-end;  
+    align-items: center;        
+    gap: 6px;                   
 }
 
-.activity_likesicon{
+.likes_count{
+    .likes_count {
+    display: flex;       /* wichtig für vertikale Zentrierung */
+    align-items: center; /* mittig innerhalb des flex-items */
+    font-size: 16px;     /* optional, anpassen wie gewünscht */
+    line-height: 1;      /* verhindert ungewolltes Hochziehen */
+}
+}
+
+.review_likesicon{
     height: 20px;
 }
 
-.activity_rating {
+.review_likesbtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    transition: transform 0.15s ease;
+}
+
+.review_likesbtn:active {
+    transform: scale(0.85);
+}
+
+.review_rating {
     font-size: 0.95rem;
     font-weight: 500;
     color: var(--primary);

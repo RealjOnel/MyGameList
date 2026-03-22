@@ -652,3 +652,21 @@ window.addEventListener("mgl:settings-saved", () => {
     console.error(err);
   });
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+    const likeBtn = document.querySelector(".review_likesbtn");
+    const likeIcon = document.querySelector(".review_likesicon");
+
+    let liked = false;
+
+    likeBtn.addEventListener("click", () => {
+        liked = !liked;
+
+        likeIcon.src = liked
+            ? "../assets/User/thumbupliked.jpg"
+            : "../assets/User/thumbup.png";
+
+        likeBtn.classList.add("liked");
+        setTimeout(() => likeBtn.classList.remove("liked"), 150);
+    });
+});
