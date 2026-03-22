@@ -625,7 +625,7 @@
 }
 
 .pg_state_onhold{
-    color:var(--dropped);
+    color:var(--on-hold);
     font-weight: 700;
 }
 
