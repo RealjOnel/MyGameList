@@ -339,6 +339,11 @@ function applyFriendButtonState(button, status) {
       button.textContent = "Remove Friend";
       break;
 
+    case "disabled":
+      button.textContent = "Request Disabled";
+      button.disabled = true;
+      break;
+
     case "loading":
       button.textContent = "Loading...";
       button.disabled = true;
@@ -375,6 +380,12 @@ async function setupFriendSection({ token, me, profile }) {
     currentStatus = statusData?.status || "none";
     currentRequestId = statusData?.requestId || null;
 
+    const directRequestsAllowed = statusData?.directRequestsAllowed !== false;
+
+    if (currentStatus === "none" && !directRequestsAllowed) {
+      currentStatus = "disabled";
+    }
+
     applyFriendButtonState(button, currentStatus);
     renderFriendsList(friendsData?.friends || []);
   }
@@ -382,6 +393,7 @@ async function setupFriendSection({ token, me, profile }) {
   button.addEventListener("click", async () => {
     if (actionBusy) return;
     if (currentStatus === "self") return;
+    if (currentStatus === "disabled") return;
 
     actionBusy = true;
     applyFriendButtonState(button, "loading");
