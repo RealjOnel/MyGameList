@@ -216,14 +216,24 @@ function renderProfileBio(settings) {
   }
 }
 
-function applyProfileVisibility(settings) {
+function applyProfileVisibility(settings, visibility = {}) {
   const social = settings?.social || {};
+  const isOwner = visibility?.isOwner === true;
 
   const friendsSection = document.getElementById("profileFriendsSection");
   const favoritesSection = document.getElementById("profileFavoritesSection");
   const recentActivitySection = document.getElementById("profileRecentActivitySection");
   const commentsSection = document.getElementById("profileCommentsSection");
   const reviewsSection = document.getElementById("profileReviewsSection");
+
+  if (isOwner) {
+    if (friendsSection) friendsSection.hidden = false;
+    if (favoritesSection) favoritesSection.hidden = false;
+    if (recentActivitySection) recentActivitySection.hidden = false;
+    if (commentsSection) commentsSection.hidden = false;
+    if (reviewsSection) reviewsSection.hidden = false;
+    return;
+  }
 
   if (friendsSection) friendsSection.hidden = !social.showFriendsList;
   if (favoritesSection) favoritesSection.hidden = !social.showFavoriteGames;
@@ -530,6 +540,11 @@ async function loadProfile() {
   });
 
   const profileSettings = normalizeSettings(profile.settings);
+  const profileVisibility = profile.visibility || {
+    isOwner: profile.username === me.username,
+    isFriend: false,
+    publicProfile: true
+  };
 
   qs(".profile_username").textContent = profile.username;
 
@@ -548,7 +563,7 @@ async function loadProfile() {
 
   renderProfileSocialLinks(profileSettings);
   renderProfileBio(profileSettings);
-  applyProfileVisibility(profileSettings);
+  applyProfileVisibility(profileSettings, profileVisibility);
 
   const entries = await api(
     `/api/library/profile/${encodeURIComponent(profile.username)}`,
