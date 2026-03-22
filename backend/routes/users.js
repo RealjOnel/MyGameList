@@ -171,6 +171,24 @@ function sanitizeSettingsPayload(raw = {}) {
   return compactObject(out);
 }
 
+function sameId(a, b) {
+  return String(a) === String(b);
+}
+
+function hasFriend(user, targetUserId) {
+  return Array.isArray(user?.friends) && user.friends.some((id) => sameId(id, targetUserId));
+}
+
+function canViewProfile(viewer, targetUser) {
+  if (!viewer || !targetUser) return false;
+
+  if (sameId(viewer._id, targetUser._id)) return true;
+  if (hasFriend(viewer, targetUser._id)) return true;
+
+  const settings = normalizeSettings(targetUser.settings);
+  return settings.privacy.publicProfile !== false;
+}
+
 // GET /api/users/me
 router.get("/me", requireAuth, async (req, res) => {
   try {
@@ -289,16 +307,22 @@ router.get("/profile/:username", requireAuth, async (req, res) => {
       return res.status(400).json({ message: "Username is required" });
     }
 
-    const user = await User.findOne({ username }).select("username createdAt lastLoginAt settings");
+    const viewer = await User.findById(req.userId).select("_id username friends");
+    if (!viewer) {
+      return res.status(404).json({ message: "Viewer not found" });
+    }
+
+    const user = await User.findOne({ username }).select("username createdAt lastLoginAt settings friends");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     const settings = normalizeSettings(user.settings);
-    const isSelf = String(user._id) === String(req.userId);
+    const isOwner = sameId(viewer._id, user._id);
+    const isFriend = hasFriend(viewer, user._id);
 
-    if (!isSelf && settings.privacy.publicProfile === false) {
+    if (!canViewProfile(viewer, user)) {
       return res.status(403).json({ message: "This profile is private" });
     }
 
@@ -307,7 +331,12 @@ router.get("/profile/:username", requireAuth, async (req, res) => {
       username: user.username,
       createdAt: user.createdAt ?? user._id.getTimestamp(),
       lastLoginAt: user.lastLoginAt ?? null,
-      settings
+      settings,
+      visibility: {
+        isOwner,
+        isFriend,
+        publicProfile: settings.privacy.publicProfile !== false
+      }
     });
   } catch (e) {
     console.error(e);
