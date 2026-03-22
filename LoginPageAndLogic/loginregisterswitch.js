@@ -12,7 +12,17 @@ const submitText = document.getElementById("submit-text");
 
 const tabs = document.querySelectorAll(".tab-btn");
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;  /* email validation*/
+/* Email validation regex */
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/* Password must:
+   - be at least 8 characters
+   - contain uppercase, lowercase, and a number
+*/
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+/* Common weak passwords blacklist */
+const weakPasswords = ["123456", "password", "qwerty", "abc123"];
 
 /* =========================
    SWITCH LOGIN / REGISTER
@@ -77,16 +87,53 @@ form.addEventListener("submit", async (e) => {
      VALIDATION
   ========================= */
 
+  /* Check required fields */
   if (!username || !password || (isRegister && !email)) {
     showError("Please fill all required fields");
     return;
   }
 
+  /* Email validation */
   if (isRegister && !emailRegex.test(email)) {
-  showError("Please enter a valid email address");
-  return;
+    showError("Please enter a valid email address");
+    return;
   }
 
+  /* Password validation (only on register) */
+  if (isRegister) {
+
+    /* Check minimum length */
+    if (password.length < 8) {
+      showError("Password must be at least 8 characters long");
+      return;
+    }
+
+    /* Check uppercase letter */
+    if (!/[A-Z]/.test(password)) {
+      showError("Password must include at least one uppercase letter");
+      return;
+    }
+
+    /* Check lowercase letter */
+    if (!/[a-z]/.test(password)) {
+      showError("Password must include at least one lowercase letter");
+      return;
+    }
+
+    /* Check number */
+    if (!/\d/.test(password)) {
+      showError("Password must include at least one number");
+      return;
+    }
+
+    /* Block very common weak passwords */
+    if (weakPasswords.includes(password.toLowerCase())) {
+      showError("This password is too common. Please choose a stronger one.");
+      return;
+    }
+  }
+
+  /* Confirm password check */
   if (isRegister && password !== confirmPassword) {
     showError("Passwords do not match");
     return;

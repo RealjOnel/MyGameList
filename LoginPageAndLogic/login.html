@@ -90,12 +90,18 @@
 
             <div class="input-group">
                 <i class="fa-solid fa-lock"></i>
-                <input type="password" placeholder="Password" required>
+                <input 
+                type="password" 
+                placeholder="Password" 
+                required 
+                minlength="8"
+                pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}"
+                >
             </div>
 
             <div class="input-group" id="confirm-password-group" style="display: none;">
                 <i class="fa-solid fa-lock"></i>
-                <input type="password" placeholder="Confirm Password">
+                <input type="password" placeholder="Confirm Password" required>
             </div>
 
             <button type="submit" class="btn-primary auth-submit">
