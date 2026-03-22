@@ -99,18 +99,107 @@ const PLATFORM_MAP = {
   metaquest: [384, 386, 471], // Oculus Quest + Meta Quest 2 + Meta Quest 3
 };
 
+// HELPERS FOR SUBSEQUENT SEARCH LOGIC (loose search, company search etc.)
+
+function escapeIgdbString(value = "") {
+  return String(value).replaceAll('"', '\\"').trim();
+}
+
+function stripDiacritics(value = "") {
+  return String(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function normalizeLooseSearch(value = "") {
+  return stripDiacritics(String(value))
+    .replace(/['’`]/g, "")
+    .replace(/[.:\-–—_/\\]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function buildTokenVariants(token = "") {
+  const base = normalizeLooseSearch(token).replace(/\s+/g, "").trim();
+  if (!base) return [];
+
+  const variants = new Set([base]);
+
+  // Keep short abbreviations like "dr"
+  if (base.length === 2) {
+    return [base];
+  }
+
+  // Singular fallback for inputs like "hawks" -> "hawk"
+  // or "chillas" -> "chilla"
+  if (base.endsWith("s") && base.length > 3) {
+    variants.add(base.slice(0, -1));
+  }
+
+  // Extra prefix fallback for long words.
+  // This helps with titles containing accented characters like Pokémon,
+  // because "pok" can still match while "poke" may fail.
+  if (base.length >= 7) {
+    variants.add(base.slice(0, 4));
+    variants.add(base.slice(0, 3));
+  }
+
+  return [...variants].filter(v => v.length >= 2);
+}
+
+function buildLooseMatchClauses(field, rawValue) {
+  const raw = String(rawValue || "").trim();
+  if (!raw) return [];
+
+  const normalized = normalizeLooseSearch(raw);
+  const clauses = new Set();
+
+  // direct raw query
+  clauses.add(`${field} ~ *"${escapeIgdbString(raw)}"*`);
+
+  // punctuation/diacritic stripped full query
+  if (normalized && normalized !== raw) {
+    clauses.add(`${field} ~ *"${escapeIgdbString(normalized)}"*`);
+  }
+
+  // token-based fallback
+  const tokens = normalized.split(" ").filter(Boolean).slice(0, 6);
+
+  const tokenGroups = tokens
+    .map(token => {
+      const tokenVariants = buildTokenVariants(token);
+
+      // prevent empty groups like ()
+      if (!tokenVariants.length) return null;
+
+      if (tokenVariants.length === 1) {
+        return `${field} ~ *"${escapeIgdbString(tokenVariants[0])}"*`;
+      }
+
+      return `(${tokenVariants
+        .map(v => `${field} ~ *"${escapeIgdbString(v)}"*`)
+        .join(" | ")})`;
+    })
+    .filter(Boolean);
+
+  if (tokenGroups.length) {
+    clauses.add(`(${tokenGroups.join(" & ")})`);
+  }
+
+  return [...clauses];
+}
+
+function normalizeSearchScore(value = "") {
+  return normalizeLooseSearch(String(value || "").toLowerCase());
+}
+
 async function fetchGamesByCompanySearch(query, headers) {
   const raw = String(query || "").trim();
   if (!raw) return [];
 
-  const variants = [...new Set([
-    raw,
-    raw.replace(/['’`]/g, ""), // for example Chilla's Art -> Chillas Art
-  ].filter(Boolean))];
+  const clauses = buildLooseMatchClauses("name", raw);
+  if (!clauses.length) return [];
 
-  const clauses = variants.map(v => `name ~ *"${v.replaceAll('"', '\\"')}"*`);
-
-  // search companies by these name variants
   const companiesResp = await axios.post(
     "https://api.igdb.com/v4/companies",
     `
@@ -126,7 +215,6 @@ async function fetchGamesByCompanySearch(query, headers) {
 
   if (!companyIds.length) return [];
 
-  // get games for these companies (developer or publisher)
   const gamesResp = await axios.post(
     "https://api.igdb.com/v4/games",
     `
@@ -279,8 +367,11 @@ router.get("/games", async (req, res) => {
     let whereClause = `cover != null`;
 
     if (search) {
-      const safeSearch = search.replaceAll('"', '\\"');
-      whereClause += ` & name ~ *"${safeSearch}"*`;
+      const nameClauses = buildLooseMatchClauses("name", search);
+
+      if (nameClauses.length) {
+        whereClause += ` & (${nameClauses.join(" | ")})`;
+      }
     }
 
     if (genreId != null) {
@@ -353,18 +444,18 @@ router.get("/games", async (req, res) => {
 
     // normal search results are sorted by IGDB's relevance/rating, but company search results are not sorted.
     if (search) {
-      const q = search.toLowerCase().trim();
+       const q = normalizeSearchScore(search);
 
       games = games.sort((a, b) => {
-        const aName = (a.name || "").toLowerCase();
-        const bName = (b.name || "").toLowerCase();
+        const aName = normalizeSearchScore(a.name || "");
+        const bName = normalizeSearchScore(b.name || "");
 
         const aCompanies = (a.involved_companies || [])
-          .map(c => (c?.company?.name || "").toLowerCase())
+          .map(c => normalizeSearchScore(c?.company?.name || ""))
           .filter(Boolean);
 
         const bCompanies = (b.involved_companies || [])
-          .map(c => (c?.company?.name || "").toLowerCase())
+          .map(c => normalizeSearchScore(c?.company?.name || ""))
           .filter(Boolean);
 
         function score(name, companies) {

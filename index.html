@@ -17,6 +17,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/css/home.css">
 </head>
 <body>
 
@@ -81,7 +82,7 @@
 
                 <div id="userDropdown" class="user-dropdown" aria-hidden="true">
                     <a class="dropdown-item" href="./profile/profile.html">Profile</a>
-                    <a class="dropdown-item" href="./profile/settings.html">Settings</a>
+                    <button class="dropdown-item" type="button" data-open-settings>Settings</button>
 
                     <div class="dropdown-divider"></div>
 
@@ -187,6 +188,8 @@
     <script src="./js/global/storeuser.js"></script>
     <script type="module" src="./js/global/nav-search.js"></script>
     <script type="module" src="./js/global/friendNotifications.js"></script>
+    <script type="module" src="./js/global/settings.js"></script>
+    <script type="module" src="./SettingsLoader/settingsLoader.js"></script>
     
 </body>
 </html>

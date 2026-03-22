@@ -24,6 +24,10 @@ function normalizeFriendUser(user) {
   };
 }
 
+function allowsDirectFriendRequests(user) {
+  return user?.settings?.privacy?.allowDirectFriendRequests !== false;
+}
+
 // GET /api/friends/status/:username
 router.get("/status/:username", requireAuth, async (req, res) => {
   try {
@@ -37,17 +41,25 @@ router.get("/status/:username", requireAuth, async (req, res) => {
       return res.status(404).json({ message: "Viewer not found" });
     }
 
-    const target = await User.findOne({ username }).select("_id username");
+    const target = await User.findOne({ username }).select("_id username settings");
     if (!target) {
       return res.status(404).json({ message: "Target user not found" });
     }
 
+    const directRequestsAllowed = allowsDirectFriendRequests(target);
+
     if (sameId(viewer._id, target._id)) {
-      return res.json({ status: "self" });
+      return res.json({
+        status: "self",
+        directRequestsAllowed: true
+      });
     }
 
     if (hasFriend(viewer, target._id)) {
-      return res.json({ status: "friends" });
+      return res.json({
+        status: "friends",
+        directRequestsAllowed
+      });
     }
 
     const outgoing = await FriendRequest.findOne({
@@ -61,6 +73,7 @@ router.get("/status/:username", requireAuth, async (req, res) => {
         status: "outgoing_request",
         requestId: outgoing._id,
         createdAt: outgoing.createdAt,
+        directRequestsAllowed
       });
     }
 
@@ -75,10 +88,14 @@ router.get("/status/:username", requireAuth, async (req, res) => {
         status: "incoming_request",
         requestId: incoming._id,
         createdAt: incoming.createdAt,
+        directRequestsAllowed
       });
     }
 
-    return res.json({ status: "none" });
+    return res.json({
+      status: "none",
+      directRequestsAllowed
+    });
   } catch (e) {
     console.error(e);
     res.status(500).json({ message: "Failed to load friend status" });
@@ -125,7 +142,7 @@ router.post("/request/:username", requireAuth, async (req, res) => {
       return res.status(404).json({ message: "Viewer not found" });
     }
 
-    const target = await User.findOne({ username }).select("_id username friends");
+    const target = await User.findOne({ username }).select("_id username friends settings");
     if (!target) {
       return res.status(404).json({ message: "Target user not found" });
     }
@@ -136,6 +153,13 @@ router.post("/request/:username", requireAuth, async (req, res) => {
 
     if (hasFriend(viewer, target._id)) {
       return res.status(400).json({ message: "You are already friends" });
+    }
+
+    if (!allowsDirectFriendRequests(target)) {
+      return res.status(403).json({
+        message: "This user does not allow direct friend requests",
+        code: "DIRECT_REQUESTS_DISABLED",
+      });
     }
 
     const incomingPending = await FriendRequest.findOne({

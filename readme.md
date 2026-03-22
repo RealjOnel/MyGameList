@@ -84,7 +84,7 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
 
                 <div id="userDropdown" class="user-dropdown" aria-hidden="true">
                     <a class="dropdown-item" href="./profile/profile.html">Profile</a>
-                    <a class="dropdown-item" href="./profile/settings.html">Settings</a>
+                    <button class="dropdown-item" type="button" data-open-settings>Settings</button>
 
                     <div class="dropdown-divider"></div>
 
@@ -142,6 +142,7 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
     <script src="../js/global/active.js"></script>
     <script src="../js/global/storeuser.js"></script>
     <script type="module" src="../js/global/friendNotifications.js"></script>
+    <script type="module" src="./SettingsLoader/settingsLoader.js"></script>
 
     <div class="mgl-modal-backdrop" id="mglConfirmModal" hidden>
         <div class="mgl-modal" role="dialog" aria-modal="true" aria-labelledby="mglConfirmTitle">
