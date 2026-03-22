@@ -859,6 +859,7 @@
     margin-bottom: auto;
     color: var(--primary);
     line-height: 1.6;
+    text-align: left;
 
     display: -webkit-box;
     -webkit-box-orient: vertical;
@@ -868,11 +869,28 @@
 }
 
 .activity_bottom {
+    display: flex;
+    flex-direction: row;
     margin-top: auto;
-    text-align: left;
     color: var(--text-main);
     line-height: 1.6;
 }
+.activity_text{
+    flex: 1;
+    text-align: left;
+}
+.activity_likes{
+    flex: 1;
+    display: flex;              /* makes items sit next to each other */
+    justify-content: flex-end;  /* pushes everything to the right */
+    align-items: center;        /* vertical alignment (like your date) */
+    gap: 6px;                   /* space between number and icon */
+}
+
+.activity_likesicon{
+    height: 20px;
+}
+
 .activity_rating {
     font-size: 0.95rem;
     font-weight: 500;
