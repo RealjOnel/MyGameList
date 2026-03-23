@@ -1,5 +1,5 @@
 import express from "express";
-console.log("✅ igdb routes loaded");
+console.log("igdb routes loaded");
 import axios from "axios";
 import { getTwitchToken } from "../services/twitchToken.js";
 
@@ -330,7 +330,7 @@ router.get("/trending", async (req, res) => {
 //  We ask IGDB for games with a cover and then let the frontend
 //  filter out weird editions / DLC by name.
 router.get("/games", async (req, res) => {
-  console.log("🔥 /games ROUTE HIT", req.query);
+  console.log("/games ROUTE HIT", req.query);
 
   try {
     const token = await getTwitchToken();
@@ -377,13 +377,13 @@ router.get("/games", async (req, res) => {
     if (genreId != null) {
       whereClause += ` & genres = (${genreId})`;
     } else if (genreKey !== "all") {
-      console.warn("⚠️ Unknown genre key:", genreKey);
+      console.warn("Unknown genre key:", genreKey);
     }
 
     if (platformId != null) {
       whereClause += ` & platforms = (${platformId})`;
     } else if (platformKey !== "all") {
-      console.warn("⚠️ Unknown platform key:", platformKey);
+      console.warn("Unknown platform key:", platformKey);
     }
 
     const response = await axios.post(

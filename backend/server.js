@@ -27,14 +27,14 @@ app.use(express.json());
 // connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
-    console.log("✅ MongoDB Connected");
+    console.log("MongoDB Connected");
 
     // reliably available after connection is open
     console.log("readyState:", mongoose.connection.readyState); // 1 = connected
     console.log("DB:", mongoose.connection.db?.databaseName);
     console.log("Host:", mongoose.connection.host);
   })
-  .catch((err) => console.log("❌ MongoDB Error:", err));
+  .catch((err) => console.log("MongoDB Error:", err));
 
 app.get("/ping", (req, res) => {
   console.log("PING ROUTE HIT");
@@ -50,5 +50,5 @@ app.use("/api/friends", friendsRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server runs on http://localhost:${PORT}`);
+  console.log(`Server runs on http://localhost:${PORT}`);
 });
