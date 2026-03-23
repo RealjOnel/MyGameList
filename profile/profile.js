@@ -1,4 +1,4 @@
-import { fetchWithAuth, clearAccessToken } from "../js/global/authClient.js";
+import { fetchWithAuth } from "../js/global/authClient.js";
 import { showToast } from "../js/global/toast.js";
 
 function qs(sel) { return document.querySelector(sel); }
@@ -77,33 +77,22 @@ function redirectToLogin() {
 }
 
 async function api(path, { method = "GET", body } = {}) {
-  const headers = {};
-  if (body) headers["Content-Type"] = "application/json";
-
   const finalPath =
     method === "GET"
       ? `${path}${path.includes("?") ? "&" : "?"}_=${Date.now()}`
       : path;
 
-  const res = await fetchWithAuth(finalPath, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined
-  });
-
-  const text = await res.text();
-  const data = text ? JSON.parse(text) : {};
-
-  if (res.status === 401) {
-    clearAccessToken();
-    throw new Error("SESSION_EXPIRED");
+  try {
+    return await fetchWithAuth(finalPath, {
+      method,
+      body
+    });
+  } catch (err) {
+    if (err.message === "Session expired") {
+      throw new Error("SESSION_EXPIRED");
+    }
+    throw err;
   }
-
-  if (!res.ok) {
-    throw new Error(data?.message || `Request failed (${res.status})`);
-  }
-
-  return data;
 }
 
 function coverUrl(coverImageId) {
