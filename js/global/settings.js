@@ -1,5 +1,5 @@
-import { API_BASE_URL } from "../../backend/config.js";
 import { showToast } from "./toast.js";
+import { fetchWithAuth } from "./authClient.js";
 
 let isInitialized = false;
 
@@ -66,30 +66,8 @@ function deepMerge(target, source) {
   return out;
 }
 
-function getToken() {
-  return localStorage.getItem("token");
-}
-
-async function api(path, { method = "GET", body, token } = {}) {
-  const headers = {};
-  if (token) headers.Authorization = `Bearer ${token}`;
-  if (body) headers["Content-Type"] = "application/json";
-
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-    cache: "no-store"
-  });
-
-  const text = await res.text();
-  const data = text ? JSON.parse(text) : {};
-
-  if (!res.ok) {
-    throw new Error(data?.message || `Request failed (${res.status})`);
-  }
-
-  return data;
+async function api(path, { method = "GET", body } = {}) {
+  return fetchWithAuth(path, { method, body });
 }
 
 function getSettingFields() {
@@ -169,18 +147,12 @@ function updateBioCounter() {
 }
 
 async function loadSettingsIntoForm() {
-  const token = getToken();
-  if (!token) throw new Error("You need to be logged in.");
-
-  const data = await api("/api/users/settings", { token });
+  const data = await api("/api/users/settings");
   populateSettingsForm(data?.settings);
   return data?.settings;
 }
 
 async function saveSettingsFromForm() {
-  const token = getToken();
-  if (!token) throw new Error("You need to be logged in.");
-
   const saveSettingsBtn = document.getElementById("settingsSaveBtn");
   const settings = collectSettingsFromForm();
 
@@ -192,7 +164,6 @@ async function saveSettingsFromForm() {
   try {
     const data = await api("/api/users/settings", {
       method: "PATCH",
-      token,
       body: settings
     });
 

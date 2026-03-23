@@ -1,5 +1,5 @@
-import { API_BASE_URL } from "../../backend/config.js";
 import { showToast } from "./toast.js";
+import { fetchWithAuth } from "./authClient.js";
 
 function escapeHtml(str = "") {
   return String(str).replace(/[&<>"']/g, (m) => ({
@@ -22,26 +22,8 @@ function formatDateTime(iso) {
   });
 }
 
-async function api(path, { token, method = "GET", body } = {}) {
-  const headers = {};
-  if (token) headers.Authorization = `Bearer ${token}`;
-  if (body) headers["Content-Type"] = "application/json";
-
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-    cache: "no-store",
-  });
-
-  const text = await res.text();
-  const data = text ? JSON.parse(text) : {};
-
-  if (!res.ok) {
-    throw new Error(data?.message || `Request failed (${res.status})`);
-  }
-
-  return data;
+async function api(path, { method = "GET", body } = {}) {
+  return fetchWithAuth(path, { method, body });
 }
 
 function getEls() {
@@ -118,30 +100,22 @@ function updateBadge(count) {
 }
 
 async function loadNotificationCount() {
-  const token = localStorage.getItem("token");
   const { bellWrap } = getEls();
-
-  if (!token) {
-    if (bellWrap) bellWrap.hidden = true;
-    return;
-  }
 
   if (bellWrap) bellWrap.hidden = false;
 
   try {
-    const data = await api("/api/friends/notifications/count", { token });
+    const data = await api("/api/friends/notifications/count");
     updateBadge(data.count || 0);
   } catch (err) {
     console.error(err);
+    if (bellWrap) bellWrap.hidden = true;
   }
 }
 
 async function loadNotifications() {
-  const token = localStorage.getItem("token");
-  if (!token) return;
-
   try {
-    const data = await api("/api/friends/notifications", { token });
+    const data = await api("/api/friends/notifications");
     const notifications = data.notifications || [];
     renderNotifications(notifications);
     updateBadge(notifications.length);
@@ -152,14 +126,12 @@ async function loadNotifications() {
 }
 
 async function handleNotificationAction(action, requestId) {
-  const token = localStorage.getItem("token");
-  if (!token || !requestId) return;
+  if (!requestId) return;
 
   try {
     if (action === "accept") {
       await api(`/api/friends/request/${encodeURIComponent(requestId)}/accept`, {
         method: "POST",
-        token,
       });
 
       showToast({
@@ -172,7 +144,6 @@ async function handleNotificationAction(action, requestId) {
     if (action === "decline") {
       await api(`/api/friends/request/${encodeURIComponent(requestId)}/decline`, {
         method: "POST",
-        token,
       });
 
       showToast({

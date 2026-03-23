@@ -1,5 +1,5 @@
-import { API_BASE_URL } from "../backend/config.js";
 import { showToast } from "../js/global/toast.js";
+import { fetchWithAuth } from "../js/global/authClient.js";
 
 const commentInput = document.querySelector(".comment_input");
 const commentButton = document.querySelector(".comment_button");
@@ -27,26 +27,8 @@ function formatCommentDate(iso) {
   });
 }
 
-async function api(path, { method = "GET", body, token } = {}) {
-  const headers = {};
-  if (token) headers.Authorization = `Bearer ${token}`;
-  if (body) headers["Content-Type"] = "application/json";
-
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-    cache: "no-store",
-  });
-
-  const text = await res.text();
-  const data = text ? JSON.parse(text) : {};
-
-  if (!res.ok) {
-    throw new Error(data?.message || `Request failed (${res.status})`);
-  }
-
-  return data;
+async function api(path, { method = "GET", body } = {}) {
+  return fetchWithAuth(path, { method, body });
 }
 
 function canDeleteComment(comment) {
@@ -124,11 +106,6 @@ async function loadComments() {
 }
 
 async function postComment() {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    window.location.href = "../../LoginPageAndLogic/login.html";
-    return;
-  }
 
   const profileUsername = window.currentProfileUsername;
   const text = String(commentInput?.value || "").trim();
@@ -152,7 +129,6 @@ async function postComment() {
   try {
     await api(`/api/profile-comments/${encodeURIComponent(profileUsername)}`, {
       method: "POST",
-      token,
       body: { text },
     });
 
@@ -180,8 +156,7 @@ async function postComment() {
 }
 
 async function deleteComment(commentId) {
-  const token = localStorage.getItem("token");
-  if (!token || !commentId) return;
+  if (!commentId) return;
 
   const ok = await openMglConfirm({
   title: "Delete Comment",
@@ -195,7 +170,6 @@ if (!ok) return;
   try {
     await api(`/api/profile-comments/comment/${encodeURIComponent(commentId)}`, {
       method: "DELETE",
-      token,
     });
 
     await loadComments();
