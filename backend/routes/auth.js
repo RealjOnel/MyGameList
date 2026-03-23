@@ -3,53 +3,89 @@ import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.js";
+import { registerSchema, loginSchema } from "../validators/authValidator.js";
 
 const router = express.Router();
 
 // REGISTER
 router.post("/register", async (req, res) => {
-  const { username, email, password } = req.body;
-  if (!username || !email || !password)
-    return res.status(400).json({ message: "Please fill all fields" });
+  try {
+    const parsed = registerSchema.safeParse(req.body);
 
-  const existingUser = await User.findOne({ username });
-  if (existingUser)
-    return res.status(400).json({ message: "Username already exists" });
+    if (!parsed.success) {
+      return res.status(400).json({ message: "Invalid input" });
+    }
 
-  const passwordHash = await bcrypt.hash(password, 10);
-  const now = new Date();
+    const { username, email, password } = parsed.data;
 
-  const user = new User({
-    username,
-    email,
-    passwordHash,
-    createdAt: now,
-    updatedAt: now,
-    lastLoginAt: now // registration counts as first login
-  });
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ message: "Username already exists" });
+    }
 
-  await user.save();
+    const passwordHash = await bcrypt.hash(password, 10);
+    const now = new Date();
 
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-  res.json({ token });
+    const user = new User({
+      username,
+      email,
+      passwordHash,
+      createdAt: now,
+      updatedAt: now,
+      lastLoginAt: now
+    });
+
+    await user.save();
+
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    res.json({ token });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Registration failed" });
+  }
 });
 
 // LOGIN
 router.post("/login", async (req, res) => {
-  const { username, password } = req.body;
+  try {
+    const parsed = loginSchema.safeParse(req.body);
 
-  const user = await User.findOne({ username });
-  if (!user) return res.status(400).json({ message: "Invalid username or password" });
+    if (!parsed.success) {
+      return res.status(400).json({ message: "Invalid input" });
+    }
 
-  const valid = await bcrypt.compare(password, user.passwordHash);
-  if (!valid) return res.status(400).json({ message: "Invalid username or password" });
+    const { username, password } = parsed.data;
 
-  user.lastLoginAt = new Date();
-  user.updatedAt = new Date();
-  await user.save();
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid username or password" });
+    }
 
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '14d' });
-  res.json({ token });
+    const valid = await bcrypt.compare(password, user.passwordHash);
+    if (!valid) {
+      return res.status(400).json({ message: "Invalid username or password" });
+    }
+
+    user.lastLoginAt = new Date();
+    user.updatedAt = new Date();
+    await user.save();
+
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "14d" }
+    );
+
+    res.json({ token });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Login failed" });
+  }
 });
 
 export default router;
