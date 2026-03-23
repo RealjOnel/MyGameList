@@ -154,6 +154,7 @@ form.addEventListener("submit", async (e) => {
       headers: {
         "Content-Type": "application/json"
       },
+      credentials: "include",
       body: JSON.stringify({
         username,
         password,
@@ -168,7 +169,7 @@ form.addEventListener("submit", async (e) => {
       return;
     }
 
-    console.log("✅ Success:", data);
+    console.log("Success:", data);
 
     localStorage.setItem("token", data.token);
 
