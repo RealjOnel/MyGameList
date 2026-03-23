@@ -82,10 +82,18 @@ async function api(path, { method = "GET", body } = {}) {
       ? `${path}${path.includes("?") ? "&" : "?"}_=${Date.now()}`
       : path;
 
+  const headers = {};
+  if (body) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  let res;
+
   try {
-    return await fetchWithAuth(finalPath, {
+    res = await fetchWithAuth(finalPath, {
       method,
-      body
+      headers,
+      body: body ? JSON.stringify(body) : undefined
     });
   } catch (err) {
     if (err.message === "Session expired") {
@@ -93,6 +101,19 @@ async function api(path, { method = "GET", body } = {}) {
     }
     throw err;
   }
+
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : {};
+
+  if (res.status === 401) {
+    throw new Error("SESSION_EXPIRED");
+  }
+
+  if (!res.ok) {
+    throw new Error(data?.message || `Request failed (${res.status})`);
+  }
+
+  return data;
 }
 
 function coverUrl(coverImageId) {
