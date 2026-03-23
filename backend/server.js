@@ -9,6 +9,7 @@ import libraryRoutes from "./routes/library.js";
 import userRoutes from "./routes/users.js";
 import profileCommentRoutes from "./routes/profileComments.js";
 import friendsRoutes from "./routes/friends.js";
+import { authLimiter, apiLimiter } from "./middleware/rateLimiter.js";
 
 const app = express();
 
@@ -22,6 +23,8 @@ app.use("/api", (req, res, next) => {
 
 app.use(cors());
 app.use(express.json());
+app.use("/api/auth", authLimiter); // apply auth limiter to auth routes
+app.use("/api", apiLimiter); // apply general API limiter to all /api routes
 
 
 // connect to MongoDB
