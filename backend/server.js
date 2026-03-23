@@ -14,6 +14,7 @@ import { authLimiter, apiLimiter } from "./middleware/rateLimiter.js";
 const app = express();
 
 app.set("etag", false);
+app.set("trust proxy", 1);
 
 // no caching for API
 app.use("/api", (req, res, next) => {
@@ -23,8 +24,6 @@ app.use("/api", (req, res, next) => {
 
 app.use(cors());
 app.use(express.json());
-app.use("/api/auth", authLimiter); // apply auth limiter to auth routes
-app.use("/api", apiLimiter); // apply general API limiter to all /api routes
 
 
 // connect to MongoDB
@@ -43,6 +42,10 @@ app.get("/ping", (req, res) => {
   console.log("PING ROUTE HIT");
   res.send("SERVER PING OK");
 });
+
+app.use("/api/login", authLimiter);
+app.use("/api/register", authLimiter);
+app.use("/api", apiLimiter);
 
 app.use('/api', authRoutes);
 app.use("/api/igdb", igdbRoutes);
