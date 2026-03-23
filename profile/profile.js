@@ -541,8 +541,25 @@ async function loadProfile() {
     throw err;
   }
 
-  if (!requestedUsername && profile?.username) {
-    const newUrl = `${window.location.pathname}?username=${encodeURIComponent(profile.username)}`;
+  console.log("ME:", me);
+  console.log("REQUESTED USERNAME:", requestedUsername);
+  console.log("TARGET USERNAME:", targetUsername);
+  console.log("PROFILE:", profile);
+
+  const resolvedProfileUsername = profile?.username || requestedUsername || me?.username;
+
+  if (!resolvedProfileUsername) {
+    console.error("Profile username missing", {
+      me,
+      profile,
+      requestedUsername,
+      targetUsername
+    });
+    throw new Error("Profile username missing");
+  }
+
+  if (!requestedUsername && resolvedProfileUsername) {
+    const newUrl = `${window.location.pathname}?username=${encodeURIComponent(resolvedProfileUsername)}`;
     window.history.replaceState({}, "", newUrl);
   }
 
@@ -553,19 +570,19 @@ async function loadProfile() {
 
   const profileSettings = normalizeSettings(profile.settings);
   const profileVisibility = profile.visibility || {
-    isOwner: profile.username === me.username,
+    isOwner: resolvedProfileUsername === me.username,
     isFriend: false,
     publicProfile: true
   };
 
-  qs(".profile_username").textContent = profile.username;
+  qs(".profile_username").textContent = resolvedProfileUsername;
 
   const descTitle = document.getElementById("playerDescriptionTitle");
   if (descTitle) {
-    descTitle.textContent = `${profile.username}'s Description:`;
+    descTitle.textContent = `${resolvedProfileUsername}'s Description:`;
   }
 
-  document.title = `${profile.username || "Profile"} | MyGameList`;
+  document.title = `${resolvedProfileUsername} | MyGameList`;
 
   const joinedEl = document.getElementById("joinedAt");
   if (joinedEl) joinedEl.textContent = `Joined: ${formatDate(profile.createdAt)}`;
@@ -577,9 +594,10 @@ async function loadProfile() {
   renderProfileBio(profileSettings);
   applyProfileVisibility(profileSettings, profileVisibility);
 
-  const entries = await api(`/api/library/profile/${encodeURIComponent(profile.username)}`);
+  const entriesData = await api(`/api/library/profile/${encodeURIComponent(resolvedProfileUsername)}`);
+  const entries = Array.isArray(entriesData) ? entriesData : [];
 
-  window.currentProfileUsername = profile.username;
+  window.currentProfileUsername = resolvedProfileUsername;
   window.currentViewerUsername = me.username;
 
   const favWrap = document.getElementById("profileFavorites");
@@ -637,7 +655,7 @@ async function loadProfile() {
   const commentHeading = document.querySelector(".profile_comments h3");
   if (commentHeading) {
     commentHeading.textContent =
-      profile.username === me.username
+      resolvedProfileUsername === me.username
         ? "Leave a Comment"
         : `Leave a Comment for ${profile.username}`;
   }
