@@ -1,5 +1,5 @@
 import { showToast } from "./toast.js";
-import { fetchWithAuth } from "./authClient.js";
+import { fetchWithAuth, clearAccessToken } from "./authClient.js";
 
 let isInitialized = false;
 
@@ -66,8 +66,42 @@ function deepMerge(target, source) {
   return out;
 }
 
+function normalizeSettings(raw) {
+  return deepMerge(cloneDefaults(), raw || {});
+}
+
+function redirectToLogin() {
+  window.location.href = "../LoginPageAndLogic/login.html";
+}
+
 async function api(path, { method = "GET", body } = {}) {
-  return fetchWithAuth(path, { method, body });
+  const finalPath =
+    method === "GET"
+      ? `${path}${path.includes("?") ? "&" : "?"}_=${Date.now()}`
+      : path;
+
+  const headers = {};
+  if (body) headers["Content-Type"] = "application/json";
+
+  const res = await fetchWithAuth(finalPath, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined
+  });
+
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : {};
+
+  if (res.status === 401) {
+    clearAccessToken();
+    throw new Error("SESSION_EXPIRED");
+  }
+
+  if (!res.ok) {
+    throw new Error(data?.message || `Request failed (${res.status})`);
+  }
+
+  return data;
 }
 
 function getSettingFields() {
@@ -105,10 +139,6 @@ function writeFieldValue(field, value) {
   }
 
   field.value = value ?? "";
-}
-
-function normalizeSettings(raw) {
-  return deepMerge(cloneDefaults(), raw || {});
 }
 
 function collectSettingsFromForm() {
@@ -204,6 +234,12 @@ async function openSettings() {
     await loadSettingsIntoForm();
   } catch (err) {
     console.error(err);
+
+    if (err.message === "SESSION_EXPIRED") {
+      redirectToLogin();
+      return;
+    }
+
     showToast({
       title: "Settings failed to load",
       message: err.message || "Could not load settings.",
@@ -288,6 +324,12 @@ export function initSettingsModal() {
         await saveSettingsFromForm();
       } catch (err) {
         console.error(err);
+
+        if (err.message === "SESSION_EXPIRED") {
+          redirectToLogin();
+          return;
+        }
+
         showToast({
           title: "Save failed",
           message: err.message || "Could not save settings.",
