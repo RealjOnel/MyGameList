@@ -1,5 +1,7 @@
 import { showToast } from "./toast.js";
-import { fetchWithAuth } from "./authClient.js";
+import { fetchWithAuth, clearAccessToken } from "./authClient.js";
+
+const LOGIN_URL = "../LoginPageAndLogic/login.html";
 
 function escapeHtml(str = "") {
   return String(str).replace(/[&<>"']/g, (m) => ({
@@ -9,6 +11,10 @@ function escapeHtml(str = "") {
     '"': "&quot;",
     "'": "&#039;",
   }[m]));
+}
+
+function redirectToLogin() {
+  window.location.href = LOGIN_URL;
 }
 
 function formatDateTime(iso) {
@@ -23,7 +29,33 @@ function formatDateTime(iso) {
 }
 
 async function api(path, { method = "GET", body } = {}) {
-  return fetchWithAuth(path, { method, body });
+  const finalPath =
+    method === "GET"
+      ? `${path}${path.includes("?") ? "&" : "?"}_=${Date.now()}`
+      : path;
+
+  const headers = {};
+  if (body) headers["Content-Type"] = "application/json";
+
+  const res = await fetchWithAuth(finalPath, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined
+  });
+
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : {};
+
+  if (res.status === 401) {
+    clearAccessToken();
+    throw new Error("SESSION_EXPIRED");
+  }
+
+  if (!res.ok) {
+    throw new Error(data?.message || `Request failed (${res.status})`);
+  }
+
+  return data;
 }
 
 function getEls() {
@@ -109,6 +141,13 @@ async function loadNotificationCount() {
     updateBadge(data.count || 0);
   } catch (err) {
     console.error(err);
+
+    if (err.message === "SESSION_EXPIRED") {
+      if (bellWrap) bellWrap.hidden = true;
+      redirectToLogin();
+      return;
+    }
+
     if (bellWrap) bellWrap.hidden = true;
   }
 }
@@ -121,6 +160,12 @@ async function loadNotifications() {
     updateBadge(notifications.length);
   } catch (err) {
     console.error(err);
+
+    if (err.message === "SESSION_EXPIRED") {
+      redirectToLogin();
+      return;
+    }
+
     renderEmpty(getEls().list, "Failed to load notifications.");
   }
 }
@@ -154,8 +199,17 @@ async function handleNotificationAction(action, requestId) {
     }
 
     await loadNotifications();
+    await loadNotificationCount();
+
+    window.dispatchEvent(new CustomEvent("mgl:friend-requests-updated"));
   } catch (err) {
     console.error(err);
+
+    if (err.message === "SESSION_EXPIRED") {
+      redirectToLogin();
+      return;
+    }
+
     showToast({
       title: "Notification action failed",
       message: err.message || "Something went wrong.",
@@ -222,7 +276,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   initBellToggle();
   await loadNotificationCount();
 
-  // little polling to update the badge count every 30 seconds in case of new notifications
   setInterval(() => {
     loadNotificationCount().catch(console.error);
   }, 30000);
