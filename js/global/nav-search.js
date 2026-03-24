@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "../../backend/config.js";
+import { fetchWithAuth, clearAccessToken, getAccessToken } from "./authClient.js";
 
 const STORAGE_KEY = "navSearchMode";
 const MODES = ["games", "users", "forum"];
@@ -45,28 +46,49 @@ function applyCustomization(customizationRaw = {}) {
   return customization;
 }
 
-async function loadCustomizationSettings() {
-  const token = localStorage.getItem("token");
+async function apiAuth(path, { method = "GET", body } = {}) {
+  const finalPath =
+    method === "GET"
+      ? `${path}${path.includes("?") ? "&" : "?"}_=${Date.now()}`
+      : path;
 
-  if (!token) {
+  const headers = {};
+  if (body) headers["Content-Type"] = "application/json";
+
+  const res = await fetchWithAuth(finalPath, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined
+  });
+
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : {};
+
+  if (res.status === 401) {
+    clearAccessToken();
+    throw new Error("SESSION_EXPIRED");
+  }
+
+  if (!res.ok) {
+    throw new Error(data?.message || `Request failed (${res.status})`);
+  }
+
+  return data;
+}
+
+async function loadCustomizationSettings() {
+  if (!getAccessToken()) {
     return applyCustomization();
   }
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/users/settings`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      cache: "no-store"
-    });
-
-    if (!res.ok) {
-      throw new Error(`Settings request failed (${res.status})`);
-    }
-
-    const data = await res.json();
+    const data = await apiAuth("/api/users/settings");
     return applyCustomization(data?.settings?.customization);
   } catch (err) {
+    if (err.message === "SESSION_EXPIRED") {
+      return applyCustomization();
+    }
+
     console.error("Failed to load customization settings", err);
     return applyCustomization();
   }
@@ -85,7 +107,6 @@ function moveWithFlip(el, newParent, afterAppend){
   const first = el.getBoundingClientRect();
   newParent.appendChild(el);
 
-  // apply variant changes AFTER append, BEFORE measuring last rect
   if (typeof afterAppend === "function") afterAppend();
 
   const last = el.getBoundingClientRect();
@@ -228,7 +249,6 @@ async function fetchGameSuggestions(q){
   const res = await fetch(`${API_BASE_URL}/api/igdb/games?${params.toString()}`);
   const games = await res.json();
 
-  // keep it light
   return (Array.isArray(games) ? games : [])
     .filter(g => g?.cover?.image_id && g?.name)
     .slice(0, 15);
@@ -389,7 +409,6 @@ function setupSearch(root){
   const modeMenu = root.querySelector(".nav-search-mode-menu");
   const modeOptions = root.querySelectorAll(".nav-search-mode-option");
 
-   // initial mode (nav defaults). variant switch can overwrite to "games"
   let mode = localStorage.getItem(STORAGE_KEY) || "games";
   if (!MODES.includes(mode)) mode = "games";
   root.dataset.mode = root.dataset.mode || mode;
@@ -407,65 +426,64 @@ function setupSearch(root){
 
   if (modeBtn && modeMenu){
     modeBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    panel.hidden = true;
-    modeMenu.hidden = !modeMenu.hidden;
-  });
-
-  input.addEventListener("focus", () => {
-    if (modeMenu) modeMenu.hidden = true;
-    if (root.dataset.variant === "page") return;
-    if (input.value.trim()) panel.hidden = false;
-  });
-
-  modeOptions.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const next = btn.dataset.mode;
-      root.dataset.mode = next;
-      localStorage.setItem(STORAGE_KEY, next);
-      setActiveTab(root, next);
-      updateModePlaceholder(root);
-      modeMenu.hidden = true;
-      input.focus();
-      input.dispatchEvent(new Event("input", { bubbles: true }));
+      e.stopPropagation();
+      panel.hidden = true;
+      modeMenu.hidden = !modeMenu.hidden;
     });
-  });
-}
+
+    input.addEventListener("focus", () => {
+      if (modeMenu) modeMenu.hidden = true;
+      if (root.dataset.variant === "page") return;
+      if (input.value.trim()) panel.hidden = false;
+    });
+
+    modeOptions.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const next = btn.dataset.mode;
+        root.dataset.mode = next;
+        localStorage.setItem(STORAGE_KEY, next);
+        setActiveTab(root, next);
+        updateModePlaceholder(root);
+        modeMenu.hidden = true;
+        input.focus();
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+    });
+  }
 
   const run = debounce(async () => {
-  // On Explore page: do not show dropdown or fetch suggestions
-  if (root.dataset.variant === "page") {
-    panel.hidden = true;
-    return;
-  }
+    if (root.dataset.variant === "page") {
+      panel.hidden = true;
+      return;
+    }
 
-  if (!liveSearchSuggestionsEnabled()) {
-    panel.hidden = true;
-    return;
-  }
+    if (!liveSearchSuggestionsEnabled()) {
+      panel.hidden = true;
+      return;
+    }
 
-  const modeNow = root.dataset.mode || "games";
-  const q = input.value.trim();
+    const modeNow = root.dataset.mode || "games";
+    const q = input.value.trim();
 
-  if (!q){
-    renderSuggestions(root, modeNow, [], "");
-    return;
-  }
+    if (!q){
+      renderSuggestions(root, modeNow, [], "");
+      return;
+    }
 
-  try{
-    if (modeNow === "games"){
-      const items = await fetchGameSuggestions(q);
-      renderSuggestions(root, modeNow, items, q);
-    } else if (modeNow === "users"){
-      const items = await fetchUserSuggestions(q);
-      renderSuggestions(root, modeNow, items, q);
-    } else {
+    try{
+      if (modeNow === "games"){
+        const items = await fetchGameSuggestions(q);
+        renderSuggestions(root, modeNow, items, q);
+      } else if (modeNow === "users"){
+        const items = await fetchUserSuggestions(q);
+        renderSuggestions(root, modeNow, items, q);
+      } else {
+        renderSuggestions(root, modeNow, [], q);
+      }
+    } catch {
       renderSuggestions(root, modeNow, [], q);
     }
-  } catch {
-    renderSuggestions(root, modeNow, [], q);
-  }
-}, 220);
+  }, 220);
 
   input.addEventListener("input", run);
 
@@ -532,7 +550,6 @@ function mountSearch(){
   const isExplore = !!pageSlot;
   const target = pageSlot || navSlot;
 
-  // first mount: no FLIP, just append
   if (!existing){
     const root = buildSearch();
     setupSearch(root);
@@ -543,13 +560,11 @@ function mountSearch(){
 
   const root = existing;
 
-  // already in correct slot
   if (root.parentElement === target){
     setVariant(root, isExplore ? "page" : "nav");
     return;
   }
 
-  // only use FLIP when actually moving an already-mounted element
   moveWithFlip(root, target, () => setVariant(root, isExplore ? "page" : "nav"));
 }
 
