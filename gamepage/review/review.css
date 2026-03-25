@@ -1,10 +1,11 @@
-/* Basic body setup */
+/* Base */
 body {
     font-family: 'Inter', sans-serif;
     margin: 0;
+    background: var(--bg-body, #f9fafb);
 }
 
-/* Overlay container */
+/* Overlay */
 .review-overlay {
     position: fixed;
     inset: 0;
@@ -18,107 +19,149 @@ body {
     display: none;
 }
 
-/* Background overlay */
+/* Backdrop */
 .review-backdrop {
     position: absolute;
     inset: 0;
     background: rgba(15, 23, 42, 0.72);
 }
 
-/* Modal window */
+/* Modal */
 .review-modal {
     position: relative;
     z-index: 1;
     width: min(800px, 96vw);
-    height: min(500px, 80vh);
+    max-height: 90vh;
     border-radius: 20px;
-    background: white;
+    background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(248,250,252,0.94));
     display: flex;
     flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    animation: fadeIn 0.2s ease;
 }
 
-/* Header section */
+/* Header */
 .review-header {
     display: flex;
     justify-content: space-between;
-    padding: 16px;
-    border-bottom: 1px solid #ddd;
+    align-items: center;
+    padding: 16px 24px;
+    background: var(--header-bg);
+}
+
+.review-header h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary, #1f2937);
 }
 
 .review-close {
     font-size: 20px;
     border: none;
-    background: transparent;
-    height: 20px;
-    width: 20px;
+    background: var(--button);
+    cursor: default;
+    transition: transform 0.15s ease, color 0.15s ease;
 }
 
 .review-close:hover {
-    transform: scale(1.05);
+    transform: scale(1.15);
+    color: var(--accent, #3b82f6);
     cursor: pointer;
 }
 
-/* Content area */
-.review-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 16px;
-}
-
-/* Toolbar buttons */
+/* Toolbar */
 .review-toolbar {
     display: flex;
     gap: 6px;
     margin-bottom: 8px;
-    margin-left: auto;
+    margin-left: 10px;
 }
 
 .review-toolbar button {
-    padding: 4px 8px;
+    padding: 6px 10px;
     cursor: pointer;
     border-radius: 6px;
-    border: 1px solid #ccc;
-    background: #f0f0f0;
-    transition: background 0.2s ease;
-}
-
-.review-toolbar button:hover {
-    background: #e0e0e0;
+    border: 1px solid rgba(203, 213, 225, 0.8);
+    background: #f9fafb;
+    font-weight: 600;
+    transition: all 0.2s ease;
 }
 
 .review-toolbar button.active {
-    background: #3b82f6;
+    background: linear-gradient(120deg, #3b82f6, #8b5cf6);
     color: white;
 }
 
-/* Editable text area */
-.editor {
-    flex: 1;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    padding: 10px;
-    overflow-y: auto;
-    min-height: 200px;
-    text-align: left;
+.review-toolbar button:hover {
+    background: linear-gradient(120deg, #60a5fa, #a78bfa);
+    color: white;
 }
 
-/* Footer and submit button */
+/* Editor */
+.editor {
+    flex: 1; 
+    border: 1px solid rgba(203, 213, 225, 0.6);
+    border-radius: 12px;
+    padding: 12px;
+    min-height: 220px;
+    max-height: 220px; 
+    overflow-y: auto;  
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--primary, #1f2937);
+    background: #fff;
+    outline: none;
+    transition: border 0.2s ease, box-shadow 0.2s ease;
+    margin: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: #3b82f6 #e5e7eb; 
+}
+
+.editor:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* Footer */
 .review-footer {
-    padding: 16px;
+    padding: 16px 24px;
     display: flex;
     justify-content: flex-end;
+    background: var(--bg-body);
 }
 
 .review-submit {
-    padding: 10px 20px;
-    border-radius: 10px;
+    padding: 10px 24px;
+    border-radius: 12px;
     border: none;
     cursor: pointer;
-    transition: background 0.3s ease;
+    font-weight: 600;
+    background: linear-gradient(120deg, #3b82f6, #8b5cf6);
+    color: white;
+    transition: transform 0.15s ease, filter 0.15s ease;
 }
 
 .review-submit:hover {
-    background: linear-gradient(120deg, #3b82f6, #8b5cf6);
-    color: white;
+transform: scale(1.05);
+filter: brightness(1.1);
+}
+
+/* Animations */
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(12px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+/* Scrollbar styling modern */
+.editor::-webkit-scrollbar {
+  width: 8px;
+}
+.editor::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+  border-radius: 999px;
+}
+.editor::-webkit-scrollbar-track {
+  background: rgba(203, 213, 225, 0.2);
+  border-radius: 999px;
 }

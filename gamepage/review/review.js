@@ -1,38 +1,42 @@
-// Initialize review modal
+// review.js
 export function initReviewModal() {
     const overlay = document.getElementById("reviewOverlay");
     const openBtn = document.getElementById("btnReview");
     const closeBtn = document.getElementById("closeReview");
     const editor = document.getElementById("editor");
+    const btnBold = document.getElementById("btnBold");
+    const btnItalic = document.getElementById("btnItalic");
+    const btnUnderline = document.getElementById("btnUnderline");
 
     if (!overlay || !openBtn || !closeBtn || !editor) return;
 
     openBtn.addEventListener("click", () => {
         overlay.classList.remove("hidden");
-        editor.focus(); // focus editor immediately
+        editor.focus();
+        updateToolbar();
     });
 
     closeBtn.addEventListener("click", () => overlay.classList.add("hidden"));
     overlay.querySelector(".review-backdrop").addEventListener("click", () => overlay.classList.add("hidden"));
 
-    editor.addEventListener("keyup", updateToolbar);   // update toolbar on typing
-    editor.addEventListener("mouseup", updateToolbar); // update toolbar on selection change
+    // Toolbar buttons
+    btnBold.addEventListener("click", () => { document.execCommand('bold'); editor.focus(); updateToolbar(); });
+    btnItalic.addEventListener("click", () => { document.execCommand('italic'); editor.focus(); updateToolbar(); });
+    btnUnderline.addEventListener("click", () => { document.execCommand('underline'); editor.focus(); updateToolbar(); });
+
+    // Update toolbar on typing/selection
+    editor.addEventListener("keyup", updateToolbar);
+    editor.addEventListener("mouseup", updateToolbar);
 }
 
-// Global formatting commands
-window.formatText = function(command) {
-    document.execCommand(command, false, null);
-    updateToolbar();
-};
-
-// Update toolbar button states
 function updateToolbar() {
+    const editor = document.getElementById("editor");
     document.getElementById("btnBold").classList.toggle("active", document.queryCommandState("bold"));
     document.getElementById("btnItalic").classList.toggle("active", document.queryCommandState("italic"));
     document.getElementById("btnUnderline").classList.toggle("active", document.queryCommandState("underline"));
 }
 
-// Auto initialize modal
+// Auto init
 document.addEventListener("DOMContentLoaded", () => {
     initReviewModal();
 });
