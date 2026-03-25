@@ -1,0 +1,124 @@
+/* Basic body setup */
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+}
+
+/* Overlay container */
+.review-overlay {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    z-index: 100000;
+}
+
+.review-overlay.hidden {
+    display: none;
+}
+
+/* Background overlay */
+.review-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.72);
+}
+
+/* Modal window */
+.review-modal {
+    position: relative;
+    z-index: 1;
+    width: min(800px, 96vw);
+    height: min(500px, 80vh);
+    border-radius: 20px;
+    background: white;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header section */
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 16px;
+    border-bottom: 1px solid #ddd;
+}
+
+.review-close {
+    font-size: 20px;
+    border: none;
+    background: transparent;
+    height: 20px;
+    width: 20px;
+}
+
+.review-close:hover {
+    transform: scale(1.05);
+    cursor: pointer;
+}
+
+/* Content area */
+.review-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+}
+
+/* Toolbar buttons */
+.review-toolbar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+    margin-left: auto;
+}
+
+.review-toolbar button {
+    padding: 4px 8px;
+    cursor: pointer;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #f0f0f0;
+    transition: background 0.2s ease;
+}
+
+.review-toolbar button:hover {
+    background: #e0e0e0;
+}
+
+.review-toolbar button.active {
+    background: #3b82f6;
+    color: white;
+}
+
+/* Editable text area */
+.editor {
+    flex: 1;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 10px;
+    overflow-y: auto;
+    min-height: 200px;
+    text-align: left;
+}
+
+/* Footer and submit button */
+.review-footer {
+    padding: 16px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.review-submit {
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.review-submit:hover {
+    background: linear-gradient(120deg, #3b82f6, #8b5cf6);
+    color: white;
+}
