@@ -581,7 +581,6 @@
     color: var(--primary);
     overflow: hidden;
     text-overflow: ellipsis;
-    word-break: break-word;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
@@ -894,10 +893,10 @@
 
 .likes_count{
     .likes_count {
-    display: flex;       /* wichtig für vertikale Zentrierung */
-    align-items: center; /* mittig innerhalb des flex-items */
-    font-size: 16px;     /* optional, anpassen wie gewünscht */
-    line-height: 1;      /* verhindert ungewolltes Hochziehen */
+    display: flex;      
+    align-items: center;
+    font-size: 16px;     
+    line-height: 1;     
 }
 }
 
@@ -926,7 +925,7 @@
     text-align: left;
     line-height: 1.25;
 }
-/* Container für alle Forum Posts */
+/* Container for all forum posts */
 .profile_forum {
     margin-top: 20px;
     flex: auto;
@@ -941,7 +940,7 @@
 .profile_forum h3{
     margin-top: 10px;
 }
-/* Einzelner Forum Post */
+/* Each forum post */
 .forum_post_item {
     display: flex;
     width: 100%;
@@ -962,7 +961,7 @@
     box-shadow: 0 12px 24px rgba(0,0,0,0.12);
 }
 
-/* Flex Container für Icon + Content */
+/* Flex Container for Icon+Content */
 .forum_post_card {
     display: flex;
     width: 100%;
@@ -984,7 +983,7 @@
     object-fit: cover;
 }
 
-/* Content rechts neben Cover */
+/* Content right from cover */
 .forum_post_contentclass {
     flex: 1;
     padding: 12px 16px;
@@ -994,7 +993,7 @@
     min-width: 0;
 }
 
-/* Obere Sektion: Titel + Forumname + Vorschau */
+/* upper section */
 .forum_post_top h3 {
     margin: 0;
     font-size: 18px;
@@ -1016,16 +1015,16 @@
     text-align: left;
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3; /* max 3 Zeilen */
+    -webkit-line-clamp: 3; /* max 3 rows */
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-/* Untere Sektion: Datum */
+/* lower section: date */
 .forum_post_bottom {
     display: flex;
     flex-direction: row;
-    margin-top: auto; /* Datum unten */
+    margin-top: auto; /* date at the bottom */
     font-size: 12px;
     color: var(--text-secondary, #666);
 }
