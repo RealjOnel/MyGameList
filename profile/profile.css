@@ -858,7 +858,6 @@
     flex: 0 0 auto;
     font-weight: 600;
     font-size: 16px;
-    margin-top: 15px;
     margin-bottom: auto;
     color: var(--primary);
     line-height: 1.6;
@@ -935,6 +934,22 @@
     flex-direction: column;
     padding: 0 20px;
     gap: 12px;
+}
+
+.show_more_button{
+    width: 140px;
+    margin-top:10px;
+    border-radius: 6px;
+    padding:8px 14px;
+    cursor:pointer;
+    background: linear-gradient(120deg, #3b82f6, #8b5cf6);
+    color:white;
+    display: block;
+    margin-left: auto;
+}
+
+.show_more_button:hover{
+    transform: scale(1.05);
 }
 
 .profile_forum h3{
