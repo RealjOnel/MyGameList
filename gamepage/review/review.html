@@ -23,10 +23,20 @@
         </div>
 
         <div class="review-content">
-            <div class="review-toolbar">
-                <button id="btnBold" type="button" onclick="formatText('bold')">B</button>
-                <button id="btnItalic" type="button" onclick="formatText('italic')">I</button>
-                <button id="btnUnderline" type="button" onclick="formatText('underline')">U</button>
+            <div class="content-top">
+                <div class="review-toolbar">
+                    <button id="btnBold" type="button" onclick="formatText('bold')">B</button>
+                    <button id="btnItalic" type="button" onclick="formatText('italic')">I</button>
+                    <button id="btnUnderline" type="button" onclick="formatText('underline')">U</button>
+                </div>
+                <div class="content-dropdown">
+                    <select class="review-select">
+                        <option value="" disabled selected>Choose...</option>
+                        <option value="recommended">Recommended</option>
+                        <option value="not">Not Recommended</option>
+                        <option value="mixed">Mixed Feelings</option>
+                    </select>
+                </div>
             </div>
             <div id="editor" contenteditable="true" class="editor"></div>
         </div>
