@@ -1,5 +1,5 @@
-import dotenv from "dotenv";
-dotenv.config();
+import "dotenv/config";
+import { env } from "./config/validateEnv.js";
 
 import express from "express";
 import mongoose from "mongoose";
@@ -28,19 +28,20 @@ app.use(
 );
 
 const allowedOrigins = [
-  process.env.FRONTEND_ORIGIN,
+  env.FRONTEND_ORIGIN,
   "http://localhost:5500",
   "http://127.0.0.1:5500",
   "http://localhost:5173",
   "http://127.0.0.1:5173"
 ].filter(Boolean);
 
-// no caching for API
+// Disable caching for API routes
 app.use("/api", (req, res, next) => {
   res.set("Cache-Control", "no-store");
   next();
 });
 
+// CORS configuration
 app.use(cors({
   origin(origin, callback) {
     if (!origin) return callback(null, true);
@@ -53,14 +54,14 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 
-// Rate Limits
+// Apply rate limiters
 app.use("/api/login", authLimiter);
 app.use("/api/register", authLimiter);
 app.use("/api/auth", authLimiter);
 app.use("/api", apiLimiter);
 
-// connect to MongoDB
-mongoose.connect(process.env.MONGO_URI)
+// Connect to MongoDB
+mongoose.connect(env.MONGO_URI)
   .then(() => {
     console.log("MongoDB Connected");
     console.log("readyState:", mongoose.connection.readyState);
@@ -74,7 +75,7 @@ app.get("/ping", (req, res) => {
   res.send("SERVER PING OK");
 });
 
-// Routes
+// API routes
 app.use("/api", authRoutes);
 app.use("/api/igdb", igdbRoutes);
 app.use("/api/library", libraryRoutes);
@@ -87,7 +88,7 @@ app.use((err, req, res, next) => {
     method: req.method,
     path: req.originalUrl,
     message: err?.message,
-    stack: process.env.NODE_ENV === "production" ? undefined : err?.stack
+    stack: env.NODE_ENV === "production" ? undefined : err?.stack
   });
 
   if (res.headersSent) {
@@ -100,13 +101,13 @@ app.use((err, req, res, next) => {
 
   return res.status(err?.status || 500).json({
     message:
-      process.env.NODE_ENV === "production"
+      env.NODE_ENV === "production"
         ? "Internal server error"
         : (err?.message || "Internal server error")
   });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server runs on http://localhost:${PORT}`);
 });
