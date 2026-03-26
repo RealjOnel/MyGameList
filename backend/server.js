@@ -5,6 +5,7 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import helmet from "helmet";
 
 import authRoutes from "./routes/auth.js";
 import igdbRoutes from "./routes/igdb.js";
@@ -18,6 +19,13 @@ const app = express();
 
 app.set("etag", false);
 app.set("trust proxy", 1);
+
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false
+  })
+);
 
 const allowedOrigins = [
   process.env.FRONTEND_ORIGIN,
