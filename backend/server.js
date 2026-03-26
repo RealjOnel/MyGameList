@@ -82,10 +82,6 @@ app.use("/api/users", userRoutes);
 app.use("/api/profile-comments", profileCommentRoutes);
 app.use("/api/friends", friendsRoutes);
 
-app.get("/error-test", (req, res, next) => {
-  next(new Error("Test error"));
-});
-
 app.use((err, req, res, next) => {
   console.error("Global error handler caught:", {
     method: req.method,
