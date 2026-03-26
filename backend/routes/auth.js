@@ -8,6 +8,13 @@ import {
   createRefreshTokenValue,
   hashRefreshToken
 } from "../utils/authTokens.js";
+import {
+  getClientIp,
+  getUserAgent,
+  logSecurityEvent,
+  logSecurityWarn,
+  logSecurityError
+} from "../utils/securityLogger.js";
 
 const router = express.Router();
 
@@ -20,7 +27,7 @@ function getRefreshCookieOptions() {
     secure: isProd,
     sameSite: isCrossSite ? "none" : "lax",
     path: "/",
-    maxAge: 1000 * 60 * 60 * 24 * 30 // 30 Days
+    maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days
   };
 }
 
@@ -37,10 +44,18 @@ function clearRefreshCookie(res) {
 
 // REGISTER
 router.post("/register", async (req, res) => {
+  const ip = getClientIp(req);
+  const userAgent = getUserAgent(req);
+
   try {
     const parsed = registerSchema.safeParse(req.body);
 
     if (!parsed.success) {
+      logSecurityWarn("register_invalid_input", {
+        ip,
+        userAgent
+      });
+
       return res.status(400).json({ message: "Invalid input" });
     }
 
@@ -48,6 +63,12 @@ router.post("/register", async (req, res) => {
 
     const existingUser = await User.findOne({ username });
     if (existingUser) {
+      logSecurityWarn("register_username_exists", {
+        username,
+        ip,
+        userAgent
+      });
+
       return res.status(400).json({ message: "Username already exists" });
     }
 
@@ -74,14 +95,27 @@ router.post("/register", async (req, res) => {
       userId: user._id,
       tokenHash: refreshTokenHash,
       expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
-      userAgent: req.get("user-agent") || "",
-      ip: req.ip || ""
+      userAgent,
+      ip
     });
 
     setRefreshCookie(res, refreshTokenValue);
 
+    logSecurityEvent("register_success", {
+      userId: String(user._id),
+      username: user.username,
+      ip,
+      userAgent
+    });
+
     res.json({ token: accessToken });
   } catch (err) {
+    logSecurityError("register_failed", {
+      ip,
+      userAgent,
+      message: err?.message
+    });
+
     console.error(err);
     res.status(500).json({ message: "Registration failed" });
   }
@@ -89,10 +123,18 @@ router.post("/register", async (req, res) => {
 
 // LOGIN
 router.post("/login", async (req, res) => {
+  const ip = getClientIp(req);
+  const userAgent = getUserAgent(req);
+
   try {
     const parsed = loginSchema.safeParse(req.body);
 
     if (!parsed.success) {
+      logSecurityWarn("login_invalid_input", {
+        ip,
+        userAgent
+      });
+
       return res.status(400).json({ message: "Invalid input" });
     }
 
@@ -100,11 +142,25 @@ router.post("/login", async (req, res) => {
 
     const user = await User.findOne({ username });
     if (!user) {
+      logSecurityWarn("login_failed", {
+        username,
+        reason: "invalid_credentials",
+        ip,
+        userAgent
+      });
+
       return res.status(400).json({ message: "Invalid username or password" });
     }
 
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) {
+      logSecurityWarn("login_failed", {
+        username,
+        reason: "invalid_credentials",
+        ip,
+        userAgent
+      });
+
       return res.status(400).json({ message: "Invalid username or password" });
     }
 
@@ -121,14 +177,28 @@ router.post("/login", async (req, res) => {
       userId: user._id,
       tokenHash: refreshTokenHash,
       expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
-      userAgent: req.get("user-agent") || "",
-      ip: req.ip || ""
+      userAgent,
+      ip
     });
 
     setRefreshCookie(res, refreshTokenValue);
 
+    logSecurityEvent("login_success", {
+      userId: String(user._id),
+      username: user.username,
+      ip,
+      userAgent
+    });
+
     res.json({ token: accessToken });
   } catch (err) {
+    logSecurityError("login_error", {
+      username: req.body?.username,
+      ip,
+      userAgent,
+      message: err?.message
+    });
+
     console.error(err);
     res.status(500).json({ message: "Login failed" });
   }
@@ -136,10 +206,18 @@ router.post("/login", async (req, res) => {
 
 // REFRESH
 router.post("/auth/refresh", async (req, res) => {
+  const ip = getClientIp(req);
+  const userAgent = getUserAgent(req);
+
   try {
     const refreshTokenValue = req.cookies?.refreshToken;
 
     if (!refreshTokenValue) {
+      logSecurityWarn("refresh_missing_token", {
+        ip,
+        userAgent
+      });
+
       return res.status(401).json({ message: "Missing refresh token" });
     }
 
@@ -151,11 +229,24 @@ router.post("/auth/refresh", async (req, res) => {
 
     if (!existingToken) {
       clearRefreshCookie(res);
+
+      logSecurityWarn("refresh_invalid_token", {
+        ip,
+        userAgent
+      });
+
       return res.status(401).json({ message: "Invalid refresh token" });
     }
 
     if (existingToken.revokedAt) {
       clearRefreshCookie(res);
+
+      logSecurityWarn("refresh_revoked_token", {
+        userId: String(existingToken.userId),
+        ip,
+        userAgent
+      });
+
       return res.status(401).json({ message: "Refresh token already revoked" });
     }
 
@@ -163,6 +254,13 @@ router.post("/auth/refresh", async (req, res) => {
       existingToken.revokedAt = new Date();
       await existingToken.save();
       clearRefreshCookie(res);
+
+      logSecurityWarn("refresh_expired_token", {
+        userId: String(existingToken.userId),
+        ip,
+        userAgent
+      });
+
       return res.status(401).json({ message: "Refresh token expired" });
     }
 
@@ -177,16 +275,28 @@ router.post("/auth/refresh", async (req, res) => {
       userId: existingToken.userId,
       tokenHash: newRefreshTokenHash,
       expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
-      userAgent: req.get("user-agent") || "",
-      ip: req.ip || ""
+      userAgent,
+      ip
     });
 
     const accessToken = createAccessToken(existingToken.userId);
 
     setRefreshCookie(res, newRefreshTokenValue);
 
+    logSecurityEvent("refresh_success", {
+      userId: String(existingToken.userId),
+      ip,
+      userAgent
+    });
+
     return res.json({ token: accessToken });
   } catch (err) {
+    logSecurityError("refresh_error", {
+      ip,
+      userAgent,
+      message: err?.message
+    });
+
     console.error(err);
     return res.status(500).json({ message: "Refresh failed" });
   }
@@ -194,6 +304,9 @@ router.post("/auth/refresh", async (req, res) => {
 
 // LOGOUT
 router.post("/auth/logout", async (req, res) => {
+  const ip = getClientIp(req);
+  const userAgent = getUserAgent(req);
+
   try {
     const refreshTokenValue = req.cookies?.refreshToken;
 
@@ -208,8 +321,19 @@ router.post("/auth/logout", async (req, res) => {
 
     clearRefreshCookie(res);
 
+    logSecurityEvent("logout_success", {
+      ip,
+      userAgent
+    });
+
     return res.json({ ok: true });
   } catch (err) {
+    logSecurityError("logout_error", {
+      ip,
+      userAgent,
+      message: err?.message
+    });
+
     console.error(err);
     return res.status(500).json({ message: "Logout failed" });
   }
