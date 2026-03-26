@@ -2,7 +2,7 @@
 body {
     font-family: 'Inter', sans-serif;
     margin: 0;
-    background: var(--bg-body, #f9fafb);
+    background: var(--bg-body);
 }
 
 /* Overlay */
@@ -30,7 +30,7 @@ body {
 .review-modal {
     position: relative;
     z-index: 1;
-    width: min(800px, 96vw);
+    width: min(1200px, 96vw);
     max-height: 90vh;
     border-radius: 20px;
     background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(248,250,252,0.94));
@@ -47,27 +47,53 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 16px 24px;
-    background: var(--header-bg);
+    background: var(--bg-body);
 }
 
 .review-header h2 {
     font-size: 1.3rem;
     font-weight: 700;
-    color: var(--primary, #1f2937);
+    color: var(--primary,);
 }
 
 .review-close {
     font-size: 20px;
     border: none;
-    background: var(--button);
+    background: var(--bg-secondary);
     cursor: default;
     transition: transform 0.15s ease, color 0.15s ease;
 }
 
 .review-close:hover {
     transform: scale(1.15);
-    color: var(--accent, #3b82f6);
+    color: var(--accent);
     cursor: pointer;
+}
+
+.review-item{
+  border-radius: 16px;
+  border: 1px solid rgba(15,23,42,0.08);
+  background: var(--bg-secondary);
+  padding: 14px;
+}
+
+.review-description{
+    background-color: var(--bg-body);
+    display: flex;
+    justify-content: center;
+    gap: 200px;
+}
+
+.review-description table{
+    border-spacing: 200px 0;
+    margin: 0 auto;
+}
+.review-content{
+    background-color: var(--bg-body);
+}
+.review-description {
+    display: flex;
+    justify-content: center;
 }
 
 /* Toolbar */
@@ -75,7 +101,7 @@ body {
     display: flex;
     gap: 6px;
     margin-bottom: 8px;
-    margin-left: 10px;
+    margin-left: 30px;
 }
 
 .review-toolbar button {
@@ -83,43 +109,42 @@ body {
     cursor: pointer;
     border-radius: 6px;
     border: 1px solid rgba(203, 213, 225, 0.8);
-    background: #f9fafb;
+    background: var(--bg-secondary);
     font-weight: 600;
     transition: all 0.2s ease;
 }
 
 .review-toolbar button.active {
     background: linear-gradient(120deg, #3b82f6, #8b5cf6);
-    color: white;
+    color: var(--bg-body);
 }
 
 .review-toolbar button:hover {
     background: linear-gradient(120deg, #60a5fa, #a78bfa);
-    color: white;
+    color: var(--bg-body);
 }
 
 /* Editor */
 .editor {
     flex: 1; 
+    height:  min(500px, 96vw);
     border: 1px solid rgba(203, 213, 225, 0.6);
     border-radius: 12px;
     padding: 12px;
-    min-height: 220px;
-    max-height: 220px; 
     overflow-y: auto;  
     font-size: 1rem;
     line-height: 1.5;
-    color: var(--primary, #1f2937);
-    background: #fff;
+    color: var(--primary);
+    background: var(--bg-secondary);
     outline: none;
     transition: border 0.2s ease, box-shadow 0.2s ease;
-    margin: 10px;
+    margin: 30px;
     scrollbar-width: thin;
-    scrollbar-color: #3b82f6 #e5e7eb; 
+    scrollbar-color: var(--accent) var(--button); 
 }
 
 .editor:focus {
-    border-color: #3b82f6;
+    border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
@@ -138,7 +163,7 @@ body {
     cursor: pointer;
     font-weight: 600;
     background: linear-gradient(120deg, #3b82f6, #8b5cf6);
-    color: white;
+    color: var(--bg-body);
     transition: transform 0.15s ease, filter 0.15s ease;
 }
 
