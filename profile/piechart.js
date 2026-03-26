@@ -21,10 +21,10 @@ if (!canvas || !tooltip) {
      ========================= */
 
   const STATUS_CONFIG = [
-    { key: "playing", label: "Currently Playing", color: "rgba(107, 211, 59, 0.8)" },
+    { key: "playing", label: "Currently Playing", color: "#10b981" },
     { key: "completed", label: "Completed", color: "#3b83f6" },
-    { key: "dropped", label: "Dropped", color: "rgba(211, 27, 27, 0.77)" },
-    { key: "on_hold", label: "On Hold", color: "rgba(228, 210, 46, 0.84)" },
+    { key: "dropped", label: "Dropped", color: "#ef4444" },
+    { key: "on_hold", label: "On Hold", color: "#f59e0b" },
     { key: "planned", label: "Planned", color: "#5a5a5aa2" }
   ];
 
