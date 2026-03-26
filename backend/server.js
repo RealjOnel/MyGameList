@@ -13,7 +13,7 @@ import libraryRoutes from "./routes/library.js";
 import userRoutes from "./routes/users.js";
 import profileCommentRoutes from "./routes/profileComments.js";
 import friendsRoutes from "./routes/friends.js";
-import { authLimiter, apiLimiter } from "./middleware/rateLimiter.js";
+import { loginLimiter, registerLimiter, authLimiter, apiLimiter } from "./middleware/rateLimiter.js";
 
 const app = express();
 
@@ -55,8 +55,8 @@ app.use(cookieParser());
 app.use(express.json());
 
 // Apply rate limiters
-app.use("/api/login", authLimiter);
-app.use("/api/register", authLimiter);
+app.use("/api/login", loginLimiter);
+app.use("/api/register", registerLimiter);
 app.use("/api/auth", authLimiter);
 app.use("/api", apiLimiter);
 
