@@ -40,3 +40,19 @@ function updateToolbar() {
 document.addEventListener("DOMContentLoaded", () => {
     initReviewModal();
 });
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    const select = document.getElementById("reviewSelect");
+
+    select.addEventListener("change", () => {
+        // alte Klassen entfernen
+        select.classList.remove("recommended", "not", "mixed");
+
+        // neue Klasse hinzufügen, passend zum Value
+        if (select.value) {
+            select.classList.add(select.value);
+        }
+    });
+});
+

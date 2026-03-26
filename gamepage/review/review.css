@@ -140,27 +140,57 @@ body {
 .review-select {
     padding: 8px 12px;
     border-radius: 10px;
-    border: 1px solid rgba(203, 213, 225, 0.8);
+    border: 1px solid #cbd5e1;
     background: var(--bg-secondary);
     font-weight: 600;
     cursor: pointer;
-    outline: none;
     transition: all 0.2s ease;
-    border-radius: 10px; 
-    padding: 5px 10px;   
-    border: 1px solid #ccc;
 }
 
+/* Farben je nach Auswahl */
+.review-select.recommended {
+    border-color: var(--accent);
+    color: var(--accent);
+}
 
-.review-select:hover {
+.review-select.not {
+    border-color: var(--planned);
+    color: var(--planned);
+}
+
+.review-select.mixed {
+    border-color: var(--dropped);
+    color: var(--dropped);
+}
+
+#reviewSelect {
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    background: var(--button);
+    color: var(--text-main);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+/* Farben je nach Auswahl */
+#reviewSelect.recommended {
+    background: #3b82f6;
+    color: white;
     border-color: #3b82f6;
 }
 
-.review-select:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+#reviewSelect.not {
+    background: #ef4444;
+    color: white;
+    border-color: #ef4444;
 }
 
+#reviewSelect.mixed {
+    background: #f59e0b;
+    color: white;
+    border-color: #f59e0b;
+}
 
 
 /* Editor */
