@@ -1,5 +1,7 @@
 import { API_BASE_URL } from "../../backend/config.js";
 
+let refreshPromise = null;
+
 export function syncAuthState() {
   const token = localStorage.getItem("token");
   document.documentElement.dataset.auth = token ? "in" : "out";
@@ -24,29 +26,38 @@ export function clearAccessToken() {
   syncAuthState();
 }
 
-export async function refreshAccessToken() {
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
-      method: "POST",
-      credentials: "include",
-      cache: "no-store"
-    });
+async function runRefresh() {
+  const res = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+    method: "POST",
+    credentials: "include",
+    cache: "no-store"
+  });
 
-    const text = await res.text();
-    const data = text ? JSON.parse(text) : {};
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : {};
 
-    if (!res.ok || !data?.token) {
-      clearAccessToken();
-      return null;
-    }
-
-    setAccessToken(data.token);
-    return data.token;
-  } catch (err) {
-    console.error("Refresh failed:", err);
+  if (!res.ok || !data?.token) {
     clearAccessToken();
     return null;
   }
+
+  setAccessToken(data.token);
+  return data.token;
+}
+
+export async function refreshAccessToken() {
+  if (!refreshPromise) {
+    refreshPromise = runRefresh()
+      .catch((err) => {
+        console.error("Refresh failed:", err);
+        return null;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+
+  return refreshPromise;
 }
 
 export async function logout() {
