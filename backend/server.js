@@ -82,6 +82,34 @@ app.use("/api/users", userRoutes);
 app.use("/api/profile-comments", profileCommentRoutes);
 app.use("/api/friends", friendsRoutes);
 
+app.get("/error-test", (req, res, next) => {
+  next(new Error("Test error"));
+});
+
+app.use((err, req, res, next) => {
+  console.error("Global error handler caught:", {
+    method: req.method,
+    path: req.originalUrl,
+    message: err?.message,
+    stack: process.env.NODE_ENV === "production" ? undefined : err?.stack
+  });
+
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  if (err?.message === "Not allowed by CORS") {
+    return res.status(403).json({ message: "CORS blocked this request" });
+  }
+
+  return res.status(err?.status || 500).json({
+    message:
+      process.env.NODE_ENV === "production"
+        ? "Internal server error"
+        : (err?.message || "Internal server error")
+  });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server runs on http://localhost:${PORT}`);
