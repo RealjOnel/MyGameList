@@ -1,11 +1,11 @@
-/* Base */
+/* ===================== BASE ===================== */
 body {
     font-family: 'Inter', sans-serif;
     margin: 0;
     background: var(--bg-body);
 }
 
-/* Overlay */
+/* ===================== OVERLAY ===================== */
 .review-overlay {
     position: fixed;
     inset: 0;
@@ -19,14 +19,13 @@ body {
     display: none;
 }
 
-/* Backdrop */
 .review-backdrop {
     position: absolute;
     inset: 0;
     background: rgba(15, 23, 42, 0.72);
 }
 
-/* Modal */
+/* ===================== MODAL ===================== */
 .review-modal {
     position: relative;
     z-index: 1;
@@ -41,7 +40,7 @@ body {
     animation: fadeIn 0.2s ease;
 }
 
-/* Header */
+/* ===================== HEADER ===================== */
 .review-header {
     display: flex;
     justify-content: space-between;
@@ -53,7 +52,7 @@ body {
 .review-header h2 {
     font-size: 1.3rem;
     font-weight: 700;
-    color: var(--primary,);
+    color: var(--primary);
 }
 
 .review-close {
@@ -70,33 +69,38 @@ body {
     cursor: pointer;
 }
 
-.review-item{
-  border-radius: 16px;
-  border: 1px solid rgba(15,23,42,0.08);
-  background: var(--bg-secondary);
-  padding: 14px;
-}
-
-.review-description{
-    background-color: var(--bg-body);
-    display: flex;
-    justify-content: center;
-    gap: 200px;
-}
-
-.review-description table{
-    border-spacing: 200px 0;
-    margin: 0 auto;
-}
-.review-content{
-    background-color: var(--bg-body);
-}
+/* ===================== DESCRIPTION ===================== */
 .review-description {
     display: flex;
     justify-content: center;
+    gap: 200px;
+    background-color: var(--bg-body);
 }
 
-/* Toolbar */
+.review-item {
+    border-radius: 16px;
+    border: 1px solid rgba(15,23,42,0.08);
+    background: var(--bg-secondary);
+    padding: 14px;
+}
+
+/* ===================== CONTENT ===================== */
+.review-content {
+    background-color: var(--bg-body);
+}
+
+.content-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.content-dropdown {
+    margin-left: auto;
+    margin-right: 40px;
+}
+
+/* ===================== TOOLBAR ===================== */
 .review-toolbar {
     display: flex;
     gap: 6px;
@@ -123,80 +127,73 @@ body {
     background: linear-gradient(120deg, #60a5fa, #a78bfa);
     color: var(--bg-body);
 }
-/*dropdown*/
 
-.content-top{
-    display: flex;
-    align-items: center;
-    display: flex;
-    gap: 10px;
+/* ===================== DROPDOWN ===================== */
+.dropdown {
+    position: relative;
+    width: 180px;
 }
 
-.content-dropdown{
-    margin-left: auto;
-    margin-right: 40px;
-}
-
-.review-select {
+.dropdown-btn {
+    width: 100%;
     padding: 8px 12px;
     border-radius: 10px;
     border: 1px solid #cbd5e1;
     background: var(--bg-secondary);
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    text-align: left;
 }
 
-/* Farben je nach Auswahl */
-.review-select.recommended {
-    border-color: var(--accent);
-    color: var(--accent);
+.dropdown-menu {
+    position: absolute;
+    top: 110%;
+    left: 0;
+    width: 100%;
+    background: var(--bg-secondary);
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 6px 0;
+    display: none;
+    flex-direction: column;
+    gap: 4px;
 }
 
-.review-select.not {
-    border-color: var(--planned);
-    color: var(--planned);
-}
-
-.review-select.mixed {
-    border-color: var(--dropped);
-    color: var(--dropped);
-}
-
-#reviewSelect {
+.dropdown-item {
     padding: 10px 14px;
-    border-radius: 12px;
-    border: 1px solid var(--color-border);
-    background: var(--button);
-    color: var(--text-main);
-    font-size: 1rem;
-    transition: all 0.2s ease;
+    cursor: pointer;
+    font-weight: 600;
 }
 
-/* Farben je nach Auswahl */
-#reviewSelect.recommended {
-    background: #3b82f6;
-    color: white;
-    border-color: #3b82f6;
+.dropdown-item:hover {
+    background: var(--bg-hover);
 }
 
-#reviewSelect.not {
-    background: #ef4444;
-    color: white;
-    border-color: #ef4444;
+/* ===================== COLORS ===================== */
+.recommended { color: var(--accent); }
+.mixed { color: var(--planned); }
+.not { color: var(--dropped); }
+
+
+/* Dropdown Auswahl Effekte */
+.dropdown-btn.recommended {
+    border: 2px solid #3b82f6; /* Blau */
+    box-shadow: 0 0 8px #3b82f6;
 }
 
-#reviewSelect.mixed {
-    background: #f59e0b;
-    color: white;
-    border-color: #f59e0b;
+.dropdown-btn.mixed {
+    border: 2px solid #6b7280; /* Grau */
+    box-shadow: 0 0 8px #6b7280;
 }
 
-
-/* Editor */
+.dropdown-btn.not {
+    border: 2px solid #ef4444; /* Rot */
+    box-shadow: 0 0 8px #ef4444;
+}
+/* ===================== EDITOR ===================== */
 .editor {
     flex: 1; 
-    height:  min(500px, 96vw);
+    height: min(500px, 96vw);
     border: 1px solid rgba(203, 213, 225, 0.6);
     border-radius: 12px;
     padding: 12px;
@@ -217,7 +214,7 @@ body {
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
-/* Footer */
+/* ===================== FOOTER ===================== */
 .review-footer {
     padding: 16px 24px;
     display: flex;
@@ -237,25 +234,27 @@ body {
 }
 
 .review-submit:hover {
-transform: scale(1.05);
-filter: brightness(1.1);
+    transform: scale(1.05);
+    filter: brightness(1.1);
 }
 
-/* Animations */
-@keyframes fadeIn {
-from { opacity: 0; transform: translateY(12px); }
-to { opacity: 1; transform: translateY(0); }
-}
-
-/* Scrollbar styling modern */
+/* ===================== SCROLLBAR ===================== */
 .editor::-webkit-scrollbar {
-  width: 8px;
+    width: 8px;
 }
+
 .editor::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, #3b82f6, #8b5cf6);
-  border-radius: 999px;
+    border-radius: 999px;
 }
+
 .editor::-webkit-scrollbar-track {
-  background: rgba(203, 213, 225, 0.2);
-  border-radius: 999px;
+    background: rgba(203, 213, 225, 0.2);
+    border-radius: 999px;
+}
+
+/* ===================== ANIMATION ===================== */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
 }

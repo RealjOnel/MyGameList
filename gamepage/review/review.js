@@ -10,6 +10,9 @@ export function initReviewModal() {
 
     if (!overlay || !openBtn || !closeBtn || !editor) return;
 
+    // 👉 Dropdown direkt hier initialisieren
+    initDropdown();
+
     openBtn.addEventListener("click", () => {
         overlay.classList.remove("hidden");
         editor.focus();
@@ -30,29 +33,35 @@ export function initReviewModal() {
 }
 
 function updateToolbar() {
-    const editor = document.getElementById("editor");
     document.getElementById("btnBold").classList.toggle("active", document.queryCommandState("bold"));
     document.getElementById("btnItalic").classList.toggle("active", document.queryCommandState("italic"));
     document.getElementById("btnUnderline").classList.toggle("active", document.queryCommandState("underline"));
 }
 
-// Auto init
-document.addEventListener("DOMContentLoaded", () => {
-    initReviewModal();
-});
+// Custom Dropdown
+function initDropdown() {
+    const dropdown = document.getElementById("reviewDropdown");
+    if (!dropdown) return;
 
+    const btn = dropdown.querySelector(".dropdown-btn");
+    const menu = dropdown.querySelector(".dropdown-menu");
 
-document.addEventListener("DOMContentLoaded", () => {
-    const select = document.getElementById("reviewSelect");
+    btn.addEventListener("click", () => {
+        const isOpen = getComputedStyle(menu).display === "flex";
+        menu.style.display = isOpen ? "none" : "flex";
+    });
 
-    select.addEventListener("change", () => {
-        // alte Klassen entfernen
-        select.classList.remove("recommended", "not", "mixed");
+    menu.querySelectorAll(".dropdown-item").forEach(item => {
+        item.addEventListener("click", () => {
+            btn.textContent = item.textContent;
+            btn.className = "dropdown-btn " + item.dataset.value;
+            menu.style.display = "none";
+        });
+    });
 
-        // neue Klasse hinzufügen, passend zum Value
-        if (select.value) {
-            select.classList.add(select.value);
+    document.addEventListener("click", (e) => {
+        if (!dropdown.contains(e.target)) {
+            menu.style.display = "none";
         }
     });
-});
-
+}
