@@ -18,6 +18,16 @@ import {
 
 const router = express.Router();
 
+function normalizeUsername(rawValue = "") {
+  const displayUsername = String(rawValue || "").trim();
+  const normalizedUsername = displayUsername.toLowerCase();
+
+  return {
+    displayUsername,
+    normalizedUsername
+  };
+}
+
 function getRefreshCookieOptions() {
   const isProd = process.env.NODE_ENV === "production";
   const isCrossSite = process.env.COOKIE_CROSS_SITE === "true";
@@ -27,7 +37,7 @@ function getRefreshCookieOptions() {
     secure: isProd,
     sameSite: isCrossSite ? "none" : "lax",
     path: "/",
-    maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days
+    maxAge: 1000 * 60 * 60 * 24 * 30
   };
 }
 
@@ -60,11 +70,13 @@ router.post("/register", async (req, res) => {
     }
 
     const { username, email, password } = parsed.data;
+    const { displayUsername, normalizedUsername } = normalizeUsername(username);
 
-    const existingUser = await User.findOne({ username });
+    const existingUser = await User.findOne({ username: normalizedUsername });
     if (existingUser) {
       logSecurityWarn("register_username_exists", {
-        username,
+        username: normalizedUsername,
+        displayUsername,
         ip,
         userAgent
       });
@@ -76,7 +88,8 @@ router.post("/register", async (req, res) => {
     const now = new Date();
 
     const user = new User({
-      username,
+      username: normalizedUsername,
+      displayUsername,
       email,
       passwordHash,
       createdAt: now,
@@ -104,6 +117,7 @@ router.post("/register", async (req, res) => {
     logSecurityEvent("register_success", {
       userId: String(user._id),
       username: user.username,
+      displayUsername: user.displayUsername,
       ip,
       userAgent
     });
@@ -139,11 +153,12 @@ router.post("/login", async (req, res) => {
     }
 
     const { username, password } = parsed.data;
+    const { normalizedUsername } = normalizeUsername(username);
 
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ username: normalizedUsername });
     if (!user) {
       logSecurityWarn("login_failed", {
-        username,
+        username: normalizedUsername,
         reason: "invalid_credentials",
         ip,
         userAgent
@@ -155,7 +170,7 @@ router.post("/login", async (req, res) => {
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) {
       logSecurityWarn("login_failed", {
-        username,
+        username: normalizedUsername,
         reason: "invalid_credentials",
         ip,
         userAgent
@@ -186,6 +201,7 @@ router.post("/login", async (req, res) => {
     logSecurityEvent("login_success", {
       userId: String(user._id),
       username: user.username,
+      displayUsername: user.displayUsername,
       ip,
       userAgent
     });

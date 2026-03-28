@@ -14,6 +14,14 @@ const usernameSchema = z
   .min(3, "Username is required")
   .max(20, "Username is too long");
 
+function normalizeUsername(rawValue = "") {
+  return String(rawValue || "").trim().toLowerCase();
+}
+
+function getPublicUsername(user) {
+  return user?.displayUsername || user?.username || "Unknown User";
+}
+
 function parseUsername(value) {
   const parsed = usernameSchema.safeParse(value);
 
@@ -26,7 +34,8 @@ function parseUsername(value) {
 
   return {
     ok: true,
-    value: parsed.data
+    value: parsed.data,
+    normalizedValue: normalizeUsername(parsed.data)
   };
 }
 
@@ -55,7 +64,7 @@ function hasFriend(user, targetUserId) {
 function normalizeFriendUser(user) {
   return {
     id: user._id,
-    username: user.username,
+    username: getPublicUsername(user),
     avatarUrl: null,
     createdAt: user.createdAt ?? null,
     lastLoginAt: user.lastLoginAt ?? null,
@@ -74,12 +83,14 @@ router.get("/status/:username", requireAuth, async (req, res) => {
       return res.status(400).json({ message: usernameResult.message });
     }
 
-    const viewer = await User.findById(req.userId).select("_id username friends");
+    const viewer = await User.findById(req.userId).select("_id username displayUsername friends");
     if (!viewer) {
       return res.status(404).json({ message: "Viewer not found" });
     }
 
-    const target = await User.findOne({ username: usernameResult.value }).select("_id username settings");
+    const target = await User.findOne({ username: usernameResult.normalizedValue })
+      .select("_id username displayUsername settings");
+
     if (!target) {
       return res.status(404).json({ message: "Target user not found" });
     }
@@ -148,8 +159,8 @@ router.get("/list/:username", requireAuth, async (req, res) => {
       return res.status(400).json({ message: usernameResult.message });
     }
 
-    const profileUser = await User.findOne({ username: usernameResult.value })
-      .populate("friends", "username createdAt lastLoginAt");
+    const profileUser = await User.findOne({ username: usernameResult.normalizedValue })
+      .populate("friends", "username displayUsername createdAt lastLoginAt");
 
     if (!profileUser) {
       return res.status(404).json({ message: "Profile user not found" });
@@ -157,7 +168,7 @@ router.get("/list/:username", requireAuth, async (req, res) => {
 
     const friends = (profileUser.friends || [])
       .filter(Boolean)
-      .sort((a, b) => String(a.username || "").localeCompare(String(b.username || "")))
+      .sort((a, b) => String(getPublicUsername(a)).localeCompare(String(getPublicUsername(b))))
       .map(normalizeFriendUser);
 
     res.json({ friends });
@@ -175,12 +186,14 @@ router.post("/request/:username", requireAuth, sendFriendRequestLimiter, async (
       return res.status(400).json({ message: usernameResult.message });
     }
 
-    const viewer = await User.findById(req.userId).select("_id username friends");
+    const viewer = await User.findById(req.userId).select("_id username displayUsername friends");
     if (!viewer) {
       return res.status(404).json({ message: "Viewer not found" });
     }
 
-    const target = await User.findOne({ username: usernameResult.value }).select("_id username friends settings");
+    const target = await User.findOne({ username: usernameResult.normalizedValue })
+      .select("_id username displayUsername friends settings");
+
     if (!target) {
       return res.status(404).json({ message: "Target user not found" });
     }
@@ -344,7 +357,7 @@ router.delete("/request/:username", requireAuth, async (req, res) => {
       return res.status(400).json({ message: usernameResult.message });
     }
 
-    const target = await User.findOne({ username: usernameResult.value }).select("_id");
+    const target = await User.findOne({ username: usernameResult.normalizedValue }).select("_id");
     if (!target) {
       return res.status(404).json({ message: "Target user not found" });
     }
@@ -378,7 +391,7 @@ router.delete("/remove/:username", requireAuth, async (req, res) => {
     }
 
     const viewer = await User.findById(req.userId).select("_id");
-    const target = await User.findOne({ username: usernameResult.value }).select("_id");
+    const target = await User.findOne({ username: usernameResult.normalizedValue }).select("_id");
 
     if (!viewer || !target) {
       return res.status(404).json({ message: "User not found" });
@@ -438,7 +451,7 @@ router.get("/notifications", requireAuth, async (req, res) => {
       status: "pending",
     })
       .sort({ createdAt: -1 })
-      .populate("fromUserId", "username")
+      .populate("fromUserId", "username displayUsername")
       .limit(25);
 
     const notifications = requests.map((reqDoc) => ({
@@ -447,7 +460,7 @@ router.get("/notifications", requireAuth, async (req, res) => {
       type: "friend_request",
       fromUser: {
         id: reqDoc.fromUserId?._id ?? null,
-        username: reqDoc.fromUserId?.username || "Unknown User",
+        username: getPublicUsername(reqDoc.fromUserId),
         avatarUrl: null,
       },
     }));

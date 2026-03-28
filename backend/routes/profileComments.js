@@ -24,12 +24,25 @@ const commentTextSchema = z
   .min(1, "Comment cannot be empty")
   .max(MAX_COMMENT_LENGTH, `Comment must be ${MAX_COMMENT_LENGTH} characters or less`);
 
+function normalizeUsername(rawValue = "") {
+  return String(rawValue || "").trim().toLowerCase();
+}
+
+function getPublicUsername(user) {
+  return user?.displayUsername || user?.username || "Unknown User";
+}
+
 function parseUsername(value) {
   const parsed = usernameSchema.safeParse(value);
   if (!parsed.success) {
     return { ok: false, message: parsed.error.issues[0]?.message || "Invalid username" };
   }
-  return { ok: true, value: parsed.data };
+
+  return {
+    ok: true,
+    value: parsed.data,
+    normalizedValue: normalizeUsername(parsed.data)
+  };
 }
 
 function parseCommentText(value) {
@@ -62,14 +75,16 @@ router.get("/:username", async (req, res) => {
       return res.status(400).json({ message: usernameResult.message });
     }
 
-    const profileUser = await User.findOne({ username: usernameResult.value }).select("_id username");
+    const profileUser = await User.findOne({ username: usernameResult.normalizedValue })
+      .select("_id username displayUsername");
+
     if (!profileUser) {
       return res.status(404).json({ message: "Profile user not found" });
     }
 
     const comments = await ProfileComment.find({ profileUserId: profileUser._id })
       .sort({ createdAt: -1 })
-      .populate("authorUserId", "username")
+      .populate("authorUserId", "username displayUsername")
       .limit(100);
 
     const out = comments.map((comment) => ({
@@ -78,7 +93,7 @@ router.get("/:username", async (req, res) => {
       createdAt: comment.createdAt,
       canDelete: false,
       author: {
-        username: comment.authorUserId?.username || "Unknown User",
+        username: getPublicUsername(comment.authorUserId),
         avatarUrl: null,
       },
     }));
@@ -103,12 +118,14 @@ router.post("/:username", requireAuth, postCommentLimiter, async (req, res) => {
       return res.status(400).json({ message: textResult.message });
     }
 
-    const profileUser = await User.findOne({ username: usernameResult.value }).select("_id username");
+    const profileUser = await User.findOne({ username: usernameResult.normalizedValue })
+      .select("_id username displayUsername");
+
     if (!profileUser) {
       return res.status(404).json({ message: "Profile user not found" });
     }
 
-    const authorUser = await User.findById(req.userId).select("_id username");
+    const authorUser = await User.findById(req.userId).select("_id username displayUsername");
     if (!authorUser) {
       return res.status(404).json({ message: "Author user not found" });
     }
@@ -156,7 +173,7 @@ router.post("/:username", requireAuth, postCommentLimiter, async (req, res) => {
         createdAt: created.createdAt,
         canDelete: true,
         author: {
-          username: authorUser.username,
+          username: getPublicUsername(authorUser),
           avatarUrl: null,
         },
       },

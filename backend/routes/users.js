@@ -69,6 +69,107 @@ const LINK_RULES = {
   }
 };
 
+const usernameSchema = z
+  .string()
+  .trim()
+  .min(3, "Username is required")
+  .max(20, "Username is too long");
+
+const userSearchSchema = z
+  .string()
+  .trim()
+  .max(50, "Search query is too long");
+
+const settingsPatchSchema = z.object({
+  profile: z.object({
+    bio: z.string().trim().max(100, "Bio must be 100 characters or less").optional(),
+    links: z.object({
+      discord: z.string().trim().max(200).optional(),
+      youtube: z.string().trim().max(200).optional(),
+      twitch: z.string().trim().max(200).optional(),
+      steam: z.string().trim().max(200).optional(),
+      website: z.string().trim().max(200).optional(),
+    }).partial().optional(),
+    optionalFields: z.object({
+      location: z.string().trim().max(80).optional(),
+      favoriteGenre: z.string().trim().max(80).optional(),
+      favoritePlatform: z.string().trim().max(80).optional(),
+    }).partial().optional(),
+  }).partial().optional(),
+
+  social: z.object({
+    showFriendsList: z.boolean().optional(),
+    showReviews: z.boolean().optional(),
+    showForumActivity: z.boolean().optional(),
+    showFavoriteGames: z.boolean().optional(),
+    showActivityHistory: z.boolean().optional(),
+    allowProfileComments: z.boolean().optional(),
+  }).partial().optional(),
+
+  privacy: z.object({
+    publicProfile: z.boolean().optional(),
+    showProfileInSearch: z.boolean().optional(),
+    allowDirectFriendRequests: z.boolean().optional(),
+    cookies: z.object({
+      preferences: z.boolean().optional(),
+      analytics: z.boolean().optional(),
+    }).partial().optional(),
+  }).partial().optional(),
+
+  customization: z.object({
+    defaultExploreView: z.enum(["grid", "compact", "table"]).optional(),
+    compactInterface: z.boolean().optional(),
+    reducedMotion: z.boolean().optional(),
+    liveSearchSuggestions: z.boolean().optional(),
+  }).partial().optional(),
+}).strict();
+
+function normalizeUsername(rawValue = "") {
+  return String(rawValue || "").trim().toLowerCase();
+}
+
+function cloneDefaults() {
+  return JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+}
+
+function isPlainObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value);
+}
+
+function deepMerge(target, source) {
+  const out = { ...target };
+
+  for (const [key, value] of Object.entries(source || {})) {
+    if (isPlainObject(value) && isPlainObject(out[key])) {
+      out[key] = deepMerge(out[key], value);
+    } else {
+      out[key] = value;
+    }
+  }
+
+  return out;
+}
+
+function normalizeSettings(settings) {
+  const raw = settings?.toObject ? settings.toObject() : settings || {};
+  return deepMerge(cloneDefaults(), raw);
+}
+
+function compactObject(obj) {
+  if (!isPlainObject(obj)) return obj;
+
+  const out = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (isPlainObject(value)) {
+      const nested = compactObject(value);
+      if (Object.keys(nested).length > 0) out[key] = nested;
+    } else if (value !== undefined) {
+      out[key] = value;
+    }
+  }
+  return out;
+}
+
 function normalizeHostname(hostname = "") {
   return String(hostname || "").trim().toLowerCase().replace(/^www\./, "");
 }
@@ -154,103 +255,6 @@ function sanitizeSettingsLinks(patch) {
   return { ok: true, value: nextPatch };
 }
 
-const usernameSchema = z
-  .string()
-  .trim()
-  .min(3, "Username is required")
-  .max(20, "Username is too long");
-
-const userSearchSchema = z
-  .string()
-  .trim()
-  .max(50, "Search query is too long");
-
-const settingsPatchSchema = z.object({
-  profile: z.object({
-    bio: z.string().trim().max(100, "Bio must be 100 characters or less").optional(),
-    links: z.object({
-      discord: z.string().trim().max(200).optional(),
-      youtube: z.string().trim().max(200).optional(),
-      twitch: z.string().trim().max(200).optional(),
-      steam: z.string().trim().max(200).optional(),
-      website: z.string().trim().max(200).optional(),
-    }).partial().optional(),
-    optionalFields: z.object({
-      location: z.string().trim().max(80).optional(),
-      favoriteGenre: z.string().trim().max(80).optional(),
-      favoritePlatform: z.string().trim().max(80).optional(),
-    }).partial().optional(),
-  }).partial().optional(),
-
-  social: z.object({
-    showFriendsList: z.boolean().optional(),
-    showReviews: z.boolean().optional(),
-    showForumActivity: z.boolean().optional(),
-    showFavoriteGames: z.boolean().optional(),
-    showActivityHistory: z.boolean().optional(),
-    allowProfileComments: z.boolean().optional(),
-  }).partial().optional(),
-
-  privacy: z.object({
-    publicProfile: z.boolean().optional(),
-    showProfileInSearch: z.boolean().optional(),
-    allowDirectFriendRequests: z.boolean().optional(),
-    cookies: z.object({
-      preferences: z.boolean().optional(),
-      analytics: z.boolean().optional(),
-    }).partial().optional(),
-  }).partial().optional(),
-
-  customization: z.object({
-    defaultExploreView: z.enum(["grid", "compact", "table"]).optional(),
-    compactInterface: z.boolean().optional(),
-    reducedMotion: z.boolean().optional(),
-    liveSearchSuggestions: z.boolean().optional(),
-  }).partial().optional(),
-}).strict();
-
-function cloneDefaults() {
-  return JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
-}
-
-function isPlainObject(value) {
-  return value && typeof value === "object" && !Array.isArray(value);
-}
-
-function deepMerge(target, source) {
-  const out = { ...target };
-
-  for (const [key, value] of Object.entries(source || {})) {
-    if (isPlainObject(value) && isPlainObject(out[key])) {
-      out[key] = deepMerge(out[key], value);
-    } else {
-      out[key] = value;
-    }
-  }
-
-  return out;
-}
-
-function normalizeSettings(settings) {
-  const raw = settings?.toObject ? settings.toObject() : settings || {};
-  return deepMerge(cloneDefaults(), raw);
-}
-
-function compactObject(obj) {
-  if (!isPlainObject(obj)) return obj;
-
-  const out = {};
-  for (const [key, value] of Object.entries(obj)) {
-    if (isPlainObject(value)) {
-      const nested = compactObject(value);
-      if (Object.keys(nested).length > 0) out[key] = nested;
-    } else if (value !== undefined) {
-      out[key] = value;
-    }
-  }
-  return out;
-}
-
 function parseUsername(value) {
   const parsed = usernameSchema.safeParse(value);
 
@@ -263,7 +267,8 @@ function parseUsername(value) {
 
   return {
     ok: true,
-    value: parsed.data
+    value: parsed.data,
+    normalizedValue: normalizeUsername(parsed.data)
   };
 }
 
@@ -334,17 +339,21 @@ function canViewProfile(viewer, targetUser) {
   return settings.privacy.publicProfile !== false;
 }
 
+function getPublicUsername(user) {
+  return user?.displayUsername || user?.username || "";
+}
+
 // GET /api/users/me
 router.get("/me", requireAuth, async (req, res) => {
   try {
     res.set("Cache-Control", "no-store");
 
-    const user = await User.findById(req.userId).select("username createdAt lastLoginAt");
+    const user = await User.findById(req.userId).select("username displayUsername createdAt lastLoginAt");
     if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json({
       id: user._id,
-      username: user.username,
+      username: getPublicUsername(user),
       createdAt: user.createdAt ?? user._id.getTimestamp(),
       lastLoginAt: user.lastLoginAt ?? null
     });
@@ -425,20 +434,20 @@ router.get("/search", async (req, res) => {
       return res.json({ users: [] });
     }
 
-    const safe = escapeRegex(q);
+    const safe = escapeRegex(normalizeUsername(q));
 
     const users = await User.find({
       username: { $regex: safe, $options: "i" },
       "settings.privacy.showProfileInSearch": { $ne: false }
     })
-      .select("username")
+      .select("username displayUsername")
       .sort({ username: 1 })
       .limit(8);
 
     res.json({
       users: users.map((user) => ({
         id: user._id,
-        username: user.username,
+        username: getPublicUsername(user),
         avatarUrl: null
       }))
     });
@@ -458,13 +467,13 @@ router.get("/profile/:username", requireAuth, async (req, res) => {
       return res.status(400).json({ message: usernameResult.message });
     }
 
-    const viewer = await User.findById(req.userId).select("_id username friends");
+    const viewer = await User.findById(req.userId).select("_id username displayUsername friends");
     if (!viewer) {
       return res.status(404).json({ message: "Viewer not found" });
     }
 
-    const user = await User.findOne({ username: usernameResult.value })
-      .select("username createdAt lastLoginAt settings friends");
+    const user = await User.findOne({ username: usernameResult.normalizedValue })
+      .select("username displayUsername createdAt lastLoginAt settings friends");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -480,7 +489,7 @@ router.get("/profile/:username", requireAuth, async (req, res) => {
 
     res.json({
       id: user._id,
-      username: user.username,
+      username: getPublicUsername(user),
       createdAt: user.createdAt ?? user._id.getTimestamp(),
       lastLoginAt: user.lastLoginAt ?? null,
       settings,
