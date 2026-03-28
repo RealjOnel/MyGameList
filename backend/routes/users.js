@@ -46,6 +46,114 @@ const DEFAULT_SETTINGS = Object.freeze({
   },
 });
 
+const LINK_RULES = {
+  discord: {
+    label: "Discord link",
+    allowedHosts: ["discord.gg", "discord.com", "discordapp.com"]
+  },
+  youtube: {
+    label: "YouTube link",
+    allowedHosts: ["youtube.com", "youtu.be"]
+  },
+  twitch: {
+    label: "Twitch link",
+    allowedHosts: ["twitch.tv"]
+  },
+  steam: {
+    label: "Steam link",
+    allowedHosts: ["steamcommunity.com", "store.steampowered.com"]
+  },
+  website: {
+    label: "Website link",
+    allowedHosts: null
+  }
+};
+
+function normalizeHostname(hostname = "") {
+  return String(hostname || "").trim().toLowerCase().replace(/^www\./, "");
+}
+
+function hostMatchesAllowed(hostname, allowedHosts) {
+  if (!Array.isArray(allowedHosts) || !allowedHosts.length) {
+    return true;
+  }
+
+  const host = normalizeHostname(hostname);
+
+  return allowedHosts.some((allowed) => {
+    const safeAllowed = normalizeHostname(allowed);
+    return host === safeAllowed || host.endsWith(`.${safeAllowed}`);
+  });
+}
+
+function sanitizeExternalLink(rawValue, rule) {
+  if (rawValue === undefined) {
+    return { ok: true, value: undefined };
+  }
+
+  if (typeof rawValue !== "string") {
+    return { ok: false, message: `${rule.label} must be a string` };
+  }
+
+  const trimmed = rawValue.trim();
+
+  if (!trimmed) {
+    return { ok: true, value: "" };
+  }
+
+  if (trimmed.length > 200) {
+    return { ok: false, message: `${rule.label} is too long` };
+  }
+
+  let candidate = trimmed;
+
+  if (!/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(candidate)) {
+    candidate = `https://${candidate}`;
+  }
+
+  let url;
+  try {
+    url = new URL(candidate);
+  } catch {
+    return { ok: false, message: `${rule.label} is not a valid URL` };
+  }
+
+  if (!["http:", "https:"].includes(url.protocol)) {
+    return { ok: false, message: `${rule.label} must use http or https` };
+  }
+
+  if (url.username || url.password) {
+    return { ok: false, message: `${rule.label} must not contain embedded login data` };
+  }
+
+  if (!hostMatchesAllowed(url.hostname, rule.allowedHosts)) {
+    return { ok: false, message: `${rule.label} must point to a valid ${rule.label.toLowerCase()} domain` };
+  }
+
+  return { ok: true, value: url.toString() };
+}
+
+function sanitizeSettingsLinks(patch) {
+  if (!patch?.profile?.links) {
+    return { ok: true, value: patch };
+  }
+
+  const nextPatch = structuredClone(patch);
+
+  for (const [key, rule] of Object.entries(LINK_RULES)) {
+    if (!(key in nextPatch.profile.links)) continue;
+
+    const result = sanitizeExternalLink(nextPatch.profile.links[key], rule);
+    if (!result.ok) {
+      return { ok: false, message: result.message };
+    }
+
+    nextPatch.profile.links[key] = result.value;
+  }
+
+  return { ok: true, value: nextPatch };
+}
+
 const usernameSchema = z
   .string()
   .trim()
@@ -185,7 +293,15 @@ function parseSettingsPatch(raw = {}) {
     };
   }
 
-  const patch = compactObject(parsed.data);
+  const linksResult = sanitizeSettingsLinks(parsed.data);
+  if (!linksResult.ok) {
+    return {
+      ok: false,
+      message: linksResult.message
+    };
+  }
+
+  const patch = compactObject(linksResult.value);
 
   if (!Object.keys(patch).length) {
     return {
