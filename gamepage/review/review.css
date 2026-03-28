@@ -104,7 +104,6 @@ body {
 .review-toolbar {
     display: flex;
     gap: 6px;
-    margin-bottom: 8px;
     margin-left: 30px;
 }
 
@@ -127,14 +126,43 @@ body {
     background: linear-gradient(120deg, #60a5fa, #a78bfa);
     color: var(--bg-body);
 }
+/*======================Reset=========================*/
+.content-dropdown-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px; /* Abstand zwischen Reset und Dropdown */
+    margin-left: auto;
+    margin-right: 40px;
+}
+
+.reset-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.reset-btn:hover {
+    background: #e5e7eb; /* heller beim Hover */
+}
+
+.reset-btn i {
+    font-size: 14px;
+    color: var(--primary);
+}
 
 /* ===================== DROPDOWN ===================== */
-.dropdown {
+.review-dropdown {
     position: relative;
     width: 180px;
 }
 
-.dropdown-btn {
+.review-dropdown-btn {
     width: 100%;
     padding: 8px 12px;
     border-radius: 10px;
@@ -145,7 +173,7 @@ body {
     text-align: left;
 }
 
-.dropdown-menu {
+.review-dropdown-menu {
     position: absolute;
     top: 110%;
     left: 0;
@@ -159,13 +187,13 @@ body {
     gap: 4px;
 }
 
-.dropdown-item {
+.review-dropdown-item {
     padding: 10px 14px;
     cursor: pointer;
     font-weight: 600;
 }
 
-.dropdown-item:hover {
+.review-dropdown-item:hover {
     background: var(--bg-hover);
 }
 
@@ -176,17 +204,17 @@ body {
 
 
 /* Dropdown Auswahl Effekte */
-.dropdown-btn.recommended {
+.review-dropdown-btn.recommended {
     border: 2px solid #3b82f6; /* Blau */
     box-shadow: 0 0 8px #3b82f6;
 }
 
-.dropdown-btn.mixed {
+.review-dropdown-btn.mixed {
     border: 2px solid #6b7280; /* Grau */
     box-shadow: 0 0 8px #6b7280;
 }
 
-.dropdown-btn.not {
+.review-dropdown-btn.not {
     border: 2px solid #ef4444; /* Rot */
     box-shadow: 0 0 8px #ef4444;
 }
@@ -198,15 +226,20 @@ body {
     border-radius: 12px;
     padding: 12px;
     overflow-y: auto;  
+    overflow-x: hidden;  
     font-size: 1rem;
     line-height: 1.5;
     color: var(--primary);
     background: var(--bg-secondary);
     outline: none;
     transition: border 0.2s ease, box-shadow 0.2s ease;
+    margin-top: 15px !important; 
     margin: 30px;
     scrollbar-width: thin;
     scrollbar-color: var(--accent) var(--button); 
+    white-space: pre-wrap;       /* Zeilenumbruch auch bei langen Texten */
+    word-wrap: break-word;       /* lange Wörter umbrechen */
+    word-break: break-word;   
 }
 
 .editor:focus {

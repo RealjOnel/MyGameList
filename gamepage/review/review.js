@@ -7,12 +7,16 @@ export function initReviewModal() {
     const btnBold = document.getElementById("btnBold");
     const btnItalic = document.getElementById("btnItalic");
     const btnUnderline = document.getElementById("btnUnderline");
+    const btnReset = document.getElementById("btnReset");
+    const dropdownBtn = document.querySelector("#reviewDropdown .review-dropdown-btn");
+    const dropdownMenu = document.querySelector("#reviewDropdown .review-dropdown-menu");
 
     if (!overlay || !openBtn || !closeBtn || !editor) return;
 
-    // Dropdown direkt initialisieren
+    // Initialize dropdown
     initDropdown();
 
+    // Open/close overlay
     openBtn.addEventListener("click", () => {
         overlay.classList.remove("hidden");
         editor.focus();
@@ -30,55 +34,53 @@ export function initReviewModal() {
     // Update toolbar on typing/selection
     editor.addEventListener("keyup", updateToolbar);
     editor.addEventListener("mouseup", updateToolbar);
-}
 
-function updateToolbar() {
-    document.getElementById("btnBold").classList.toggle("active", document.queryCommandState("bold"));
-    document.getElementById("btnItalic").classList.toggle("active", document.queryCommandState("italic"));
-    document.getElementById("btnUnderline").classList.toggle("active", document.queryCommandState("underline"));
-}
-
-// Custom Dropdown + Editor Sync
-function initDropdown() {
-    const dropdown = document.getElementById("reviewDropdown");
-    if (!dropdown) return;
-
-    const btn = dropdown.querySelector(".dropdown-btn");
-    const menu = dropdown.querySelector(".dropdown-menu");
-    const editor = document.getElementById("editor");
-
-    // Dropdown öffnen/schließen
-    btn.addEventListener("click", (e) => {
-        e.stopPropagation(); // verhindert sofortiges Schließen durch Dokument-Listener
-        const isOpen = getComputedStyle(menu).display === "flex";
-        menu.style.display = isOpen ? "none" : "flex";
-    });
-
-    // Items auswählen
-    menu.querySelectorAll(".dropdown-item").forEach(item => {
-        item.addEventListener("click", (e) => {
-            e.stopPropagation();
-
-            // Button oben zeigt nur den reinen Text ohne Fragezeichen
-            btn.textContent = item.textContent.replace(/\?$/, '');
-
-            // Alte Klassen entfernen
-            btn.classList.remove("recommended", "mixed", "not");
+    // Reset button functionality
+    if (btnReset && dropdownBtn) {
+        btnReset.addEventListener("click", () => {
+            dropdownBtn.textContent = "Choose...";
+            dropdownBtn.classList.remove("recommended", "mixed", "not");
             editor.classList.remove("recommended", "mixed", "not");
-
-            // Neue Klassen nur setzen, wenn ein echter Status ausgewählt wurde
-            const value = item.dataset.value;
-            if (value) {
-                btn.classList.add(value);
-                editor.classList.add(value);
-            }
-
-            menu.style.display = "none";
         });
-    });
+    }
 
-    // Klick außerhalb schließt Dropdown
-    document.addEventListener("click", () => {
-        menu.style.display = "none";
-    });
+    // Function to update toolbar button active states
+    function updateToolbar() {
+        btnBold.classList.toggle("active", document.queryCommandState("bold"));
+        btnItalic.classList.toggle("active", document.queryCommandState("italic"));
+        btnUnderline.classList.toggle("active", document.queryCommandState("underline"));
+    }
+
+    // Function to handle dropdown behavior
+    function initDropdown() {
+        if (!dropdownBtn || !dropdownMenu) return;
+
+        // Open/close dropdown
+        dropdownBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const isOpen = getComputedStyle(dropdownMenu).display === "flex";
+            dropdownMenu.style.display = isOpen ? "none" : "flex";
+        });
+
+        // Select dropdown item
+        dropdownMenu.querySelectorAll(".review-dropdown-item").forEach(item => {
+            item.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const value = item.dataset.value;
+                dropdownBtn.textContent = item.textContent.replace(/\?$/, '');
+                dropdownBtn.classList.remove("recommended", "mixed", "not");
+                editor.classList.remove("recommended", "mixed", "not");
+                if (value) {
+                    dropdownBtn.classList.add(value);
+                    editor.classList.add(value);
+                }
+                dropdownMenu.style.display = "none";
+            });
+        });
+
+        // Clicking outside closes the dropdown
+        document.addEventListener("click", () => {
+            dropdownMenu.style.display = "none";
+        });
+    }
 }

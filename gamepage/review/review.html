@@ -29,13 +29,17 @@
                     <button id="btnItalic" type="button" onclick="formatText('italic')">I</button>
                     <button id="btnUnderline" type="button" onclick="formatText('underline')">U</button>
                 </div>
-                <div class="content-dropdown">
-                    <div class="dropdown" id="reviewDropdown">
-                        <button class="dropdown-btn">Choose...</button>
-                        <div class="dropdown-menu">
-                            <div class="dropdown-item recommended" data-value="recommended">Recommended</div>
-                            <div class="dropdown-item mixed" data-value="mixed">Mixed Feelings</div>
-                            <div class="dropdown-item not" data-value="not">Not Recommended</div>
+                <div class="content-dropdown-wrapper">
+                    <button id="btnReset" class="reset-btn" title="Reset">
+                        <i class="fa fa-refresh" aria-hidden="true"></i>
+                    </button>
+
+                    <div class="review-dropdown" id="reviewDropdown">
+                        <button class="review-dropdown-btn">Choose...</button>
+                        <div class="review-dropdown-menu">
+                            <div class="review-dropdown-item recommended" data-value="recommended">Recommended</div>
+                            <div class="review-dropdown-item mixed" data-value="mixed">Mixed Feelings</div>
+                            <div class="review-dropdown-item not" data-value="not">Not Recommended</div>
                         </div>
                     </div>
                 </div>
