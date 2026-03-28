@@ -1,12 +1,15 @@
 import express from "express";
-console.log("igdb routes loaded");
 import axios from "axios";
 import { getTwitchToken } from "../services/twitchToken.js";
 
 const router = express.Router();
 
-// How many games to return per Explore page
 const EXPLORE_LIMIT = 50;
+const MAX_SEARCH_LENGTH = 80;
+const MAX_PAGE = 200;
+const MAX_TRENDING_LIMIT = 30;
+const MAX_POPULARITY_TYPE = 50;
+const MAX_GAME_ID = 2_147_483_647;
 
 const GENRE_MAP = {
   all: null,
@@ -17,28 +20,27 @@ const GENRE_MAP = {
   platform: 8,
   puzzle: 9,
   racing: 10,
-  rts: 11,              // Real Time Strategy (RTS)
-  rpg: 12,              // Role-playing (RPG)
+  rts: 11,
+  rpg: 12,
   simulator: 13,
   sport: 14,
   strategy: 15,
-  tbs: 16,              // Turn-based strategy (TBS)
+  tbs: 16,
   tactical: 24,
-  hackandslash: 25,     // Hack and slash/Beat 'em up
-  quiz: 26,             // Quiz/Trivia
+  hackandslash: 25,
+  quiz: 26,
   pinball: 30,
   adventure: 31,
   indie: 32,
   arcade: 33,
   visualnovel: 34,
-  cardandboard: 35,     // Card & Board Game
+  cardandboard: 35,
   moba: 36
 };
 
 const PLATFORM_MAP = {
   all: null,
 
-  // SONY
   ps1: 7,
   ps2: 8,
   ps3: 9,
@@ -49,25 +51,22 @@ const PLATFORM_MAP = {
   psvr: 165,
   psvr2: 390,
 
-  // MICROSOFT
   xbox: 11,
   xbox360: 12,
   xboxone: 49,
   xboxseries: 169,
 
-  // SEGA
   sg1000: 84,
   mastersystem: 64,
   gamegear: 35,
-  megadrive: 29,     // Mega Drive / Genesis
+  megadrive: 29,
   segacd: 78,
   sega32x: 30,
   saturn: 32,
   dreamcast: 23,
   pico: 339,
-  nomad: 29,         // IGDB: Nomad is "version" of Genesis → only filterable by "Genesis"
+  nomad: 29,
 
-  // NINTENDO
   switch: 130,
   switch2: 508,
   wii: 5,
@@ -83,26 +82,69 @@ const PLATFORM_MAP = {
   ds: 20,
   n3ds: 37,
 
-  // PC / WEB / OTHER
   windows: 6,
   linux: 3,
   webbrowser: 82,
   amiga: 16,
   cpc: 25,
 
-  // MOBILE
-  mobile: [34, 39],  // Android + iOS
+  mobile: [34, 39],
 
-  // VR
   steamvr: 163,
-  oculusvr: 162,     // "Oculus VR" (Rift/PC-VR)
-  metaquest: [384, 386, 471], // Oculus Quest + Meta Quest 2 + Meta Quest 3
+  oculusvr: 162,
+  metaquest: [384, 386, 471],
 };
 
-// HELPERS FOR SUBSEQUENT SEARCH LOGIC (loose search, company search etc.)
+function getIgdbHeaders(token) {
+  return {
+    "Client-ID": process.env.TWITCH_CLIENT_ID,
+    Authorization: `Bearer ${token}`,
+    Accept: "application/json",
+  };
+}
+
+function parseBoundedInt(value, { defaultValue, min, max, fieldName }) {
+  if (value === undefined || value === null || value === "") {
+    return { ok: true, value: defaultValue };
+  }
+
+  const n = Number.parseInt(String(value), 10);
+
+  if (!Number.isInteger(n)) {
+    return { ok: false, message: `Invalid ${fieldName}` };
+  }
+
+  if (n < min || n > max) {
+    return { ok: false, message: `${fieldName} must be between ${min} and ${max}` };
+  }
+
+  return { ok: true, value: n };
+}
+
+function parseEnumKey(value, map, fieldName) {
+  const raw = String(value ?? "all").trim().toLowerCase();
+
+  if (!(raw in map)) {
+    return { ok: false, message: `Invalid ${fieldName}` };
+  }
+
+  return { ok: true, key: raw, value: map[raw] };
+}
+
+function sanitizeSearchInput(value = "") {
+  const cleaned = String(value || "")
+    .replace(/[\u0000-\u001F\u007F]/g, " ")
+    .trim()
+    .slice(0, MAX_SEARCH_LENGTH);
+
+  return cleaned;
+}
 
 function escapeIgdbString(value = "") {
-  return String(value).replaceAll('"', '\\"').trim();
+  return String(value)
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .trim();
 }
 
 function stripDiacritics(value = "") {
@@ -125,20 +167,14 @@ function buildTokenVariants(token = "") {
 
   const variants = new Set([base]);
 
-  // Keep short abbreviations like "dr"
   if (base.length === 2) {
     return [base];
   }
 
-  // Singular fallback for inputs like "hawks" -> "hawk"
-  // or "chillas" -> "chilla"
   if (base.endsWith("s") && base.length > 3) {
     variants.add(base.slice(0, -1));
   }
 
-  // Extra prefix fallback for long words.
-  // This helps with titles containing accented characters like Pokémon,
-  // because "pok" can still match while "poke" may fail.
   if (base.length >= 7) {
     variants.add(base.slice(0, 4));
     variants.add(base.slice(0, 3));
@@ -148,28 +184,23 @@ function buildTokenVariants(token = "") {
 }
 
 function buildLooseMatchClauses(field, rawValue) {
-  const raw = String(rawValue || "").trim();
+  const raw = sanitizeSearchInput(rawValue);
   if (!raw) return [];
 
   const normalized = normalizeLooseSearch(raw);
   const clauses = new Set();
 
-  // direct raw query
   clauses.add(`${field} ~ *"${escapeIgdbString(raw)}"*`);
 
-  // punctuation/diacritic stripped full query
   if (normalized && normalized !== raw) {
     clauses.add(`${field} ~ *"${escapeIgdbString(normalized)}"*`);
   }
 
-  // token-based fallback
   const tokens = normalized.split(" ").filter(Boolean).slice(0, 6);
 
   const tokenGroups = tokens
     .map(token => {
       const tokenVariants = buildTokenVariants(token);
-
-      // prevent empty groups like ()
       if (!tokenVariants.length) return null;
 
       if (tokenVariants.length === 1) {
@@ -194,7 +225,7 @@ function normalizeSearchScore(value = "") {
 }
 
 async function fetchGamesByCompanySearch(query, headers) {
-  const raw = String(query || "").trim();
+  const raw = sanitizeSearchInput(query);
   if (!raw) return [];
 
   const clauses = buildLooseMatchClauses("name", raw);
@@ -243,147 +274,143 @@ async function fetchGamesByCompanySearch(query, headers) {
   return Array.isArray(gamesResp.data) ? gamesResp.data : [];
 }
 
-//  TRENDING GAMES (for Login Gallery)
+// TRENDING GAMES
 router.get("/trending", async (req, res) => {
   try {
+    const limitResult = parseBoundedInt(req.query.limit, {
+      defaultValue: 12,
+      min: 1,
+      max: MAX_TRENDING_LIMIT,
+      fieldName: "limit"
+    });
+    if (!limitResult.ok) {
+      return res.status(400).json({ error: limitResult.message });
+    }
+
+    const typeResult = parseBoundedInt(req.query.type, {
+      defaultValue: 1,
+      min: 1,
+      max: MAX_POPULARITY_TYPE,
+      fieldName: "type"
+    });
+    if (!typeResult.ok) {
+      return res.status(400).json({ error: typeResult.message });
+    }
+
     const token = await getTwitchToken();
+    const headers = getIgdbHeaders(token);
 
-    const limit = Math.min(parseInt(req.query.limit || "12", 10), 30);
-
-    // Default: IGDB Visits (popularity_type = 1)
-    // Other types exist (2..8 etc). See /popularity_types. :contentReference[oaicite:3]{index=3}
-    const popularityType = parseInt(req.query.type || "1", 10);
-
-    //  Get top game_ids by popularity
     const popResp = await axios.post(
       "https://api.igdb.com/v4/popularity_primitives",
       `
         fields game_id,value,popularity_type;
-        where popularity_type = ${popularityType};
+        where popularity_type = ${typeResult.value};
         sort value desc;
         limit 60;
       `,
-      {
-        headers: {
-          "Client-ID": process.env.TWITCH_CLIENT_ID,
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
-        timeout: 15000,
-      }
+      { headers, timeout: 15000 }
     );
 
     const popList = Array.isArray(popResp.data) ? popResp.data : [];
     const orderedIds = [...new Set(popList.map(x => x.game_id).filter(Boolean))];
 
-    if (orderedIds.length === 0) return res.json([]);
+    if (orderedIds.length === 0) {
+      res.set("Cache-Control", "no-store");
+      return res.json([]);
+    }
 
     const pool = orderedIds.slice(0, 60);
     for (let i = pool.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [pool[i], pool[j]] = [pool[j], pool[i]];
     }
-    const pickedIds = pool.slice(0, limit);
+    const pickedIds = pool.slice(0, limitResult.value);
 
-    // Fetch game details for these ids (covers etc.)
-    const idsStr = orderedIds.join(",");
+    const idsStr = pickedIds.join(",");
     const gamesResp = await axios.post(
       "https://api.igdb.com/v4/games",
       `
         fields id,name,cover.image_id,rating;
         where id = (${idsStr}) & cover != null;
-        limit 60;
+        limit ${pickedIds.length};
       `,
-      {
-        headers: {
-          "Client-ID": process.env.TWITCH_CLIENT_ID,
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
-        timeout: 15000,
-      }
+      { headers, timeout: 15000 }
     );
 
     const games = Array.isArray(gamesResp.data) ? gamesResp.data : [];
     const byId = new Map(games.map(g => [g.id, g]));
 
-    // Keep popularity order and cut to limit
     const result = [];
     for (const id of pickedIds) {
       const g = byId.get(id);
       if (!g?.cover?.image_id) continue;
       result.push(g);
-      if (result.length >= limit) break;
+      if (result.length >= limitResult.value) break;
     }
-
 
     res.set("Cache-Control", "no-store");
     res.json(result);
   } catch (err) {
     console.error(err.response?.data || err);
-    res.status(500).json({ error: "Trending Games failed" });
+    res.status(500).json({ error: "Trending games failed" });
   }
 });
 
-//  EXPLORE GAMES
-//  NOTE: keep this route SIMPLE and RELIABLE.
-//  We ask IGDB for games with a cover and then let the frontend
-//  filter out weird editions / DLC by name.
+// EXPLORE GAMES
 router.get("/games", async (req, res) => {
-  console.log("/games ROUTE HIT", req.query);
-
   try {
+    const pageResult = parseBoundedInt(req.query.page, {
+      defaultValue: 1,
+      min: 1,
+      max: MAX_PAGE,
+      fieldName: "page"
+    });
+    if (!pageResult.ok) {
+      return res.status(400).json({ error: pageResult.message });
+    }
+
+    const genreResult = parseEnumKey(req.query.genre, GENRE_MAP, "genre");
+    if (!genreResult.ok) {
+      return res.status(400).json({ error: genreResult.message });
+    }
+
+    const platformResult = parseEnumKey(req.query.platform, PLATFORM_MAP, "platform");
+    if (!platformResult.ok) {
+      return res.status(400).json({ error: platformResult.message });
+    }
+
     const token = await getTwitchToken();
+    const headers = getIgdbHeaders(token);
 
-    const page = parseInt(req.query.page) || 1;
-
-    // IGDB does not support a 'popularity' field on /games,
-    // but it does support 'rating'. We treat 'rating' as our
-    // default "popularity" proxy.
     const allowedSorts = ["name", "rating"];
-    const sort = allowedSorts.includes(String(req.query.sort))
-      ? String(req.query.sort)
+    const sort = allowedSorts.includes(String(req.query.sort || "").trim())
+      ? String(req.query.sort).trim()
       : "rating";
 
-    const requestedOrder = String(req.query.order || "").toLowerCase();
+    const requestedOrder = String(req.query.order || "").trim().toLowerCase();
     const order = ["asc", "desc"].includes(requestedOrder)
       ? requestedOrder
       : (sort === "rating" ? "desc" : "asc");
 
-    // Search logic
-    const search = String(req.query.search || "").trim();
-
-    // Genre
-    const genreKey = String(req.query.genre || "all").toLowerCase();
-    const genreId = GENRE_MAP[genreKey];
-
-    // Platform
-    const platformKey = String(req.query.platform || "all").toLowerCase();
-    const platformId = PLATFORM_MAP[platformKey];
-
+    const search = sanitizeSearchInput(req.query.search || "");
     const limit = EXPLORE_LIMIT;
-    const offset = (page - 1) * limit;
+    const offset = (pageResult.value - 1) * limit;
 
     let whereClause = `cover != null`;
 
     if (search) {
       const nameClauses = buildLooseMatchClauses("name", search);
-
       if (nameClauses.length) {
         whereClause += ` & (${nameClauses.join(" | ")})`;
       }
     }
 
-    if (genreId != null) {
-      whereClause += ` & genres = (${genreId})`;
-    } else if (genreKey !== "all") {
-      console.warn("Unknown genre key:", genreKey);
+    if (genreResult.value != null) {
+      whereClause += ` & genres = (${genreResult.value})`;
     }
 
-    if (platformId != null) {
-      whereClause += ` & platforms = (${platformId})`;
-    } else if (platformKey !== "all") {
-      console.warn("Unknown platform key:", platformKey);
+    if (platformResult.value != null) {
+      whereClause += ` & platforms = (${platformResult.value})`;
     }
 
     const response = await axios.post(
@@ -410,26 +437,14 @@ router.get("/games", async (req, res) => {
         limit ${limit};
         offset ${offset};
       `,
-      {
-        headers: {
-          "Client-ID": process.env.TWITCH_CLIENT_ID,
-          Authorization: `Bearer ${token}`,
-        },
-        timeout: 15000,
-      }
+      { headers, timeout: 15000 }
     );
 
     let games = Array.isArray(response.data) ? response.data : [];
 
-    // extra search: if user searched for a company name, also fetch games by company search and merge results
     if (search) {
       try {
-        const companyGames = await fetchGamesByCompanySearch(search, {
-          "Client-ID": process.env.TWITCH_CLIENT_ID,
-          Authorization: `Bearer ${token}`,
-        });
-
-        // Merge by id to avoid duplicates (company search can return games already in main search)
+        const companyGames = await fetchGamesByCompanySearch(search, headers);
         const merged = new Map();
 
         for (const g of [...games, ...companyGames]) {
@@ -442,9 +457,8 @@ router.get("/games", async (req, res) => {
       }
     }
 
-    // normal search results are sorted by IGDB's relevance/rating, but company search results are not sorted.
     if (search) {
-       const q = normalizeSearchScore(search);
+      const q = normalizeSearchScore(search);
 
       games = games.sort((a, b) => {
         const aName = normalizeSearchScore(a.name || "");
@@ -459,14 +473,13 @@ router.get("/games", async (req, res) => {
           .filter(Boolean);
 
         function score(name, companies) {
-          // titel stays most important for relevance ranking, then company matches.
-          if (name === q) return 0;                   // exact title
-          if (name.startsWith(q)) return 1;           // starts with
-          if (name.includes(" " + q)) return 2;       // word match
-          if (name.includes(q)) return 3;             // substring
+          if (name === q) return 0;
+          if (name.startsWith(q)) return 1;
+          if (name.includes(" " + q)) return 2;
+          if (name.includes(q)) return 3;
 
-          if (companies.some(c => c === q)) return 4; // exact company
-          if (companies.some(c => c.includes(q))) return 5; // company substring
+          if (companies.some(c => c === q)) return 4;
+          if (companies.some(c => c.includes(q))) return 5;
 
           return 6;
         }
@@ -476,91 +489,91 @@ router.get("/games", async (req, res) => {
 
         if (aScore !== bScore) return aScore - bScore;
 
-        // if same relevance score, sort by rating (desc)
         const aRating = Number.isFinite(a?.rating) ? a.rating : -1;
         const bRating = Number.isFinite(b?.rating) ? b.rating : -1;
         if (aRating !== bRating) return bRating - aRating;
 
-        // then more votes first
         const aCount = Number.isFinite(a?.rating_count) ? a.rating_count : -1;
         const bCount = Number.isFinite(b?.rating_count) ? b.rating_count : -1;
         return bCount - aCount;
       });
     }
 
-    res.json(games);
+    res.set("Cache-Control", "no-store");
+    res.json(games.slice(0, limit));
   } catch (err) {
     console.error(err.response?.data || err);
-    res.status(500).json({ error: "Explore Games fehlgeschlagen" });
+    res.status(500).json({ error: "Explore games failed" });
   }
 });
 
-// GAME DETAILS FOR EACH GAME PAGE
+// GAME DETAILS
 router.get("/game/:id", async (req, res) => {
   try {
+    const idResult = parseBoundedInt(req.params.id, {
+      defaultValue: null,
+      min: 1,
+      max: MAX_GAME_ID,
+      fieldName: "game id"
+    });
+    if (!idResult.ok) {
+      return res.status(400).json({ error: idResult.message });
+    }
+
     const token = await getTwitchToken();
-    const id = parseInt(req.params.id, 10);
-    if (!Number.isFinite(id)) return res.status(400).json({ error: "Invalid game id" });
+    const headers = getIgdbHeaders(token);
+    const id = idResult.value;
 
-    const headers = {
-      "Client-ID": process.env.TWITCH_CLIENT_ID,
-      Authorization: `Bearer ${token}`,
-      Accept: "application/json",
-    };
-
-    // 1) Base game data (include parent/version)
     const gameResp = await axios.post(
-    "https://api.igdb.com/v4/games",
-    `
-      fields
-        id, name,
-        parent_game.id, parent_game.name, parent_game.cover.image_id, parent_game.first_release_date,
-        version_parent.id, version_parent.name, version_parent.cover.image_id, version_parent.first_release_date,
+      "https://api.igdb.com/v4/games",
+      `
+        fields
+          id, name,
+          parent_game.id, parent_game.name, parent_game.cover.image_id, parent_game.first_release_date,
+          version_parent.id, version_parent.name, version_parent.cover.image_id, version_parent.first_release_date,
 
-        summary, storyline,
-        rating, aggregated_rating, total_rating, total_rating_count,
-        first_release_date,
+          summary, storyline,
+          rating, aggregated_rating, total_rating, total_rating_count,
+          first_release_date,
 
-        cover.image_id,
-        genres.name,
-        platforms.name,
+          cover.image_id,
+          genres.name,
+          platforms.name,
 
-        game_modes.name,
-        themes.name,
-        player_perspectives.name,
-        franchise.name,
-        collection.name,
-        keywords.name,
-        websites.url, websites.category,
+          game_modes.name,
+          themes.name,
+          player_perspectives.name,
+          franchise.name,
+          collection.name,
+          keywords.name,
+          websites.url, websites.category,
 
-        involved_companies.developer,
-        involved_companies.publisher,
-        involved_companies.company.name,
+          involved_companies.developer,
+          involved_companies.publisher,
+          involved_companies.company.name,
 
-        videos.video_id,
-        videos.name,
+          videos.video_id,
+          videos.name,
 
-        release_dates.date,
-        release_dates.platform.name,
-        release_dates.region,
+          release_dates.date,
+          release_dates.platform.name,
+          release_dates.region,
 
-        similar_games.id, similar_games.name, similar_games.cover.image_id, similar_games.first_release_date,
-        dlcs.id, dlcs.name, dlcs.cover.image_id,
-        expansions.id, expansions.name, expansions.cover.image_id,
-        remakes.id, remakes.name, remakes.cover.image_id,
-        remasters.id, remasters.name, remasters.cover.image_id,
-        ports.id, ports.name, ports.cover.image_id;
-      where id = ${id};
-      limit 1;
-    `,
-    { headers, timeout: 15000 }
-  );
+          similar_games.id, similar_games.name, similar_games.cover.image_id, similar_games.first_release_date,
+          dlcs.id, dlcs.name, dlcs.cover.image_id,
+          expansions.id, expansions.name, expansions.cover.image_id,
+          remakes.id, remakes.name, remakes.cover.image_id,
+          remasters.id, remasters.name, remasters.cover.image_id,
+          ports.id, ports.name, ports.cover.image_id;
+        where id = ${id};
+        limit 1;
+      `,
+      { headers, timeout: 15000 }
+    );
 
     const game = Array.isArray(gameResp.data) ? gameResp.data[0] : null;
     if (!game) return res.status(404).json({ error: "Game not found" });
 
-    // 1b) Characters (robust via /characters endpoint)
-    // Use base-game id for editions (version_parent/parent_game fallback)
     const baseId =
       Number(game?.version_parent?.id) ||
       Number(game?.parent_game?.id) ||
@@ -570,7 +583,6 @@ router.get("/game/:id", async (req, res) => {
 
     if (Number.isFinite(baseId)) {
       try {
-        // 1) First try: only characters WITH mug shots (prevents broken images)
         const withImgResp = await axios.post(
           "https://api.igdb.com/v4/characters",
           `
@@ -581,43 +593,40 @@ router.get("/game/:id", async (req, res) => {
           { headers, timeout: 15000 }
         );
 
-    const withImg = Array.isArray(withImgResp.data) ? withImgResp.data : [];
+        const withImg = Array.isArray(withImgResp.data) ? withImgResp.data : [];
 
-    // 2) If IGDB has no mug_shots, fallback: fetch names without image restriction
-    if (withImg.length > 0) {
-      game.characters = withImg;
-    } else {
-      const anyResp = await axios.post(
-        "https://api.igdb.com/v4/characters",
-        `
-          fields id,name,mug_shot.image_id;
-          where games = (${baseId});
-          limit 60;
-        `,
-        { headers, timeout: 15000 }
-      );
-      game.characters = Array.isArray(anyResp.data) ? anyResp.data : [];
-    }
-  } catch (e) {
-    console.warn("characters fetch failed:", e.response?.data || e.message);
-    game.characters = [];
-  }
-    } else {
-      console.warn("characters skipped: baseId invalid", baseId);
+        if (withImg.length > 0) {
+          game.characters = withImg;
+        } else {
+          const anyResp = await axios.post(
+            "https://api.igdb.com/v4/characters",
+            `
+              fields id,name,mug_shot.image_id;
+              where games = (${baseId});
+              limit 60;
+            `,
+            { headers, timeout: 15000 }
+          );
+
+          game.characters = Array.isArray(anyResp.data) ? anyResp.data : [];
+        }
+      } catch (e) {
+        console.warn("characters fetch failed:", e.response?.data || e.message);
+        game.characters = [];
+      }
     }
 
-    // 2) Fallback ID for time-to-beat (edition -> base game)
     const ttbGameId =
       Number(game?.version_parent?.id) ||
       Number(game?.parent_game?.id) ||
       Number(game?.id);
 
-      if (!Number.isFinite(ttbGameId)) {
+    if (!Number.isFinite(ttbGameId)) {
       game.time_to_beat = null;
+      res.set("Cache-Control", "no-store");
       return res.json(game);
     }
 
-    // 3) Time to beat from separate endpoint
     const ttbResp = await axios.post(
       "https://api.igdb.com/v4/game_time_to_beats",
       `
@@ -637,10 +646,11 @@ router.get("/game/:id", async (req, res) => {
           normally: Number(ttb.normally) || 0,
           completely: Number(ttb.completely) || 0,
           count: Number(ttb.count) || 0,
-          source_game_id: ttbGameId, // optional fürs Debuggen
+          source_game_id: ttbGameId,
         }
       : null;
 
+    res.set("Cache-Control", "no-store");
     res.json(game);
   } catch (err) {
     console.error(err.response?.data || err);

@@ -18,12 +18,20 @@ export async function getTwitchToken() {
     })
   });
 
-  const data = await res.json();
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new Error(data?.message || "Failed to fetch Twitch token");
+  }
+
+  if (!data?.access_token || !Number.isFinite(data?.expires_in)) {
+    throw new Error("Invalid Twitch token response");
+  }
 
   cachedToken = data.access_token;
-  expiresAt = Date.now() + data.expires_in * 1000;
+  expiresAt = Date.now() + Math.max(0, (data.expires_in - 60)) * 1000;
 
-  console.log("🟣 Twitch Token refreshed");
+  console.log("Twitch token refreshed");
 
   return cachedToken;
 }
