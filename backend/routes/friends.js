@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { requireAuth } from "../middleware/authMiddleware.js";
 import { User } from "../models/user.js";
 import { FriendRequest } from "../models/friendRequest.js";
+import { sendFriendRequestLimiter } from "../middleware/rateLimiter.js";
 
 const router = express.Router();
 
@@ -130,7 +131,7 @@ router.get("/list/:username", requireAuth, async (req, res) => {
 });
 
 // POST /api/friends/request/:username
-router.post("/request/:username", requireAuth, async (req, res) => {
+router.post("/request/:username", requireAuth, sendFriendRequestLimiter, async (req, res) => {
   try {
     const username = String(req.params.username || "").trim();
     if (!username) {

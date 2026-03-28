@@ -2,6 +2,7 @@ import express from "express";
 import { requireAuth } from "../middleware/authMiddleware.js";
 import { User } from "../models/user.js";
 import { ProfileComment } from "../models/profileComment.js";
+import { postCommentLimiter } from "../middleware/rateLimiter.js";
 
 const router = express.Router();
 
@@ -46,7 +47,7 @@ router.get("/:username", async (req, res) => {
 });
 
 // POST /api/profile-comments/:username
-router.post("/:username", requireAuth, async (req, res) => {
+router.post("/:username", requireAuth, postCommentLimiter, async (req, res) => {
   try {
     const username = String(req.params.username || "").trim();
     const text = String(req.body?.text || "").trim();

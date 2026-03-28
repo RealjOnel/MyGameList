@@ -31,3 +31,19 @@ export const apiLimiter = rateLimit({
   legacyHeaders: false,
   message: { message: "Too many requests, try again later." }
 });
+
+export const sendFriendRequestLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many friend requests sent, try again later." }
+});
+
+export const postCommentLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many comments posted, try again in a minute." }
+});
