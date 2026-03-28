@@ -10,7 +10,7 @@ export function initReviewModal() {
 
     if (!overlay || !openBtn || !closeBtn || !editor) return;
 
-    // 👉 Dropdown direkt hier initialisieren
+    // Dropdown direkt initialisieren
     initDropdown();
 
     openBtn.addEventListener("click", () => {
@@ -38,30 +38,42 @@ function updateToolbar() {
     document.getElementById("btnUnderline").classList.toggle("active", document.queryCommandState("underline"));
 }
 
-// Custom Dropdown
+// Custom Dropdown + Editor Sync
 function initDropdown() {
     const dropdown = document.getElementById("reviewDropdown");
     if (!dropdown) return;
 
     const btn = dropdown.querySelector(".dropdown-btn");
     const menu = dropdown.querySelector(".dropdown-menu");
+    const editor = document.getElementById("editor");
 
-    btn.addEventListener("click", () => {
+    // Dropdown öffnen/schließen
+    btn.addEventListener("click", (e) => {
+        e.stopPropagation(); // verhindert sofortiges Schließen durch Dokument-Listener
         const isOpen = getComputedStyle(menu).display === "flex";
         menu.style.display = isOpen ? "none" : "flex";
     });
 
+    // Items auswählen
     menu.querySelectorAll(".dropdown-item").forEach(item => {
-        item.addEventListener("click", () => {
+        item.addEventListener("click", (e) => {
+            e.stopPropagation();
             btn.textContent = item.textContent;
-            btn.className = "dropdown-btn " + item.dataset.value;
+
+            // Alte Klassen entfernen
+            btn.classList.remove("recommended", "mixed", "not");
+            editor.classList.remove("recommended", "mixed", "not");
+
+            // Neue Klassen setzen
+            btn.classList.add(item.dataset.value);
+            editor.classList.add(item.dataset.value);
+
             menu.style.display = "none";
         });
     });
 
-    document.addEventListener("click", (e) => {
-        if (!dropdown.contains(e.target)) {
-            menu.style.display = "none";
-        }
+    // Klick außerhalb schließt Dropdown
+    document.addEventListener("click", () => {
+        menu.style.display = "none";
     });
 }
