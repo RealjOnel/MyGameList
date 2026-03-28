@@ -822,3 +822,20 @@ document.addEventListener("DOMContentLoaded", () => {
     qs("gameTitle").textContent = "Could not load game.";
   });
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+    const boxes = document.querySelectorAll(".review-box");
+
+    boxes.forEach(box => {
+        const btn = box.querySelector(".review-readmore-btn");
+        const content = box.querySelector(".review-content");
+
+        btn.addEventListener("click", () => {
+            content.classList.toggle("expanded");
+
+            btn.textContent = content.classList.contains("expanded")
+                ? "Read Less"
+                : "Read More";
+        });
+    });
+});
