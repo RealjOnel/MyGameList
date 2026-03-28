@@ -1,4 +1,6 @@
 import express from "express";
+import mongoose from "mongoose";
+import { z } from "zod";
 import { requireAuth } from "../middleware/authMiddleware.js";
 import { User } from "../models/user.js";
 import { ProfileComment } from "../models/profileComment.js";
@@ -10,15 +12,57 @@ const MAX_COMMENT_LENGTH = 100;
 const MAX_COMMENTS_PER_AUTHOR_PER_PROFILE = 10;
 const COMMENT_COOLDOWN_MS = 30 * 1000;
 
+const usernameSchema = z
+  .string()
+  .trim()
+  .min(3, "Username is required")
+  .max(20, "Username is too long");
+
+const commentTextSchema = z
+  .string()
+  .trim()
+  .min(1, "Comment cannot be empty")
+  .max(MAX_COMMENT_LENGTH, `Comment must be ${MAX_COMMENT_LENGTH} characters or less`);
+
+function parseUsername(value) {
+  const parsed = usernameSchema.safeParse(value);
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message || "Invalid username" };
+  }
+  return { ok: true, value: parsed.data };
+}
+
+function parseCommentText(value) {
+  const parsed = commentTextSchema.safeParse(value);
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message || "Invalid comment text" };
+  }
+  return { ok: true, value: parsed.data };
+}
+
+function parseObjectId(value, fieldName = "Id") {
+  const raw = String(value || "").trim();
+
+  if (!raw) {
+    return { ok: false, message: `${fieldName} is required` };
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(raw)) {
+    return { ok: false, message: `Invalid ${fieldName.toLowerCase()}` };
+  }
+
+  return { ok: true, value: raw };
+}
+
 // GET /api/profile-comments/:username
 router.get("/:username", async (req, res) => {
   try {
-    const username = String(req.params.username || "").trim();
-    if (!username) {
-      return res.status(400).json({ message: "Username is required" });
+    const usernameResult = parseUsername(req.params.username);
+    if (!usernameResult.ok) {
+      return res.status(400).json({ message: usernameResult.message });
     }
 
-    const profileUser = await User.findOne({ username }).select("_id username");
+    const profileUser = await User.findOne({ username: usernameResult.value }).select("_id username");
     if (!profileUser) {
       return res.status(404).json({ message: "Profile user not found" });
     }
@@ -32,7 +76,7 @@ router.get("/:username", async (req, res) => {
       id: comment._id,
       text: comment.text,
       createdAt: comment.createdAt,
-      canDelete: false, // will be determined on client side based on current user
+      canDelete: false,
       author: {
         username: comment.authorUserId?.username || "Unknown User",
         avatarUrl: null,
@@ -49,24 +93,17 @@ router.get("/:username", async (req, res) => {
 // POST /api/profile-comments/:username
 router.post("/:username", requireAuth, postCommentLimiter, async (req, res) => {
   try {
-    const username = String(req.params.username || "").trim();
-    const text = String(req.body?.text || "").trim();
-
-    if (!username) {
-      return res.status(400).json({ message: "Username is required" });
+    const usernameResult = parseUsername(req.params.username);
+    if (!usernameResult.ok) {
+      return res.status(400).json({ message: usernameResult.message });
     }
 
-    if (!text) {
-      return res.status(400).json({ message: "Comment cannot be empty" });
+    const textResult = parseCommentText(req.body?.text);
+    if (!textResult.ok) {
+      return res.status(400).json({ message: textResult.message });
     }
 
-    if (text.length > MAX_COMMENT_LENGTH) {
-      return res.status(400).json({
-        message: `Comment must be ${MAX_COMMENT_LENGTH} characters or less`,
-      });
-    }
-
-    const profileUser = await User.findOne({ username }).select("_id username");
+    const profileUser = await User.findOne({ username: usernameResult.value }).select("_id username");
     if (!profileUser) {
       return res.status(404).json({ message: "Profile user not found" });
     }
@@ -76,7 +113,6 @@ router.post("/:username", requireAuth, postCommentLimiter, async (req, res) => {
       return res.status(404).json({ message: "Author user not found" });
     }
 
-    // owner of the profile cannot comment on own profile
     if (String(profileUser._id) === String(authorUser._id)) {
       return res.status(400).json({ message: "You cannot comment on your own profile" });
     }
@@ -110,7 +146,7 @@ router.post("/:username", requireAuth, postCommentLimiter, async (req, res) => {
     const created = await ProfileComment.create({
       profileUserId: profileUser._id,
       authorUserId: authorUser._id,
-      text,
+      text: textResult.value,
     });
 
     res.status(201).json({
@@ -134,12 +170,12 @@ router.post("/:username", requireAuth, postCommentLimiter, async (req, res) => {
 // DELETE /api/profile-comments/comment/:commentId
 router.delete("/comment/:commentId", requireAuth, async (req, res) => {
   try {
-    const commentId = String(req.params.commentId || "").trim();
-    if (!commentId) {
-      return res.status(400).json({ message: "Comment id is required" });
+    const commentIdResult = parseObjectId(req.params.commentId, "Comment id");
+    if (!commentIdResult.ok) {
+      return res.status(400).json({ message: commentIdResult.message });
     }
 
-    const comment = await ProfileComment.findById(commentId);
+    const comment = await ProfileComment.findById(commentIdResult.value);
     if (!comment) {
       return res.status(404).json({ message: "Comment not found" });
     }
