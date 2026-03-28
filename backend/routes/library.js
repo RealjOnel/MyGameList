@@ -1,5 +1,6 @@
 import express from "express";
 import axios from "axios";
+import { z } from "zod";
 import { requireAuth } from "../middleware/authMiddleware.js";
 import { getTwitchToken } from "../services/twitchToken.js";
 import { Game } from "../models/game.js";
@@ -15,6 +16,33 @@ const ALLOWED_STATUSES = new Set([
   "on_hold",
   "dropped"
 ]);
+
+const usernameSchema = z
+  .string()
+  .trim()
+  .min(3, "Username is required")
+  .max(20, "Username is too long");
+
+function normalizeUsername(rawValue = "") {
+  return String(rawValue || "").trim().toLowerCase();
+}
+
+function parseUsername(value) {
+  const parsed = usernameSchema.safeParse(value);
+
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message || "Invalid username"
+    };
+  }
+
+  return {
+    ok: true,
+    value: parsed.data,
+    normalizedValue: normalizeUsername(parsed.data)
+  };
+}
 
 function isValidStatus(value) {
   return typeof value === "string" && ALLOWED_STATUSES.has(value);
@@ -251,12 +279,14 @@ router.get("/me", requireAuth, async (req, res) => {
 // GET /api/library/profile/:username
 router.get("/profile/:username", requireAuth, async (req, res) => {
   try {
-    const username = String(req.params.username || "").trim();
-    if (!username) {
-      return res.status(400).json({ message: "Username is required" });
+    const usernameResult = parseUsername(req.params.username);
+    if (!usernameResult.ok) {
+      return res.status(400).json({ message: usernameResult.message });
     }
 
-    const user = await User.findOne({ username }).select("_id username");
+    const user = await User.findOne({ username: usernameResult.normalizedValue })
+      .select("_id username displayUsername");
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
