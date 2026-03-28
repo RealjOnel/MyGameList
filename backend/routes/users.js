@@ -1,4 +1,5 @@
 import express from "express";
+import { z } from "zod";
 import { requireAuth } from "../middleware/authMiddleware.js";
 import { User } from "../models/user.js";
 
@@ -45,6 +46,61 @@ const DEFAULT_SETTINGS = Object.freeze({
   },
 });
 
+const usernameSchema = z
+  .string()
+  .trim()
+  .min(3, "Username is required")
+  .max(20, "Username is too long");
+
+const userSearchSchema = z
+  .string()
+  .trim()
+  .max(50, "Search query is too long");
+
+const settingsPatchSchema = z.object({
+  profile: z.object({
+    bio: z.string().trim().max(100, "Bio must be 100 characters or less").optional(),
+    links: z.object({
+      discord: z.string().trim().max(200).optional(),
+      youtube: z.string().trim().max(200).optional(),
+      twitch: z.string().trim().max(200).optional(),
+      steam: z.string().trim().max(200).optional(),
+      website: z.string().trim().max(200).optional(),
+    }).partial().optional(),
+    optionalFields: z.object({
+      location: z.string().trim().max(80).optional(),
+      favoriteGenre: z.string().trim().max(80).optional(),
+      favoritePlatform: z.string().trim().max(80).optional(),
+    }).partial().optional(),
+  }).partial().optional(),
+
+  social: z.object({
+    showFriendsList: z.boolean().optional(),
+    showReviews: z.boolean().optional(),
+    showForumActivity: z.boolean().optional(),
+    showFavoriteGames: z.boolean().optional(),
+    showActivityHistory: z.boolean().optional(),
+    allowProfileComments: z.boolean().optional(),
+  }).partial().optional(),
+
+  privacy: z.object({
+    publicProfile: z.boolean().optional(),
+    showProfileInSearch: z.boolean().optional(),
+    allowDirectFriendRequests: z.boolean().optional(),
+    cookies: z.object({
+      preferences: z.boolean().optional(),
+      analytics: z.boolean().optional(),
+    }).partial().optional(),
+  }).partial().optional(),
+
+  customization: z.object({
+    defaultExploreView: z.enum(["grid", "compact", "table"]).optional(),
+    compactInterface: z.boolean().optional(),
+    reducedMotion: z.boolean().optional(),
+    liveSearchSuggestions: z.boolean().optional(),
+  }).partial().optional(),
+}).strict();
+
 function cloneDefaults() {
   return JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
 }
@@ -72,15 +128,6 @@ function normalizeSettings(settings) {
   return deepMerge(cloneDefaults(), raw);
 }
 
-function trimString(value, max) {
-  if (typeof value !== "string") return "";
-  return value.trim().slice(0, max);
-}
-
-function boolOrUndefined(value) {
-  return typeof value === "boolean" ? value : undefined;
-}
-
 function compactObject(obj) {
   if (!isPlainObject(obj)) return obj;
 
@@ -96,79 +143,61 @@ function compactObject(obj) {
   return out;
 }
 
-function sanitizeSettingsPayload(raw = {}) {
-  if (!isPlainObject(raw)) return {};
+function parseUsername(value) {
+  const parsed = usernameSchema.safeParse(value);
 
-  const out = {};
-
-  if (isPlainObject(raw.profile)) {
-    out.profile = {};
-
-    if (typeof raw.profile.bio === "string") {
-      out.profile.bio = trimString(raw.profile.bio, 100);
-    }
-
-    if (isPlainObject(raw.profile.links)) {
-      out.profile.links = {
-        discord: typeof raw.profile.links.discord === "string" ? trimString(raw.profile.links.discord, 200) : undefined,
-        youtube: typeof raw.profile.links.youtube === "string" ? trimString(raw.profile.links.youtube, 200) : undefined,
-        twitch: typeof raw.profile.links.twitch === "string" ? trimString(raw.profile.links.twitch, 200) : undefined,
-        steam: typeof raw.profile.links.steam === "string" ? trimString(raw.profile.links.steam, 200) : undefined,
-        website: typeof raw.profile.links.website === "string" ? trimString(raw.profile.links.website, 200) : undefined,
-      };
-    }
-
-    if (isPlainObject(raw.profile.optionalFields)) {
-      out.profile.optionalFields = {
-        location: typeof raw.profile.optionalFields.location === "string" ? trimString(raw.profile.optionalFields.location, 80) : undefined,
-        favoriteGenre: typeof raw.profile.optionalFields.favoriteGenre === "string" ? trimString(raw.profile.optionalFields.favoriteGenre, 80) : undefined,
-        favoritePlatform: typeof raw.profile.optionalFields.favoritePlatform === "string" ? trimString(raw.profile.optionalFields.favoritePlatform, 80) : undefined,
-      };
-    }
-  }
-
-  if (isPlainObject(raw.social)) {
-    out.social = {
-      showFriendsList: boolOrUndefined(raw.social.showFriendsList),
-      showReviews: boolOrUndefined(raw.social.showReviews),
-      showForumActivity: boolOrUndefined(raw.social.showForumActivity),
-      showFavoriteGames: boolOrUndefined(raw.social.showFavoriteGames),
-      showActivityHistory: boolOrUndefined(raw.social.showActivityHistory),
-      allowProfileComments: boolOrUndefined(raw.social.allowProfileComments),
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message || "Invalid username"
     };
   }
 
-  if (isPlainObject(raw.privacy)) {
-    out.privacy = {
-      publicProfile: boolOrUndefined(raw.privacy.publicProfile),
-      showProfileInSearch: boolOrUndefined(raw.privacy.showProfileInSearch),
-      allowDirectFriendRequests: boolOrUndefined(raw.privacy.allowDirectFriendRequests),
-    };
+  return {
+    ok: true,
+    value: parsed.data
+  };
+}
 
-    if (isPlainObject(raw.privacy.cookies)) {
-      out.privacy.cookies = {
-        preferences: boolOrUndefined(raw.privacy.cookies.preferences),
-        analytics: boolOrUndefined(raw.privacy.cookies.analytics),
-      };
-    }
+function parseSearchQuery(value) {
+  const parsed = userSearchSchema.safeParse(value);
+
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message || "Invalid search query"
+    };
   }
 
-  if (isPlainObject(raw.customization)) {
-    out.customization = {
-      compactInterface: boolOrUndefined(raw.customization.compactInterface),
-      reducedMotion: boolOrUndefined(raw.customization.reducedMotion),
-      liveSearchSuggestions: boolOrUndefined(raw.customization.liveSearchSuggestions),
-    };
+  return {
+    ok: true,
+    value: parsed.data
+  };
+}
 
-    if (
-      typeof raw.customization.defaultExploreView === "string" &&
-      ["grid", "compact", "table"].includes(raw.customization.defaultExploreView)
-    ) {
-      out.customization.defaultExploreView = raw.customization.defaultExploreView;
-    }
+function parseSettingsPatch(raw = {}) {
+  const parsed = settingsPatchSchema.safeParse(raw);
+
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message || "Invalid settings payload"
+    };
   }
 
-  return compactObject(out);
+  const patch = compactObject(parsed.data);
+
+  if (!Object.keys(patch).length) {
+    return {
+      ok: false,
+      message: "No valid settings provided"
+    };
+  }
+
+  return {
+    ok: true,
+    value: patch
+  };
 }
 
 function sameId(a, b) {
@@ -193,6 +222,7 @@ function canViewProfile(viewer, targetUser) {
 router.get("/me", requireAuth, async (req, res) => {
   try {
     res.set("Cache-Control", "no-store");
+
     const user = await User.findById(req.userId).select("username createdAt lastLoginAt");
     if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -232,9 +262,9 @@ router.patch("/settings", requireAuth, async (req, res) => {
   try {
     res.set("Cache-Control", "no-store");
 
-    const patch = sanitizeSettingsPayload(req.body);
-    if (!Object.keys(patch).length) {
-      return res.status(400).json({ message: "No valid settings provided" });
+    const patchResult = parseSettingsPatch(req.body);
+    if (!patchResult.ok) {
+      return res.status(400).json({ message: patchResult.message });
     }
 
     const user = await User.findById(req.userId).select("settings updatedAt");
@@ -243,7 +273,7 @@ router.patch("/settings", requireAuth, async (req, res) => {
     }
 
     const currentSettings = normalizeSettings(user.settings);
-    const nextSettings = deepMerge(currentSettings, patch);
+    const nextSettings = deepMerge(currentSettings, patchResult.value);
 
     user.settings = nextSettings;
     user.updatedAt = new Date();
@@ -269,12 +299,17 @@ router.get("/search", async (req, res) => {
   try {
     res.set("Cache-Control", "no-store");
 
-    const q = String(req.query.q || "").trim();
+    const qResult = parseSearchQuery(req.query.q || "");
+    if (!qResult.ok) {
+      return res.status(400).json({ message: qResult.message });
+    }
+
+    const q = qResult.value;
     if (!q) {
       return res.json({ users: [] });
     }
 
-    const safe = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const safe = escapeRegex(q);
 
     const users = await User.find({
       username: { $regex: safe, $options: "i" },
@@ -302,9 +337,9 @@ router.get("/profile/:username", requireAuth, async (req, res) => {
   try {
     res.set("Cache-Control", "no-store");
 
-    const username = String(req.params.username || "").trim();
-    if (!username) {
-      return res.status(400).json({ message: "Username is required" });
+    const usernameResult = parseUsername(req.params.username);
+    if (!usernameResult.ok) {
+      return res.status(400).json({ message: usernameResult.message });
     }
 
     const viewer = await User.findById(req.userId).select("_id username friends");
@@ -312,7 +347,8 @@ router.get("/profile/:username", requireAuth, async (req, res) => {
       return res.status(404).json({ message: "Viewer not found" });
     }
 
-    const user = await User.findOne({ username }).select("username createdAt lastLoginAt settings friends");
+    const user = await User.findOne({ username: usernameResult.value })
+      .select("username createdAt lastLoginAt settings friends");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
