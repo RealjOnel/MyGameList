@@ -58,15 +58,20 @@ function initDropdown() {
     menu.querySelectorAll(".dropdown-item").forEach(item => {
         item.addEventListener("click", (e) => {
             e.stopPropagation();
-            btn.textContent = item.textContent;
+
+            // Button oben zeigt nur den reinen Text ohne Fragezeichen
+            btn.textContent = item.textContent.replace(/\?$/, '');
 
             // Alte Klassen entfernen
             btn.classList.remove("recommended", "mixed", "not");
             editor.classList.remove("recommended", "mixed", "not");
 
-            // Neue Klassen setzen
-            btn.classList.add(item.dataset.value);
-            editor.classList.add(item.dataset.value);
+            // Neue Klassen nur setzen, wenn ein echter Status ausgewählt wurde
+            const value = item.dataset.value;
+            if (value) {
+                btn.classList.add(value);
+                editor.classList.add(value);
+            }
 
             menu.style.display = "none";
         });

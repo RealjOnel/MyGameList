@@ -119,7 +119,7 @@ body {
 }
 
 .review-toolbar button.active {
-    background: linear-gradient(120deg, #3b82f6, #8b5cf6);
+    background: linear-gradient(120deg, #3b82f6, #8b5cf6) !important; 
     color: var(--bg-body);
 }
 
