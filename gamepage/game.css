@@ -647,6 +647,7 @@
 }
 /* ===================== REVIEW DISPLAY ===================== */
 
+
 .reviews-container {
     display: flex;
     flex-direction: column;
@@ -686,7 +687,7 @@
 }
 
 /* Header */
-.review-header {
+.review-head {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -750,7 +751,7 @@
 }
 
 /* Content + Read More kombiniert */
-.review-content {
+.review-middle {
     font-size: 0.95rem;
     line-height: 1.6;
     color: var(--primary);
@@ -762,12 +763,20 @@
     transition: max-height 0.35s ease;
 }
 
-.review-content p {
+.review-middle p {
     margin: 6px 0;
 }
 
+.review-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+}
+
+
 /* Fade-out */
-.review-content::after {
+.review-middle::after {
     content: "";
     position: absolute;
     bottom: 0;
@@ -779,11 +788,11 @@
 }
 
 /* Expanded */
-.review-content.expanded {
+.review-middle.expanded {
     max-height: 2000px;
 }
 
-.review-content.expanded::after {
+.review-middle.expanded::after {
     display: none;
 }
 
@@ -803,4 +812,36 @@
 .review-readmore-btn:hover {
     background: rgba(59,130,246,0.2);
     transform: translateY(-1px);
+}
+
+.review-readmore-btn {
+    margin-right: auto;
+}
+
+.review-bottom i {
+    margin-left: auto;
+}
+
+.like-btn {
+    cursor: pointer;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.like-btn.active {
+    color: #3b82f6;
+    transform: scale(1.2);
+}
+
+.thumbup-icon {
+    cursor: pointer;
+    width: 24px;
+    transition: transform 0.15s ease;
+}
+
+.thumbup-icon.liked {
+    transform: scale(1.2);
+}
+
+.thumbup-icon:active {
+    transform: scale(1.2);
 }

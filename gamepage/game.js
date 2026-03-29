@@ -839,3 +839,20 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.review-bottom').forEach(container => {
+        const defaultImg = container.querySelector('.default');
+        const likedImg = container.querySelector('.liked');
+
+        defaultImg.addEventListener('click', () => {
+            defaultImg.hidden = true;
+            likedImg.hidden = false;
+        });
+
+        likedImg.addEventListener('click', () => {
+            likedImg.hidden = true;
+            defaultImg.hidden = false;
+        });
+    });
+});
