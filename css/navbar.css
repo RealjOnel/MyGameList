@@ -260,7 +260,7 @@
 .navbar.navbar--unified .nav-dock__indicator::after{
     content: "";
     position: absolute;
-    top: 25px;
+    top: 28px;
     width: 18px;
     height: 18px;
     background: transparent;
