@@ -14,6 +14,11 @@ document.addEventListener("DOMContentLoaded", () => {
         return nodes.find(node => node.classList.contains("is-open")) || activeNode;
     }
 
+    function syncDockOpenState() {
+        const hasOpenMenu = nodes.some(node => node.classList.contains("is-open"));
+        dock.classList.toggle("has-open-menu", hasOpenMenu);
+    }
+
     function moveIndicator(node) {
         if (!node || !indicator) return;
 
@@ -33,9 +38,11 @@ document.addEventListener("DOMContentLoaded", () => {
     function setActive(node) {
         nodes.forEach(n => n.classList.remove("is-active"));
         if (!node) return;
+
         node.classList.add("is-active");
         activeNode = node;
         moveIndicator(getVisualNode());
+        syncDockOpenState();
     }
 
     function closeMenus() {
@@ -55,6 +62,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (activeNode) {
             activeNode.classList.add("is-active");
         }
+
+        syncDockOpenState();
     }
 
     setActive(activeNode);
@@ -82,6 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (willOpen) {
                 node.classList.add("is-open");
                 toggle.setAttribute("aria-expanded", "true");
+                syncDockOpenState();
                 moveIndicator(node);
             } else {
                 setActive(activeNode);

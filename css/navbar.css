@@ -335,6 +335,12 @@
     transform: translateX(3px);
 }
 
+/* If another dropdown is open, keep the current page label visible,
+   but make its icon white again unless it is the open one itself */
+.navbar.navbar--unified .nav-dock.has-open-menu .nav-dock__node.is-active:not(.is-open):not(:hover) .nav-dock__icon{
+    color: rgba(255,255,255,0.92);
+}
+
 /* ==========================================
    CHIPS / USER AREA
    ========================================== */
