@@ -691,6 +691,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 20px;
 }
 
 .review-left {
@@ -704,6 +705,7 @@
     height: 40px;
     border-radius: 50%;
     overflow: hidden;
+    border: 1px solid rgba(203, 213, 225, 0.6);
 }
 
 .profile-picture img {
@@ -820,16 +822,6 @@
 
 .review-bottom i {
     margin-left: auto;
-}
-
-.like-btn {
-    cursor: pointer;
-    transition: transform 0.2s ease, color 0.2s ease;
-}
-
-.like-btn.active {
-    color: #3b82f6;
-    transform: scale(1.2);
 }
 
 .thumbup-icon {

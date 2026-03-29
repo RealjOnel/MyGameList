@@ -828,7 +828,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     boxes.forEach(box => {
         const btn = box.querySelector(".review-readmore-btn");
-        const content = box.querySelector(".review-content");
+        const content = box.querySelector(".review-middle");
 
         btn.addEventListener("click", () => {
             content.classList.toggle("expanded");
