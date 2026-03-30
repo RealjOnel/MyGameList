@@ -145,7 +145,7 @@
     --dock-indicator-size: 54px;
     --dock-indicator-top: -12px;
     --dock-icon-lift: -13px;
-    --dock-icon-rest: -7px;
+    --dock-icon-rest: -10px;
 
     position: relative;
     display: flex;
