@@ -24,8 +24,8 @@
     align-items: center;
     gap: 24px;
 
-    min-height: 96px;
-    padding: 16px 32px;
+    min-height: 84px;
+    padding: 12px 28px;
     border-radius: 0;
 
     background:
@@ -42,7 +42,7 @@
 
 .navbar.navbar--unified .logo{
     justify-self: start;
-    font-size: 1.95rem;
+    font-size: 1.8rem;
     font-weight: 900;
     letter-spacing: -0.06em;
 }
@@ -74,7 +74,7 @@
     justify-self: center;
     min-width: 0;
     width: 100%;
-    min-height: 58px;
+    min-height: 52px;
 }
 
 .navbar.navbar--unified .nav-search{
@@ -85,9 +85,9 @@
 
 .navbar.navbar--unified .nav-search-input,
 .navbar.navbar--unified .nav-search--games{
-    height: 58px;
+    height: 52px;
     padding: 0 16px;
-    border-radius: 18px;
+    border-radius: 16px;
     border: 1px solid rgba(255,255,255,0.08);
     background: rgba(255,255,255,0.06);
     backdrop-filter: blur(12px);
@@ -142,17 +142,17 @@
    ========================================== */
 
 .navbar.navbar--unified .nav-dock{
-    --dock-indicator-size: 58px;
-    --dock-indicator-top: -14px;
-    --dock-icon-lift: -15px;
+    --dock-indicator-size: 54px;
+    --dock-indicator-top: -12px;
+    --dock-icon-lift: -13px;
 
     position: relative;
     display: flex;
     align-items: flex-end;
     gap: 4px;
-    padding: 10px 10px 8px;
-    height: 68px;
-    border-radius: 24px;
+    padding: 8px 10px 6px;
+    height: 62px;
+    border-radius: 22px;
     background: rgba(255,255,255,0.04);
     border: 1px solid rgba(255,255,255,0.06);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
@@ -162,10 +162,10 @@
 
 .navbar.navbar--unified .nav-dock__node{
     position: relative;
-    width: 82px;
-    height: 54px;
-    flex: 0 0 82px;
-    border-radius: 18px;
+    width: 78px;
+    height: 48px;
+    flex: 0 0 78px;
+    border-radius: 16px;
 }
 
 .navbar.navbar--unified .nav-dock__node--link,
@@ -346,8 +346,8 @@
    ========================================== */
 
 .navbar.navbar--unified .nav-chip{
-    height: 52px;
-    border-radius: 16px;
+    height: 48px;
+    border-radius: 14px;
     border: 1px solid rgba(255,255,255,0.08);
     background: rgba(255,255,255,0.06);
     color: #ffffff;
@@ -380,9 +380,9 @@
 }
 
 .navbar.navbar--unified .notif-bell-btn.nav-chip--icon{
-    width: 52px;
-    height: 52px;
-    border-radius: 16px;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
     background: rgba(255,255,255,0.06);
     color: #ffffff;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
@@ -402,10 +402,10 @@
 }
 
 .navbar.navbar--unified .user-icon{
-    width: 52px;
-    height: 52px;
+    width: 48px;
+    height: 48px;
     padding: 4px;
-    border-radius: 16px;
+    border-radius: 14px;
     background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.08);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
