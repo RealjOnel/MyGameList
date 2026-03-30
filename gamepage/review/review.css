@@ -1,0 +1,307 @@
+/* ===================== BASE ===================== */
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    background: var(--bg-body);
+}
+
+/* ===================== OVERLAY ===================== */
+.review-overlay {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    z-index: 100000;
+}
+
+.review-overlay.hidden {
+    display: none;
+}
+
+.review-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.72);
+}
+
+/* ===================== MODAL ===================== */
+.review-modal {
+    position: relative;
+    z-index: 1;
+    width: min(1200px, 96vw);
+    max-height: 100vh;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(248,250,252,0.94));
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    animation: fadeIn 0.2s ease;
+}
+
+/* ===================== HEADER ===================== */
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    background: var(--bg-body);
+}
+
+.review-header h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.review-close {
+    font-size: 20px;
+    border: none;
+    background: var(--bg-secondary);
+    cursor: default;
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.review-close:hover {
+    transform: scale(1.15);
+    color: var(--accent);
+    cursor: pointer;
+}
+
+/* ===================== DESCRIPTION ===================== */
+.review-description {
+    display: flex;
+    justify-content: center;
+    gap: 200px;
+    background-color: var(--bg-body);
+}
+
+.review-item {
+    border-radius: 16px;
+    border: 1px solid rgba(15,23,42,0.08);
+    background: var(--bg-secondary);
+    padding: 14px;
+}
+
+/* ===================== CONTENT ===================== */
+.review-content {
+    background-color: var(--bg-body);
+}
+
+.content-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.content-dropdown {
+    margin-left: auto;
+    margin-right: 40px;
+}
+
+/* ===================== TOOLBAR ===================== */
+.review-toolbar {
+    display: flex;
+    gap: 6px;
+    margin-left: 30px;
+}
+
+.review-toolbar button {
+    padding: 6px 10px;
+    cursor: pointer;
+    border-radius: 6px;
+    border: 1px solid rgba(203, 213, 225, 0.8);
+    background: var(--bg-secondary);
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.review-toolbar button.active {
+    background: linear-gradient(120deg, #3b82f6, #8b5cf6) !important; 
+    color: var(--bg-body);
+}
+
+.review-toolbar button:hover {
+    background: linear-gradient(120deg, #60a5fa, #a78bfa);
+    color: var(--bg-body);
+}
+/*======================Reset=========================*/
+.content-dropdown-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px; /* Abstand zwischen Reset und Dropdown */
+    margin-left: auto;
+    margin-right: 40px;
+}
+
+.reset-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.reset-btn:hover {
+    background: #e5e7eb; /* heller beim Hover */
+}
+
+.reset-btn i {
+    font-size: 14px;
+    color: var(--primary);
+}
+
+/* ===================== DROPDOWN ===================== */
+.review-dropdown {
+    position: relative;
+    width: 180px;
+}
+
+.review-dropdown-btn {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    background: var(--bg-secondary);
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+}
+
+.review-dropdown-menu {
+    position: absolute;
+    top: 110%;
+    left: 0;
+    width: 100%;
+    background: var(--bg-secondary);
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 6px 0;
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.review-dropdown-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.review-dropdown-item:hover {
+    background: var(--bg-hover);
+}
+
+/* ===================== COLORS ===================== */
+.recommended { color: var(--accent); }
+.mixed { color: var(--planned); }
+.not { color: var(--dropped); }
+
+
+/* Dropdown Auswahl Effekte */
+.review-dropdown-btn.recommended {
+    border: 2px solid #3b82f6; /* Blau */
+    box-shadow: 0 0 8px #3b82f6;
+}
+
+.review-dropdown-btn.mixed {
+    border: 2px solid #6b7280; /* Grau */
+    box-shadow: 0 0 8px #6b7280;
+}
+
+.review-dropdown-btn.not {
+    border: 2px solid #ef4444; /* Rot */
+    box-shadow: 0 0 8px #ef4444;
+}
+/* ===================== EDITOR ===================== */
+.editor {
+    flex: 1; 
+    height: min(500px, 96vw);
+    border: 1px solid rgba(203, 213, 225, 0.6);
+    border-radius: 12px;
+    padding: 12px;
+    overflow-y: auto;  
+    overflow-x: hidden;  
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--primary);
+    background: var(--bg-secondary);
+    outline: none;
+    transition: border 0.2s ease, box-shadow 0.2s ease;
+    margin-top: 15px !important; 
+    margin: 30px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) var(--button); 
+    white-space: pre-wrap;       /* Zeilenumbruch auch bei langen Texten */
+    word-wrap: break-word;       /* lange Wörter umbrechen */
+    word-break: break-word;   
+}
+
+.editor:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.editor.recommended {
+    border: 2px solid #3b82f6; /* Blau */
+    box-shadow: 0 0 8px #3b82f6;
+}
+
+.editor.mixed {
+    border: 2px solid #6b7280; /* Grau */
+    box-shadow: 0 0 8px #6b7280;
+}
+
+.editor.not {
+    border: 2px solid #ef4444; /* Rot */
+    box-shadow: 0 0 8px #ef4444;
+}
+/* ===================== FOOTER ===================== */
+.review-footer {
+    padding: 16px 24px;
+    display: flex;
+    justify-content: flex-end;
+    background: var(--bg-body);
+}
+
+.review-submit {
+    padding: 10px 24px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    background: linear-gradient(120deg, #3b82f6, #8b5cf6);
+    color: var(--bg-body);
+    transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.review-submit:hover {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+}
+
+/* ===================== SCROLLBAR ===================== */
+.editor::-webkit-scrollbar {
+    width: 8px;
+}
+
+.editor::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+    border-radius: 999px;
+}
+
+.editor::-webkit-scrollbar-track {
+    background: rgba(203, 213, 225, 0.2);
+    border-radius: 999px;
+}
+
+/* ===================== ANIMATION ===================== */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}

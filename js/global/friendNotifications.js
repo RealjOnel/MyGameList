@@ -1,5 +1,7 @@
-import { API_BASE_URL } from "../../backend/config.js";
 import { showToast } from "./toast.js";
+import { fetchWithAuth, clearAccessToken } from "./authClient.js";
+
+const LOGIN_URL = "../LoginPageAndLogic/login.html";
 
 function escapeHtml(str = "") {
   return String(str).replace(/[&<>"']/g, (m) => ({
@@ -9,6 +11,10 @@ function escapeHtml(str = "") {
     '"': "&quot;",
     "'": "&#039;",
   }[m]));
+}
+
+function redirectToLogin() {
+  window.location.href = LOGIN_URL;
 }
 
 function formatDateTime(iso) {
@@ -22,20 +28,28 @@ function formatDateTime(iso) {
   });
 }
 
-async function api(path, { token, method = "GET", body } = {}) {
+async function api(path, { method = "GET", body } = {}) {
+  const finalPath =
+    method === "GET"
+      ? `${path}${path.includes("?") ? "&" : "?"}_=${Date.now()}`
+      : path;
+
   const headers = {};
-  if (token) headers.Authorization = `Bearer ${token}`;
   if (body) headers["Content-Type"] = "application/json";
 
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const res = await fetchWithAuth(finalPath, {
     method,
     headers,
-    body: body ? JSON.stringify(body) : undefined,
-    cache: "no-store",
+    body: body ? JSON.stringify(body) : undefined
   });
 
   const text = await res.text();
   const data = text ? JSON.parse(text) : {};
+
+  if (res.status === 401) {
+    clearAccessToken();
+    throw new Error("SESSION_EXPIRED");
+  }
 
   if (!res.ok) {
     throw new Error(data?.message || `Request failed (${res.status})`);
@@ -118,48 +132,51 @@ function updateBadge(count) {
 }
 
 async function loadNotificationCount() {
-  const token = localStorage.getItem("token");
   const { bellWrap } = getEls();
-
-  if (!token) {
-    if (bellWrap) bellWrap.hidden = true;
-    return;
-  }
 
   if (bellWrap) bellWrap.hidden = false;
 
   try {
-    const data = await api("/api/friends/notifications/count", { token });
+    const data = await api("/api/friends/notifications/count");
     updateBadge(data.count || 0);
   } catch (err) {
     console.error(err);
+
+    if (err.message === "SESSION_EXPIRED") {
+      if (bellWrap) bellWrap.hidden = true;
+      redirectToLogin();
+      return;
+    }
+
+    if (bellWrap) bellWrap.hidden = true;
   }
 }
 
 async function loadNotifications() {
-  const token = localStorage.getItem("token");
-  if (!token) return;
-
   try {
-    const data = await api("/api/friends/notifications", { token });
+    const data = await api("/api/friends/notifications");
     const notifications = data.notifications || [];
     renderNotifications(notifications);
     updateBadge(notifications.length);
   } catch (err) {
     console.error(err);
+
+    if (err.message === "SESSION_EXPIRED") {
+      redirectToLogin();
+      return;
+    }
+
     renderEmpty(getEls().list, "Failed to load notifications.");
   }
 }
 
 async function handleNotificationAction(action, requestId) {
-  const token = localStorage.getItem("token");
-  if (!token || !requestId) return;
+  if (!requestId) return;
 
   try {
     if (action === "accept") {
       await api(`/api/friends/request/${encodeURIComponent(requestId)}/accept`, {
         method: "POST",
-        token,
       });
 
       showToast({
@@ -172,7 +189,6 @@ async function handleNotificationAction(action, requestId) {
     if (action === "decline") {
       await api(`/api/friends/request/${encodeURIComponent(requestId)}/decline`, {
         method: "POST",
-        token,
       });
 
       showToast({
@@ -183,8 +199,17 @@ async function handleNotificationAction(action, requestId) {
     }
 
     await loadNotifications();
+    await loadNotificationCount();
+
+    window.dispatchEvent(new CustomEvent("mgl:friend-requests-updated"));
   } catch (err) {
     console.error(err);
+
+    if (err.message === "SESSION_EXPIRED") {
+      redirectToLogin();
+      return;
+    }
+
     showToast({
       title: "Notification action failed",
       message: err.message || "Something went wrong.",
@@ -251,7 +276,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   initBellToggle();
   await loadNotificationCount();
 
-  // little polling to update the badge count every 30 seconds in case of new notifications
   setInterval(() => {
     loadNotificationCount().catch(console.error);
   }, 30000);

@@ -1,5 +1,6 @@
 import express from "express";
 import axios from "axios";
+import { z } from "zod";
 import { requireAuth } from "../middleware/authMiddleware.js";
 import { getTwitchToken } from "../services/twitchToken.js";
 import { Game } from "../models/game.js";
@@ -7,6 +8,73 @@ import { UserGameEntry } from "../models/userGameEntry.js";
 import { User } from "../models/user.js";
 
 const router = express.Router();
+
+const ALLOWED_STATUSES = new Set([
+  "planned",
+  "playing",
+  "completed",
+  "on_hold",
+  "dropped"
+]);
+
+const usernameSchema = z
+  .string()
+  .trim()
+  .min(3, "Username is required")
+  .max(20, "Username is too long");
+
+function normalizeUsername(rawValue = "") {
+  return String(rawValue || "").trim().toLowerCase();
+}
+
+function parseUsername(value) {
+  const parsed = usernameSchema.safeParse(value);
+
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message || "Invalid username"
+    };
+  }
+
+  return {
+    ok: true,
+    value: parsed.data,
+    normalizedValue: normalizeUsername(parsed.data)
+  };
+}
+
+function isValidStatus(value) {
+  return typeof value === "string" && ALLOWED_STATUSES.has(value);
+}
+
+function parseValidatedRating(value) {
+  if (value === null) {
+    return { ok: true, value: null };
+  }
+
+  if (value === undefined) {
+    return { ok: true, value: undefined };
+  }
+
+  const n = Number(value);
+
+  if (!Number.isInteger(n)) {
+    return {
+      ok: false,
+      message: "Rating must be a whole number between 1 and 10 or null."
+    };
+  }
+
+  if (n < 1 || n > 10) {
+    return {
+      ok: false,
+      message: "Rating must be between 1 and 10."
+    };
+  }
+
+  return { ok: true, value: n };
+}
 
 /**
  * Helper: fetch a minimal game payload from IGDB (when not in DB yet)
@@ -56,7 +124,13 @@ router.post("/add", requireAuth, async (req, res) => {
     const igdbId = Number(req.body.igdbId);
     const status = req.body.status;
 
-    if (!Number.isFinite(igdbId)) return res.status(400).json({ message: "Invalid igdbId" });
+    if (!Number.isFinite(igdbId)) {
+      return res.status(400).json({ message: "Invalid igdbId" });
+    }
+
+    if (status !== undefined && !isValidStatus(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
 
     // 1) ensure game exists in our DB (cache)
     let game = await Game.findOne({ igdbId });
@@ -75,7 +149,6 @@ router.post("/add", requireAuth, async (req, res) => {
 
     return res.json({ entry, game });
   } catch (e) {
-    // duplicate key -> already in list
     if (String(e?.code) === "11000") {
       return res.status(409).json({ message: "Game already in your list" });
     }
@@ -85,7 +158,6 @@ router.post("/add", requireAuth, async (req, res) => {
 });
 
 // GET /api/library/entry/:igdbId
-// returns the user's entry for this game (or null)
 router.get("/entry/:igdbId", requireAuth, async (req, res) => {
   try {
     const igdbId = Number(req.params.igdbId);
@@ -104,31 +176,49 @@ router.get("/entry/:igdbId", requireAuth, async (req, res) => {
 
 /**
  * PATCH /api/library/:igdbId
- * body can include: { status?, rating? }
+ * body can include: { status?, rating?, isFavorite? }
  */
 router.patch("/:igdbId", requireAuth, async (req, res) => {
   try {
     const igdbId = Number(req.params.igdbId);
-    if (!Number.isFinite(igdbId)) return res.status(400).json({ message: "Invalid igdbId" });
+    if (!Number.isFinite(igdbId)) {
+      return res.status(400).json({ message: "Invalid igdbId" });
+    }
 
     const game = await Game.findOne({ igdbId });
-    if (!game) return res.status(404).json({ message: "Game not in DB yet. Add it first." });
+    if (!game) {
+      return res.status(404).json({ message: "Game not in DB yet. Add it first." });
+    }
 
     const entry = await UserGameEntry.findOne({ userId: req.userId, gameId: game._id });
-    if (!entry) return res.status(404).json({ message: "Game not in your list" });
+    if (!entry) {
+      return res.status(404).json({ message: "Game not in your list" });
+    }
 
-    if (typeof req.body.status === "string") {
+    if (req.body.status !== undefined) {
+      if (!isValidStatus(req.body.status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
       entry.status = req.body.status;
     }
 
-    if (req.body.rating === null) {
-      entry.rating = null;
-    } else if (req.body.rating !== undefined) {
-      const n = Number(req.body.rating);
-      if (Number.isFinite(n)) entry.rating = n;
+    if (req.body.rating !== undefined || req.body.rating === null) {
+      const ratingResult = parseValidatedRating(req.body.rating);
+
+      if (!ratingResult.ok) {
+        return res.status(400).json({ message: ratingResult.message });
+      }
+
+      if (ratingResult.value !== undefined) {
+        entry.rating = ratingResult.value;
+      }
     }
 
-    if (typeof req.body.isFavorite === "boolean") {
+    if (req.body.isFavorite !== undefined) {
+      if (typeof req.body.isFavorite !== "boolean") {
+        return res.status(400).json({ message: "isFavorite must be a boolean" });
+      }
+
       const nextFav = req.body.isFavorite;
 
       if (nextFav && !entry.isFavorite) {
@@ -153,7 +243,6 @@ router.patch("/:igdbId", requireAuth, async (req, res) => {
 
 /**
  * GET /api/library/me
- * returns user's list with populated game data
  */
 router.get("/me", requireAuth, async (req, res) => {
   try {
@@ -161,7 +250,6 @@ router.get("/me", requireAuth, async (req, res) => {
       .sort({ updatedAt: -1 })
       .populate("gameId");
 
-    // normalize response: { entry fields + game fields }
     const out = items.map(it => ({
       id: it._id,
       status: it.status,
@@ -191,12 +279,14 @@ router.get("/me", requireAuth, async (req, res) => {
 // GET /api/library/profile/:username
 router.get("/profile/:username", requireAuth, async (req, res) => {
   try {
-    const username = String(req.params.username || "").trim();
-    if (!username) {
-      return res.status(400).json({ message: "Username is required" });
+    const usernameResult = parseUsername(req.params.username);
+    if (!usernameResult.ok) {
+      return res.status(400).json({ message: usernameResult.message });
     }
 
-    const user = await User.findOne({ username }).select("_id username");
+    const user = await User.findOne({ username: usernameResult.normalizedValue })
+      .select("_id username displayUsername");
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -231,14 +321,14 @@ router.get("/profile/:username", requireAuth, async (req, res) => {
   }
 });
 
-// DELETE /api/library/:igdbId  -> remove game from user's list
+// DELETE /api/library/:igdbId
 router.delete("/:igdbId", requireAuth, async (req, res) => {
   try {
     const igdbId = Number(req.params.igdbId);
     if (!Number.isFinite(igdbId)) return res.status(400).json({ message: "Invalid igdbId" });
 
     const game = await Game.findOne({ igdbId });
-    if (!game) return res.json({ removed: false }); // nothing to remove
+    if (!game) return res.json({ removed: false });
 
     const result = await UserGameEntry.deleteOne({ userId: req.userId, gameId: game._id });
 

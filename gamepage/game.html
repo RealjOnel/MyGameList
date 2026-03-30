@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="./game.css">
+    <link rel="stylesheet" href="./review/review.css">
 </head>
 <body>
 
@@ -219,10 +220,57 @@
 
     <div id="charactersGrid" class="char-grid"></div>
   </div>
+  <div class="reviews-container">
+    <div class="review-box recommended"> <!-- Status Badge -->
+      <div class="review-head">
+          <div class="review-left">
+              <div class="profile-picture">
+                  <img src="../assets/User/Default_User_Icon.png" alt="user-icon">
+              </div>
+              <div class="review-user">MaxMustermann</div>
+          </div>
+          <div class="review-status recommended">Recommended</div>
+      </div>
+      <div class="review-meta">
+          <span>12 March 2026</span>
+          <span>• 9/10</span>
+      </div>
+      <div class="review-middle">
+          Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu fe
+      </div>
+      <div class="review-bottom">
+        <button class="review-readmore-btn">Read More</button>
+        <img src="../assets/User/thumbup.png" alt="thumb-up" class="thumbup-icon">
+      </div>
+    </div>
+    <div class="review-box recommended"> <!-- Status Badge -->
+      <div class="review-head">
+          <div class="review-left">
+              <div class="profile-picture">
+                  <img src="../assets/User/Default_User_Icon.png" alt="user-icon">
+              </div>
+              <div class="review-user">MaxMustermann</div>
+          </div>
+          <div class="review-status recommended">Recommended</div>
+      </div>
+      <div class="review-meta">
+          <span>12 March 2026</span>
+          <span>• 9/10</span>
+      </div>
+      <div class="review-middle">
+          Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu fe
+      </div>
+      <div class="review-bottom">
+        <button class="review-readmore-btn">Read More</button>
+        <img src="../assets/User/thumbup.png" class="thumbup-icon default">
+        <img src="../assets/User/thumbupliked.jpg" class="thumbup-icon liked" hidden>
+      </div>
+    </div>
+  </div>
 </main>
 
 
-<footer class="main-footer">
+<footer class="main-bottom">
     <div class="footer-content">
         <div class="footer-brand">
             <div class="logo">MY<span class="accent">GAMELIST</span></div>
@@ -267,7 +315,7 @@
     <script src="../js/global/confirmBox.js"></script>
     <script src="../js/global/reveal.js"></script>
     <script src="../js/global/active.js"></script>
-    <script src="../js/global/storeuser.js"></script>
+    <script type="module" src="../js/global/storeuser.js"></script>
     <script type="module" src="../js/global/nav-search.js"></script>
     <script type="module" src="../js/global/friendNotifications.js"></script>
 
@@ -294,3 +342,4 @@
 
 </body>
 </html>
+<script type="module" src="./review/reviewloader.js"></script>

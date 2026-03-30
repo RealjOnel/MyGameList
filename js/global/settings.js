@@ -1,5 +1,5 @@
-import { API_BASE_URL } from "../../backend/config.js";
 import { showToast } from "./toast.js";
+import { fetchWithAuth, clearAccessToken } from "./authClient.js";
 
 let isInitialized = false;
 
@@ -66,24 +66,36 @@ function deepMerge(target, source) {
   return out;
 }
 
-function getToken() {
-  return localStorage.getItem("token");
+function normalizeSettings(raw) {
+  return deepMerge(cloneDefaults(), raw || {});
 }
 
-async function api(path, { method = "GET", body, token } = {}) {
+function redirectToLogin() {
+  window.location.href = "../LoginPageAndLogic/login.html";
+}
+
+async function api(path, { method = "GET", body } = {}) {
+  const finalPath =
+    method === "GET"
+      ? `${path}${path.includes("?") ? "&" : "?"}_=${Date.now()}`
+      : path;
+
   const headers = {};
-  if (token) headers.Authorization = `Bearer ${token}`;
   if (body) headers["Content-Type"] = "application/json";
 
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const res = await fetchWithAuth(finalPath, {
     method,
     headers,
-    body: body ? JSON.stringify(body) : undefined,
-    cache: "no-store"
+    body: body ? JSON.stringify(body) : undefined
   });
 
   const text = await res.text();
   const data = text ? JSON.parse(text) : {};
+
+  if (res.status === 401) {
+    clearAccessToken();
+    throw new Error("SESSION_EXPIRED");
+  }
 
   if (!res.ok) {
     throw new Error(data?.message || `Request failed (${res.status})`);
@@ -129,10 +141,6 @@ function writeFieldValue(field, value) {
   field.value = value ?? "";
 }
 
-function normalizeSettings(raw) {
-  return deepMerge(cloneDefaults(), raw || {});
-}
-
 function collectSettingsFromForm() {
   const settings = cloneDefaults();
 
@@ -169,18 +177,12 @@ function updateBioCounter() {
 }
 
 async function loadSettingsIntoForm() {
-  const token = getToken();
-  if (!token) throw new Error("You need to be logged in.");
-
-  const data = await api("/api/users/settings", { token });
+  const data = await api("/api/users/settings");
   populateSettingsForm(data?.settings);
   return data?.settings;
 }
 
 async function saveSettingsFromForm() {
-  const token = getToken();
-  if (!token) throw new Error("You need to be logged in.");
-
   const saveSettingsBtn = document.getElementById("settingsSaveBtn");
   const settings = collectSettingsFromForm();
 
@@ -192,7 +194,6 @@ async function saveSettingsFromForm() {
   try {
     const data = await api("/api/users/settings", {
       method: "PATCH",
-      token,
       body: settings
     });
 
@@ -233,6 +234,12 @@ async function openSettings() {
     await loadSettingsIntoForm();
   } catch (err) {
     console.error(err);
+
+    if (err.message === "SESSION_EXPIRED") {
+      redirectToLogin();
+      return;
+    }
+
     showToast({
       title: "Settings failed to load",
       message: err.message || "Could not load settings.",
@@ -317,6 +324,12 @@ export function initSettingsModal() {
         await saveSettingsFromForm();
       } catch (err) {
         console.error(err);
+
+        if (err.message === "SESSION_EXPIRED") {
+          redirectToLogin();
+          return;
+        }
+
         showToast({
           title: "Save failed",
           message: err.message || "Could not save settings.",

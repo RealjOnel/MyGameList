@@ -1,10 +1,11 @@
-import { API_BASE_URL } from "../backend/config.js";
 import { showToast } from "../js/global/toast.js";
+import { fetchWithAuth, clearAccessToken } from "../js/global/authClient.js";
 
 const commentInput = document.querySelector(".comment_input");
 const commentButton = document.querySelector(".comment_button");
 const commentList = document.getElementById("profileCommentList");
 const commentCounter = document.querySelector(".comment_counter");
+const LOGIN_URL = "../LoginPageAndLogic/login.html";
 
 function escapeHtml(str = "") {
   return String(str).replace(/[&<>"']/g, (m) => ({
@@ -14,6 +15,10 @@ function escapeHtml(str = "") {
     '"': "&quot;",
     "'": "&#039;",
   }[m]));
+}
+
+function redirectToLogin() {
+  window.location.href = LOGIN_URL;
 }
 
 function formatCommentDate(iso) {
@@ -27,20 +32,28 @@ function formatCommentDate(iso) {
   });
 }
 
-async function api(path, { method = "GET", body, token } = {}) {
+async function api(path, { method = "GET", body } = {}) {
+  const finalPath =
+    method === "GET"
+      ? `${path}${path.includes("?") ? "&" : "?"}_=${Date.now()}`
+      : path;
+
   const headers = {};
-  if (token) headers.Authorization = `Bearer ${token}`;
   if (body) headers["Content-Type"] = "application/json";
 
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  const res = await fetchWithAuth(finalPath, {
     method,
     headers,
-    body: body ? JSON.stringify(body) : undefined,
-    cache: "no-store",
+    body: body ? JSON.stringify(body) : undefined
   });
 
   const text = await res.text();
   const data = text ? JSON.parse(text) : {};
+
+  if (res.status === 401) {
+    clearAccessToken();
+    throw new Error("SESSION_EXPIRED");
+  }
 
   if (!res.ok) {
     throw new Error(data?.message || `Request failed (${res.status})`);
@@ -117,6 +130,12 @@ async function loadComments() {
     renderComments(data.comments || []);
   } catch (err) {
     console.error(err);
+
+    if (err.message === "SESSION_EXPIRED") {
+      redirectToLogin();
+      return;
+    }
+
     if (commentList) {
       commentList.innerHTML = `<div class="profile_comment_empty">Failed to load comments.</div>`;
     }
@@ -124,12 +143,6 @@ async function loadComments() {
 }
 
 async function postComment() {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    window.location.href = "../../LoginPageAndLogic/login.html";
-    return;
-  }
-
   const profileUsername = window.currentProfileUsername;
   const text = String(commentInput?.value || "").trim();
 
@@ -137,13 +150,13 @@ async function postComment() {
   if (!text) return;
 
   if (text.length > 100) {
-  showToast({
-    title: "Comment too long",
-    message: "Comments can be up to 100 characters long.",
-    type: "error"
-  });
-  return;
-}
+    showToast({
+      title: "Comment too long",
+      message: "Comments can be up to 100 characters long.",
+      type: "error"
+    });
+    return;
+  }
 
   const oldText = commentButton.textContent;
   commentButton.disabled = true;
@@ -152,7 +165,6 @@ async function postComment() {
   try {
     await api(`/api/profile-comments/${encodeURIComponent(profileUsername)}`, {
       method: "POST",
-      token,
       body: { text },
     });
 
@@ -161,6 +173,7 @@ async function postComment() {
     if (commentCounter) commentCounter.textContent = "0 / 100";
 
     await loadComments();
+
     showToast({
       title: "Comment posted",
       message: "Your comment has been published.",
@@ -168,6 +181,12 @@ async function postComment() {
     });
   } catch (err) {
     console.error(err);
+
+    if (err.message === "SESSION_EXPIRED") {
+      redirectToLogin();
+      return;
+    }
+
     showToast({
       title: "Comment failed",
       message: err.message || "Failed to post comment.",
@@ -180,22 +199,20 @@ async function postComment() {
 }
 
 async function deleteComment(commentId) {
-  const token = localStorage.getItem("token");
-  if (!token || !commentId) return;
+  if (!commentId) return;
 
-  const ok = await openMglConfirm({
-  title: "Delete Comment",
-  text: "Do you really want to delete this comment?",
-  confirmText: "Delete",
-  cancelText: "Cancel",
-});
+  const ok = await window.openMglConfirm({
+    title: "Delete Comment",
+    text: "Do you really want to delete this comment?",
+    confirmText: "Delete",
+    cancelText: "Cancel",
+  });
 
-if (!ok) return;
+  if (!ok) return;
 
   try {
     await api(`/api/profile-comments/comment/${encodeURIComponent(commentId)}`, {
       method: "DELETE",
-      token,
     });
 
     await loadComments();
@@ -207,6 +224,12 @@ if (!ok) return;
     });
   } catch (err) {
     console.error(err);
+
+    if (err.message === "SESSION_EXPIRED") {
+      redirectToLogin();
+      return;
+    }
+
     showToast({
       title: "Delete failed",
       message: err.message || "Failed to delete comment.",

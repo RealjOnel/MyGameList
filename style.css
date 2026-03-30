@@ -4,6 +4,7 @@
 
 :root {
     --bg-body: #fafafa;
+    --bg-secondary: rgba(248,250,252,0.78);
     --button: #f8fafc;
     --bg-card: #eff6ff;
     --color-border: #cbd5e1;

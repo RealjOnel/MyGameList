@@ -1,7 +1,9 @@
-import { API_BASE_URL } from "../backend/config.js";
+import { fetchWithAuth } from "../js/global/authClient.js";
 import { showToast } from "../js/global/toast.js";
 
 function qs(sel) { return document.querySelector(sel); }
+
+const LOGIN_URL = "../LoginPageAndLogic/login.html";
 
 const DEFAULT_SETTINGS = Object.freeze({
   profile: {
@@ -70,29 +72,47 @@ function normalizeSettings(raw) {
   return deepMerge(cloneDefaults(), raw || {});
 }
 
-async function api(path, { token, method = "GET", body } = {}) {
-  const headers = {};
-  if (token) headers.Authorization = `Bearer ${token}`;
-  if (body) headers["Content-Type"] = "application/json";
+function redirectToLogin() {
+  window.location.href = LOGIN_URL;
+}
 
-  const url =
+async function api(path, { method = "GET", body } = {}) {
+  const finalPath =
     method === "GET"
-      ? `${API_BASE_URL}${path}${path.includes("?") ? "&" : "?"}_=${Date.now()}`
-      : `${API_BASE_URL}${path}`;
+      ? `${path}${path.includes("?") ? "&" : "?"}_=${Date.now()}`
+      : path;
 
-  const res = await fetch(url, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-    cache: "no-store",
-  });
+  const headers = {};
+  if (body) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  let res;
+
+  try {
+    res = await fetchWithAuth(finalPath, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined
+    });
+  } catch (err) {
+    if (err.message === "Session expired") {
+      throw new Error("SESSION_EXPIRED");
+    }
+    throw err;
+  }
 
   const text = await res.text();
   const data = text ? JSON.parse(text) : {};
 
+  if (res.status === 401) {
+    throw new Error("SESSION_EXPIRED");
+  }
+
   if (!res.ok) {
     throw new Error(data?.message || `Request failed (${res.status})`);
   }
+
   return data;
 }
 
@@ -216,14 +236,24 @@ function renderProfileBio(settings) {
   }
 }
 
-function applyProfileVisibility(settings) {
+function applyProfileVisibility(settings, visibility = {}) {
   const social = settings?.social || {};
+  const isOwner = visibility?.isOwner === true;
 
   const friendsSection = document.getElementById("profileFriendsSection");
   const favoritesSection = document.getElementById("profileFavoritesSection");
   const recentActivitySection = document.getElementById("profileRecentActivitySection");
   const commentsSection = document.getElementById("profileCommentsSection");
   const reviewsSection = document.getElementById("profileReviewsSection");
+
+  if (isOwner) {
+    if (friendsSection) friendsSection.hidden = false;
+    if (favoritesSection) favoritesSection.hidden = false;
+    if (recentActivitySection) recentActivitySection.hidden = false;
+    if (commentsSection) commentsSection.hidden = false;
+    if (reviewsSection) reviewsSection.hidden = false;
+    return;
+  }
 
   if (friendsSection) friendsSection.hidden = !social.showFriendsList;
   if (favoritesSection) favoritesSection.hidden = !social.showFavoriteGames;
@@ -355,7 +385,7 @@ function applyFriendButtonState(button, status) {
   }
 }
 
-async function setupFriendSection({ token, me, profile }) {
+async function setupFriendSection({ me, profile }) {
   const button = document.getElementById("friendActionBtn");
   const friendsTitle = document.querySelector(".profile_friendlist h3");
 
@@ -373,8 +403,8 @@ async function setupFriendSection({ token, me, profile }) {
     applyFriendButtonState(button, "loading");
 
     const [statusData, friendsData] = await Promise.all([
-      api(`/api/friends/status/${encodeURIComponent(profile.username)}`, { token }),
-      api(`/api/friends/list/${encodeURIComponent(profile.username)}`, { token }),
+      api(`/api/friends/status/${encodeURIComponent(profile.username)}`),
+      api(`/api/friends/list/${encodeURIComponent(profile.username)}`)
     ]);
 
     currentStatus = statusData?.status || "none";
@@ -401,8 +431,7 @@ async function setupFriendSection({ token, me, profile }) {
     try {
       if (currentStatus === "none") {
         await api(`/api/friends/request/${encodeURIComponent(profile.username)}`, {
-          method: "POST",
-          token,
+          method: "POST"
         });
 
         showToast({
@@ -414,8 +443,7 @@ async function setupFriendSection({ token, me, profile }) {
         if (!currentRequestId) throw new Error("Missing request id");
 
         await api(`/api/friends/request/${encodeURIComponent(currentRequestId)}/accept`, {
-          method: "POST",
-          token,
+          method: "POST"
         });
 
         showToast({
@@ -438,8 +466,7 @@ async function setupFriendSection({ token, me, profile }) {
         }
 
         await api(`/api/friends/request/${encodeURIComponent(profile.username)}`, {
-          method: "DELETE",
-          token,
+          method: "DELETE"
         });
 
         showToast({
@@ -462,8 +489,7 @@ async function setupFriendSection({ token, me, profile }) {
         }
 
         await api(`/api/friends/remove/${encodeURIComponent(profile.username)}`, {
-          method: "DELETE",
-          token,
+          method: "DELETE"
         });
 
         showToast({
@@ -476,11 +502,18 @@ async function setupFriendSection({ token, me, profile }) {
       await refreshFriendData();
     } catch (err) {
       console.error(err);
+
+      if (err.message === "SESSION_EXPIRED") {
+        redirectToLogin();
+        return;
+      }
+
       showToast({
         title: "Friend action failed",
         message: err.message || "Something went wrong.",
         type: "error"
       });
+
       await refreshFriendData();
     } finally {
       actionBusy = false;
@@ -491,13 +524,17 @@ async function setupFriendSection({ token, me, profile }) {
 }
 
 async function loadProfile() {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    window.location.href = "../../LoginPageAndLogic/login.html";
-    return;
-  }
+  let me;
 
-  const me = await api("/api/users/me", { token });
+  try {
+    me = await api("/api/users/me");
+  } catch (err) {
+    if (err.message === "SESSION_EXPIRED") {
+      redirectToLogin();
+      return;
+    }
+    throw err;
+  }
 
   const params = new URLSearchParams(window.location.search);
   const requestedUsername = params.get("username");
@@ -505,8 +542,13 @@ async function loadProfile() {
 
   let profile;
   try {
-    profile = await api(`/api/users/profile/${encodeURIComponent(targetUsername)}`, { token });
+    profile = await api(`/api/users/profile/${encodeURIComponent(targetUsername)}`);
   } catch (err) {
+    if (err.message === "SESSION_EXPIRED") {
+      redirectToLogin();
+      return;
+    }
+
     if (requestedUsername) {
       showToast({
         title: "Profile unavailable",
@@ -516,11 +558,29 @@ async function loadProfile() {
       window.location.href = `./profile.html?username=${encodeURIComponent(me.username)}`;
       return;
     }
+
     throw err;
   }
 
-  if (!requestedUsername && profile?.username) {
-    const newUrl = `${window.location.pathname}?username=${encodeURIComponent(profile.username)}`;
+  console.log("ME:", me);
+  console.log("REQUESTED USERNAME:", requestedUsername);
+  console.log("TARGET USERNAME:", targetUsername);
+  console.log("PROFILE:", profile);
+
+  const resolvedProfileUsername = profile?.username || requestedUsername || me?.username;
+
+  if (!resolvedProfileUsername) {
+    console.error("Profile username missing", {
+      me,
+      profile,
+      requestedUsername,
+      targetUsername
+    });
+    throw new Error("Profile username missing");
+  }
+
+  if (!requestedUsername && resolvedProfileUsername) {
+    const newUrl = `${window.location.pathname}?username=${encodeURIComponent(resolvedProfileUsername)}`;
     window.history.replaceState({}, "", newUrl);
   }
 
@@ -530,15 +590,20 @@ async function loadProfile() {
   });
 
   const profileSettings = normalizeSettings(profile.settings);
+  const profileVisibility = profile.visibility || {
+    isOwner: resolvedProfileUsername === me.username,
+    isFriend: false,
+    publicProfile: true
+  };
 
-  qs(".profile_username").textContent = profile.username;
+  qs(".profile_username").textContent = resolvedProfileUsername;
 
   const descTitle = document.getElementById("playerDescriptionTitle");
   if (descTitle) {
-    descTitle.textContent = `${profile.username}'s Description:`;
+    descTitle.textContent = `${resolvedProfileUsername}'s Description:`;
   }
 
-  document.title = `${profile.username || "Profile"} | MyGameList`;
+  document.title = `${resolvedProfileUsername} | MyGameList`;
 
   const joinedEl = document.getElementById("joinedAt");
   if (joinedEl) joinedEl.textContent = `Joined: ${formatDate(profile.createdAt)}`;
@@ -548,14 +613,12 @@ async function loadProfile() {
 
   renderProfileSocialLinks(profileSettings);
   renderProfileBio(profileSettings);
-  applyProfileVisibility(profileSettings);
+  applyProfileVisibility(profileSettings, profileVisibility);
 
-  const entries = await api(
-    `/api/library/profile/${encodeURIComponent(profile.username)}`,
-    { token }
-  );
+  const entriesData = await api(`/api/library/profile/${encodeURIComponent(resolvedProfileUsername)}`);
+  const entries = Array.isArray(entriesData) ? entriesData : [];
 
-  window.currentProfileUsername = profile.username;
+  window.currentProfileUsername = resolvedProfileUsername;
   window.currentViewerUsername = me.username;
 
   const favWrap = document.getElementById("profileFavorites");
@@ -613,17 +676,23 @@ async function loadProfile() {
   const commentHeading = document.querySelector(".profile_comments h3");
   if (commentHeading) {
     commentHeading.textContent =
-      profile.username === me.username
+      resolvedProfileUsername === me.username
         ? "Leave a Comment"
         : `Leave a Comment for ${profile.username}`;
   }
 
-  await setupFriendSection({ token, me, profile });
+  await setupFriendSection({ me, profile });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   loadProfile().catch(err => {
     console.error(err);
+
+    if (err.message === "SESSION_EXPIRED") {
+      redirectToLogin();
+      return;
+    }
+
     showToast({
       title: "Profile failed to load",
       message: err.message || "Something went wrong while loading the profile.",
@@ -635,5 +704,29 @@ document.addEventListener("DOMContentLoaded", () => {
 window.addEventListener("mgl:settings-saved", () => {
   loadProfile().catch(err => {
     console.error(err);
+
+    if (err.message === "SESSION_EXPIRED") {
+      redirectToLogin();
+    }
+  });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const likeBtn = document.querySelector(".review_likesbtn");
+  const likeIcon = document.querySelector(".review_likesicon");
+
+  if (!likeBtn || !likeIcon) return;
+
+  let liked = false;
+
+  likeBtn.addEventListener("click", () => {
+    liked = !liked;
+
+    likeIcon.src = liked
+      ? "../assets/User/thumbupliked.jpg"
+      : "../assets/User/thumbup.png";
+
+    likeBtn.classList.add("liked");
+    setTimeout(() => likeBtn.classList.remove("liked"), 150);
   });
 });

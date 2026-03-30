@@ -1,10 +1,57 @@
 import express from "express";
 import mongoose from "mongoose";
+import { z } from "zod";
 import { requireAuth } from "../middleware/authMiddleware.js";
 import { User } from "../models/user.js";
 import { FriendRequest } from "../models/friendRequest.js";
+import { sendFriendRequestLimiter } from "../middleware/rateLimiter.js";
 
 const router = express.Router();
+
+const usernameSchema = z
+  .string()
+  .trim()
+  .min(3, "Username is required")
+  .max(20, "Username is too long");
+
+function normalizeUsername(rawValue = "") {
+  return String(rawValue || "").trim().toLowerCase();
+}
+
+function getPublicUsername(user) {
+  return user?.displayUsername || user?.username || "Unknown User";
+}
+
+function parseUsername(value) {
+  const parsed = usernameSchema.safeParse(value);
+
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message || "Invalid username"
+    };
+  }
+
+  return {
+    ok: true,
+    value: parsed.data,
+    normalizedValue: normalizeUsername(parsed.data)
+  };
+}
+
+function parseObjectId(value, fieldName = "Id") {
+  const raw = String(value || "").trim();
+
+  if (!raw) {
+    return { ok: false, message: `${fieldName} is required` };
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(raw)) {
+    return { ok: false, message: `Invalid ${fieldName.toLowerCase()}` };
+  }
+
+  return { ok: true, value: raw };
+}
 
 function sameId(a, b) {
   return String(a) === String(b);
@@ -17,8 +64,8 @@ function hasFriend(user, targetUserId) {
 function normalizeFriendUser(user) {
   return {
     id: user._id,
-    username: user.username,
-    avatarUrl: null, // later real avatar url when implemented
+    username: getPublicUsername(user),
+    avatarUrl: null,
     createdAt: user.createdAt ?? null,
     lastLoginAt: user.lastLoginAt ?? null,
   };
@@ -31,17 +78,19 @@ function allowsDirectFriendRequests(user) {
 // GET /api/friends/status/:username
 router.get("/status/:username", requireAuth, async (req, res) => {
   try {
-    const username = String(req.params.username || "").trim();
-    if (!username) {
-      return res.status(400).json({ message: "Username is required" });
+    const usernameResult = parseUsername(req.params.username);
+    if (!usernameResult.ok) {
+      return res.status(400).json({ message: usernameResult.message });
     }
 
-    const viewer = await User.findById(req.userId).select("_id username friends");
+    const viewer = await User.findById(req.userId).select("_id username displayUsername friends");
     if (!viewer) {
       return res.status(404).json({ message: "Viewer not found" });
     }
 
-    const target = await User.findOne({ username }).select("_id username settings");
+    const target = await User.findOne({ username: usernameResult.normalizedValue })
+      .select("_id username displayUsername settings");
+
     if (!target) {
       return res.status(404).json({ message: "Target user not found" });
     }
@@ -105,13 +154,13 @@ router.get("/status/:username", requireAuth, async (req, res) => {
 // GET /api/friends/list/:username
 router.get("/list/:username", requireAuth, async (req, res) => {
   try {
-    const username = String(req.params.username || "").trim();
-    if (!username) {
-      return res.status(400).json({ message: "Username is required" });
+    const usernameResult = parseUsername(req.params.username);
+    if (!usernameResult.ok) {
+      return res.status(400).json({ message: usernameResult.message });
     }
 
-    const profileUser = await User.findOne({ username })
-      .populate("friends", "username createdAt lastLoginAt");
+    const profileUser = await User.findOne({ username: usernameResult.normalizedValue })
+      .populate("friends", "username displayUsername createdAt lastLoginAt");
 
     if (!profileUser) {
       return res.status(404).json({ message: "Profile user not found" });
@@ -119,7 +168,7 @@ router.get("/list/:username", requireAuth, async (req, res) => {
 
     const friends = (profileUser.friends || [])
       .filter(Boolean)
-      .sort((a, b) => String(a.username || "").localeCompare(String(b.username || "")))
+      .sort((a, b) => String(getPublicUsername(a)).localeCompare(String(getPublicUsername(b))))
       .map(normalizeFriendUser);
 
     res.json({ friends });
@@ -130,19 +179,21 @@ router.get("/list/:username", requireAuth, async (req, res) => {
 });
 
 // POST /api/friends/request/:username
-router.post("/request/:username", requireAuth, async (req, res) => {
+router.post("/request/:username", requireAuth, sendFriendRequestLimiter, async (req, res) => {
   try {
-    const username = String(req.params.username || "").trim();
-    if (!username) {
-      return res.status(400).json({ message: "Username is required" });
+    const usernameResult = parseUsername(req.params.username);
+    if (!usernameResult.ok) {
+      return res.status(400).json({ message: usernameResult.message });
     }
 
-    const viewer = await User.findById(req.userId).select("_id username friends");
+    const viewer = await User.findById(req.userId).select("_id username displayUsername friends");
     if (!viewer) {
       return res.status(404).json({ message: "Viewer not found" });
     }
 
-    const target = await User.findOne({ username }).select("_id username friends settings");
+    const target = await User.findOne({ username: usernameResult.normalizedValue })
+      .select("_id username displayUsername friends settings");
+
     if (!target) {
       return res.status(404).json({ message: "Target user not found" });
     }
@@ -219,13 +270,13 @@ router.post("/request/:username", requireAuth, async (req, res) => {
 // POST /api/friends/request/:requestId/accept
 router.post("/request/:requestId/accept", requireAuth, async (req, res) => {
   try {
-    const requestId = String(req.params.requestId || "").trim();
-    if (!mongoose.Types.ObjectId.isValid(requestId)) {
-      return res.status(400).json({ message: "Invalid request id" });
+    const requestIdResult = parseObjectId(req.params.requestId, "Request id");
+    if (!requestIdResult.ok) {
+      return res.status(400).json({ message: requestIdResult.message });
     }
 
     const request = await FriendRequest.findOne({
-      _id: requestId,
+      _id: requestIdResult.value,
       toUserId: req.userId,
       status: "pending",
     });
@@ -254,7 +305,6 @@ router.post("/request/:requestId/accept", requireAuth, async (req, res) => {
     request.status = "accepted";
     await request.save();
 
-    // if both users had pending requests to each other, cancel the other one
     await FriendRequest.updateMany(
       {
         fromUserId: toUser._id,
@@ -274,13 +324,13 @@ router.post("/request/:requestId/accept", requireAuth, async (req, res) => {
 // POST /api/friends/request/:requestId/decline
 router.post("/request/:requestId/decline", requireAuth, async (req, res) => {
   try {
-    const requestId = String(req.params.requestId || "").trim();
-    if (!mongoose.Types.ObjectId.isValid(requestId)) {
-      return res.status(400).json({ message: "Invalid request id" });
+    const requestIdResult = parseObjectId(req.params.requestId, "Request id");
+    if (!requestIdResult.ok) {
+      return res.status(400).json({ message: requestIdResult.message });
     }
 
     const request = await FriendRequest.findOne({
-      _id: requestId,
+      _id: requestIdResult.value,
       toUserId: req.userId,
       status: "pending",
     });
@@ -300,15 +350,14 @@ router.post("/request/:requestId/decline", requireAuth, async (req, res) => {
 });
 
 // DELETE /api/friends/request/:username
-// outgoing friend request cancellation (before it's accepted)
 router.delete("/request/:username", requireAuth, async (req, res) => {
   try {
-    const username = String(req.params.username || "").trim();
-    if (!username) {
-      return res.status(400).json({ message: "Username is required" });
+    const usernameResult = parseUsername(req.params.username);
+    if (!usernameResult.ok) {
+      return res.status(400).json({ message: usernameResult.message });
     }
 
-    const target = await User.findOne({ username }).select("_id");
+    const target = await User.findOne({ username: usernameResult.normalizedValue }).select("_id");
     if (!target) {
       return res.status(404).json({ message: "Target user not found" });
     }
@@ -336,13 +385,13 @@ router.delete("/request/:username", requireAuth, async (req, res) => {
 // DELETE /api/friends/remove/:username
 router.delete("/remove/:username", requireAuth, async (req, res) => {
   try {
-    const username = String(req.params.username || "").trim();
-    if (!username) {
-      return res.status(400).json({ message: "Username is required" });
+    const usernameResult = parseUsername(req.params.username);
+    if (!usernameResult.ok) {
+      return res.status(400).json({ message: usernameResult.message });
     }
 
     const viewer = await User.findById(req.userId).select("_id");
-    const target = await User.findOne({ username }).select("_id");
+    const target = await User.findOne({ username: usernameResult.normalizedValue }).select("_id");
 
     if (!viewer || !target) {
       return res.status(404).json({ message: "User not found" });
@@ -402,7 +451,7 @@ router.get("/notifications", requireAuth, async (req, res) => {
       status: "pending",
     })
       .sort({ createdAt: -1 })
-      .populate("fromUserId", "username")
+      .populate("fromUserId", "username displayUsername")
       .limit(25);
 
     const notifications = requests.map((reqDoc) => ({
@@ -411,7 +460,7 @@ router.get("/notifications", requireAuth, async (req, res) => {
       type: "friend_request",
       fromUser: {
         id: reqDoc.fromUserId?._id ?? null,
-        username: reqDoc.fromUserId?.username || "Unknown User",
+        username: getPublicUsername(reqDoc.fromUserId),
         avatarUrl: null,
       },
     }));

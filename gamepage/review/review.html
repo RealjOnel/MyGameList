@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Review Popup</title>
+    <link rel="stylesheet" href="review.css">
+</head>
+<body>
+
+<button class="btn-secondary" id="btnReview">Write Review</button>
+
+<div id="reviewOverlay" class="review-overlay hidden">
+    <div class="review-backdrop"></div>
+    <div class="review-modal">
+        <div class="review-header">
+            <h2>Write a Review for</h2>
+            <button id="closeReview" class="review-close">✕</button>
+        </div>
+        <div class="review-description">
+            <div class="review-item">Genre</div>
+            <div class="review-item">Publisher</div>
+            <div class="review-item">Release Date</div>
+        </div>
+
+        <div class="review-content">
+            <div class="content-top">
+                <div class="review-toolbar">
+                    <button id="btnBold" type="button" onclick="formatText('bold')">B</button>
+                    <button id="btnItalic" type="button" onclick="formatText('italic')">I</button>
+                    <button id="btnUnderline" type="button" onclick="formatText('underline')">U</button>
+                </div>
+                <div class="content-dropdown-wrapper">
+                    <button id="btnReset" class="reset-btn" title="Reset">
+                        <i class="fa fa-refresh" aria-hidden="true"></i>
+                    </button>
+
+                    <div class="review-dropdown" id="reviewDropdown">
+                        <button class="review-dropdown-btn"> Recommendation</button>
+                        <div class="review-dropdown-menu">
+                            <div class="review-dropdown-item recommended" data-value="recommended">Recommended</div>
+                            <div class="review-dropdown-item mixed" data-value="mixed">Mixed Feelings</div>
+                            <div class="review-dropdown-item not" data-value="not">Not Recommended</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="editor" contenteditable="true" class="editor"></div>
+        </div>
+
+        <div class="review-footer">
+            <button id="submitReview" class="review-submit">Submit</button>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="review.js"></script>
+</body>
+</html>

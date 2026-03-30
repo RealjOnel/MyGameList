@@ -140,7 +140,7 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
     <script type="module" src="../js/global/nav-search.js"></script>
     <script src="../js/global/reveal.js"></script>
     <script src="../js/global/active.js"></script>
-    <script src="../js/global/storeuser.js"></script>
+    <script type="module" src="../js/global/storeuser.js"></script>
     <script type="module" src="../js/global/friendNotifications.js"></script>
     <script type="module" src="./SettingsLoader/settingsLoader.js"></script>
 

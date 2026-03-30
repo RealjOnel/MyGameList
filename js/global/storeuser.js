@@ -1,3 +1,5 @@
+import { logout, syncAuthState } from "./authClient.js";
+
 function getHomeUrl() {
   const baseMeta = document.querySelector('meta[name="app-base"]');
   const base = (baseMeta?.content || "/").replace(/\/?$/, "/");
@@ -10,14 +12,8 @@ function setDropdownOpen(dropdown, open) {
   dropdown.setAttribute("aria-hidden", open ? "false" : "true");
 }
 
-function updateAuthState() {
-  const token = localStorage.getItem("token");
-  document.documentElement.dataset.auth = token ? "in" : "out";
-  return !!token;
-}
-
 document.addEventListener("DOMContentLoaded", () => {
-  updateAuthState();
+  syncAuthState();
 
   const userIcon = document.getElementById("userIcon");
   const userMenu = document.getElementById("userMenu");
@@ -41,11 +37,16 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      localStorage.removeItem("token");
+    logoutBtn.addEventListener("click", async () => {
+      logoutBtn.disabled = true;
       setDropdownOpen(dropdown, false);
-      updateAuthState();
-      window.location.href = getHomeUrl();
+
+      try {
+        await logout();
+      } finally {
+        logoutBtn.disabled = false;
+        window.location.href = getHomeUrl();
+      }
     });
   }
 });
