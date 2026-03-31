@@ -1,9 +1,4 @@
-/* ===================== BASE ===================== */
-body {
-    font-family: 'Inter', sans-serif;
-    margin: 0;
-    background: var(--bg-body);
-}
+
 
 /* ===================== OVERLAY ===================== */
 .review-overlay {
@@ -365,4 +360,21 @@ body {
     .review-close {
         font-size: 18px;
     }
+}
+
+.main-footer{
+    padding: 4rem 8% 2rem;
+}
+
+.footer-content {
+    padding: 4rem 8% 2rem;
+}
+
+.footer-bottom{
+    border-top: 1px solid #f1f5f9;
+    padding-top: 2rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin: 20px 0;
 }
