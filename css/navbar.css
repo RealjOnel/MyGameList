@@ -436,7 +436,7 @@
     left: 50%;
     right: auto;
     transform: translateX(-50%) translateY(8px);
-    min-width: 190px;
+    min-width: 170px;
     padding: 10px;
     border-radius: 16px;
     background: rgba(13, 19, 33, 0.98);
