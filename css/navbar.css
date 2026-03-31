@@ -482,9 +482,12 @@
     color: #f8fbff;
 }
 
-.navbar.navbar--unified .nav-search-sub,
-.navbar.navbar--unified .nav-search-footer{
+.navbar.navbar--unified .nav-search-sub {
     color: #94a3b8;
+}
+
+.navbar.navbar--unified .nav-search-footer{
+    color: #08111f;
 }
 
 .navbar.navbar--unified .nav-search-item:hover{
