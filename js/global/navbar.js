@@ -66,7 +66,17 @@ document.addEventListener("DOMContentLoaded", () => {
         syncDockOpenState();
     }
 
+    /* Initial state: place everything instantly, no animation */
     setActive(activeNode);
+
+    /* Make sure the indicator is positioned before showing transitions/visibility */
+    requestAnimationFrame(() => {
+        moveIndicator(getVisualNode());
+
+        requestAnimationFrame(() => {
+            dock.classList.add("is-ready");
+        });
+    });
 
     nodes.forEach(node => {
         node.addEventListener("mouseenter", () => {
