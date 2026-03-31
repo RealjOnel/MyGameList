@@ -33,6 +33,7 @@
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
     overflow: hidden;
     animation: fadeIn 0.2s ease;
+    border: var(--primary) 1.5px solid;
 }
 
 /* ===================== HEADER ===================== */

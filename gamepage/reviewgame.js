@@ -1,81 +1,74 @@
-  // ===== Read More / Read Less Buttons =====
-  document.querySelectorAll(".review-box").forEach(box => {
-    const btn = box.querySelector(".review-readmore-btn");
-    const content = box.querySelector(".review-middle");
-    if (!btn || !content) return;
+// ===== Read More / Read Less Buttons =====
+document.querySelectorAll(".review-box").forEach(box => {
+  const btn = box.querySelector(".review-readmore-btn");
+  const content = box.querySelector(".review-middle");
+  if (!btn || !content) return;
 
-    btn.addEventListener("click", () => {
-      content.classList.toggle("expanded");
-      btn.textContent = content.classList.contains("expanded") ? "Read Less" : "Read More";
-    });
+  btn.addEventListener("click", () => {
+    content.classList.toggle("expanded");
+    btn.textContent = content.classList.contains("expanded") ? "Read Less" : "Read More";
+  });
+});
+
+// ===== Likes Toggle =====
+document.querySelectorAll(".review-bottom").forEach(container => {
+  const defaultImg = container.querySelector(".default");
+  const likedImg = container.querySelector(".liked");
+  if (!defaultImg || !likedImg) return;
+
+  defaultImg.addEventListener("click", () => {
+    defaultImg.hidden = true;
+    likedImg.hidden = false;
   });
 
-  // ===== Likes Toggle =====
-  document.querySelectorAll(".review-bottom").forEach(container => {
-    const defaultImg = container.querySelector(".default");
-    const likedImg = container.querySelector(".liked");
-    if (!defaultImg || !likedImg) return;
-
-    defaultImg.addEventListener("click", () => {
-      defaultImg.hidden = true;
-      likedImg.hidden = false;
-    });
-
-    likedImg.addEventListener("click", () => {
-      likedImg.hidden = true;
-      defaultImg.hidden = false;
-    });
+  likedImg.addEventListener("click", () => {
+    likedImg.hidden = true;
+    defaultImg.hidden = false;
   });
+});
 
-  // ===== Reactions =====
-  document.querySelectorAll(".reaction").forEach(root => {
-    const btn = root.querySelector(".reaction-btn");
-    const menu = root.querySelector(".reaction-menu");
-    const bar = root.querySelector(".reaction-bar");
-    const items = root.querySelectorAll(".reaction-item");
-    if (!btn || !menu || !bar) return;
+// ===== Reactions (Hover oben rechts) =====
+// ===== Reactions Hover-Menü oben rechts =====
+document.querySelectorAll(".review-box").forEach(box => {
+  const hoverMenu = box.querySelector(".review-hover-menu");
+  if (!hoverMenu) return;
 
-    const state = new Map();
-    const userReactions = new Map();
+  const items = hoverMenu.querySelectorAll(".reaction-item");
+  const bar = box.querySelector(".reaction-bar");
+  if (!bar) return;
 
-    function closeMenu() { menu.classList.remove("open"); }
-    function toggleMenu(e) { e.stopPropagation(); menu.classList.toggle("open"); }
+  const state = new Map();
+  const userReactions = new Map();
 
-    function render() {
-      bar.innerHTML = "";
-      state.forEach((count, emoji) => {
-        const el = document.createElement("div");
-        el.className = "reaction-badge";
-        el.textContent = `${emoji} ${count}`;
-        if (userReactions.get(emoji)) el.style.outline = "2px solid #3b82f6";
+  function render() {
+    bar.innerHTML = "";
+    state.forEach((count, emoji) => {
+      const el = document.createElement("div");
+      el.className = "reaction-badge";
+      el.textContent = `${emoji} ${count}`;
+      if (userReactions.get(emoji)) el.style.outline = "2px solid #3b82f6";
 
-        el.addEventListener("click", () => {
-          if (userReactions.get(emoji)) {
-            const next = count - 1;
-            if (next <= 0) state.delete(emoji);
-            else state.set(emoji, next);
-            userReactions.delete(emoji);
-            render();
-          }
-        });
-        bar.appendChild(el);
-      });
-    }
-
-    items.forEach(item => {
-      item.addEventListener("click", e => {
-        e.stopPropagation();
-        const emoji = item.dataset.emoji;
-        if (userReactions.get(emoji)) { closeMenu(); return; }
-        state.set(emoji, (state.get(emoji) || 0) + 1);
-        userReactions.set(emoji, true);
+      el.addEventListener("click", () => {
+        const next = count - 1;
+        if (next <= 0) state.delete(emoji);
+        else state.set(emoji, next);
+        userReactions.delete(emoji);
         render();
-        closeMenu();
       });
+
+      bar.appendChild(el);
     });
+  }
 
-    btn.addEventListener("click", toggleMenu);
+  items.forEach(item => {
+    item.addEventListener("click", e => {
+      e.stopPropagation();
+      const emoji = item.dataset.emoji;
+      if (userReactions.get(emoji)) return;
 
-    document.addEventListener("click", e => { if (!root.contains(e.target)) closeMenu(); });
-    document.addEventListener("keydown", e => { if (e.key === "Escape") closeMenu(); });
+      state.set(emoji, (state.get(emoji) || 0) + 1);
+      userReactions.set(emoji, true);
+      render();
+    });
   });
+});
