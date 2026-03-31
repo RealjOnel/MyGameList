@@ -908,6 +908,7 @@
   display: inline-flex;
   flex-direction: column;
   gap: 8px;
+  align-items: flex-end;
 }
 
 /* Button */
@@ -919,10 +920,11 @@
   color: #e2e8f0;
   font-weight: 700;
   cursor: pointer;
-
+  width: max-content;
+  min-width: unset;
+  flex: 0 0 auto;
   backdrop-filter: blur(10px);
   box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-
   transition: all 0.18s ease;
 }
 
@@ -936,19 +938,14 @@
   position: absolute;
   top: 115%;
   left: 0;
-
   display: flex;
   gap: 6px;
   padding: 6px;
-
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,0.08);
-
   background: rgba(15,23,42,0.9);
   backdrop-filter: blur(14px);
-
   box-shadow: 0 20px 45px rgba(0,0,0,0.35);
-
   opacity: 0;
   transform: translateY(-6px) scale(0.95);
   pointer-events: none;
@@ -981,7 +978,9 @@
 .reaction-bar {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
+  justify-content: flex-end;
 }
 
 
