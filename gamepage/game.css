@@ -647,12 +647,24 @@
 }
 /* ===================== REVIEW DISPLAY ===================== */
 
+.review-section {
+    display: flex;
+    flex-direction: row;
+    gap: 20px; 
+    width: 100%;
+    justify-content: center;
+}
+
+.review-filter {
+  flex: 0 0 200px;
+}
 
 .reviews-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     grid-column: 1 / -1;
+    flex: 1;
 }
 
 .review-box {
