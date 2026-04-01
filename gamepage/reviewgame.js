@@ -4,9 +4,23 @@ document.querySelectorAll(".review-box").forEach(box => {
   const content = box.querySelector(".review-middle");
   if (!btn || !content) return;
 
+  const textLength = content.textContent.trim().length;
+
+  // Wenn Text zu kurz → alles anzeigen + Button verstecken
+  if (textLength <= 700) {
+    content.classList.add("expanded"); // direkt offen
+    btn.style.display = "none";
+    return;
+  }
+
+  // Wenn lang genug → normale Read More Logik
+  btn.style.display = "inline-block";
+
   btn.addEventListener("click", () => {
     content.classList.toggle("expanded");
-    btn.textContent = content.classList.contains("expanded") ? "Read Less" : "Read More";
+    btn.textContent = content.classList.contains("expanded")
+      ? "Read Less"
+      : "Read More";
   });
 });
 
