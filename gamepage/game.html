@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="./game.css">
     <link rel="stylesheet" href="./review/review.css">
+    <link rel="stylesheet" href="./gamereview.css">
 </head>
 <body>
 
@@ -222,8 +223,17 @@
   </div>
   <!-- review Start -->
     <div class="review-section">
-      <div class="reviewfilter">
-        dadaeugogoghag
+      <div class="review-filter">
+        <div class="review-filter">
+          <div class="gamereview-dropdown" id="gamereviewDropdown">
+            <button class="gamereview-dropdown-btn">Recommendation</button>
+            <div class="gamereview-dropdown-menu">
+              <div class="gamereview-dropdown-item recommended" data-value="recommended">Recommended</div>
+              <div class="gamereview-dropdown-item mixed" data-value="mixed">Mixed Feelings</div>
+              <div class="gamereview-dropdown-item not" data-value="not">Not Recommended</div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="reviews-container">
         <div class="review-box recommended">

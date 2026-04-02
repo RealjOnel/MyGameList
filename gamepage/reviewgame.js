@@ -86,3 +86,40 @@ document.querySelectorAll(".review-box").forEach(box => {
     });
   });
 });
+
+const dropdownBtn = document.querySelector('.gamereview-dropdown-btn');
+const dropdownMenu = document.querySelector('.gamereview-dropdown-menu');
+const dropdownItems = document.querySelectorAll('.gamereview-dropdown-item');
+
+dropdownBtn.addEventListener('click', () => {
+  dropdownMenu.style.display = dropdownMenu.style.display === 'flex' ? 'none' : 'flex';
+});
+
+// Klick außerhalb schließt das Menü
+document.addEventListener('click', (e) => {
+  if (!dropdownBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
+    dropdownMenu.style.display = 'none';
+  }
+});
+
+// Auswahl anklicken
+dropdownItems.forEach(item => {
+  item.addEventListener('click', () => {
+    const value = item.getAttribute('data-value');
+    const text = item.textContent;
+    
+    // Button aktualisieren
+    dropdownBtn.textContent = text;
+    dropdownBtn.classList.add('active');
+
+    // Menü schließen
+    dropdownMenu.style.display = 'none';
+
+    // Optional: aktive Klasse bei anderen entfernen
+    dropdownItems.forEach(i => i.classList.remove('selected'));
+    item.classList.add('selected');
+
+    // Hier kannst du jetzt noch die Reviews filtern nach `value`
+    // filterReviews(value);
+  });
+});
