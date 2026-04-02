@@ -405,7 +405,6 @@
   backdrop-filter: blur(12px);
   box-shadow: 0 14px 30px rgba(0,0,0,0.06);
 
-  position: sticky;
   top: 78px; /* under navbar */
   z-index: 10;
 }
