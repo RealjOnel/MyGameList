@@ -41,15 +41,8 @@ body {
     font-family: 'Inter', sans-serif;
     background-color: var(--bg-body);
     color: var(--text-main);
-    overflow-x: hidden; /* fallback where clip is unsupported */
+    overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
-}
-
-/* hidden breaks position:sticky on descendants in Chromium/WebKit; clip does not */
-@supports (overflow: clip) {
-    body {
-        overflow-x: clip;
-    }
 }
 
 /* Default: shows nothing until decided */

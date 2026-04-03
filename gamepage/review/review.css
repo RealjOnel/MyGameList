@@ -274,7 +274,6 @@
     background: linear-gradient(120deg, #3b82f6, #8b5cf6);
     color: var(--bg-body);
     transition: transform 0.15s ease, filter 0.15s ease;
-    margin: 20px;
 }
 
 .review-submit:hover {
