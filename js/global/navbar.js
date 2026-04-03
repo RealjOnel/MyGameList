@@ -4,11 +4,57 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const nodes = [...dock.querySelectorAll(".nav-dock__node")];
     const indicator = dock.querySelector(".nav-dock__indicator");
-    const currentFile = (window.location.pathname.split("/").pop() || "index.html").toLowerCase();
+    const currentFile = getFileName(window.location.pathname) || "index.html";
 
-    let activeNode =
-        nodes.find(node => (node.dataset.route || "").toLowerCase() === currentFile) ||
-        nodes[0];
+    function getFileName(value) {
+        if (!value) return "";
+        const clean = value.split("#")[0].split("?")[0];
+        const file = clean.split("/").pop() || "";
+        return file.toLowerCase();
+    }
+
+    function collectNodeFiles(node) {
+        const files = new Set();
+
+        const route = (node.dataset.route || "").trim().toLowerCase();
+        if (route) files.add(route);
+
+        const mainLink = node.querySelector(".nav-dock__node--link[href]");
+        if (mainLink) {
+            const file = getFileName(mainLink.getAttribute("href"));
+            if (file) files.add(file);
+        }
+
+        node.querySelectorAll(".nav-dock__menu a[href]").forEach(link => {
+            const href = link.getAttribute("href");
+            if (!href || href === "#" || href.startsWith("javascript:")) return;
+
+            const file = getFileName(href);
+            if (file) files.add(file);
+        });
+
+        const extraMatches = (node.dataset.match || "")
+            .split(",")
+            .map(s => s.trim().toLowerCase())
+            .filter(Boolean);
+
+        extraMatches.forEach(file => files.add(file));
+
+        return [...files];
+    }
+
+    const nodeFilesMap = new Map(
+        nodes.map(node => [node, collectNodeFiles(node)])
+    );
+
+    function findMatchingNode(fileName) {
+        return nodes.find(node => {
+            const files = nodeFilesMap.get(node) || [];
+            return files.includes(fileName);
+        });
+    }
+
+    let activeNode = findMatchingNode(currentFile) || nodes[0];
 
     function getVisualNode() {
         return nodes.find(node => node.classList.contains("is-open")) || activeNode;
@@ -66,10 +112,8 @@ document.addEventListener("DOMContentLoaded", () => {
         syncDockOpenState();
     }
 
-    /* Initial state: place everything instantly, no animation */
     setActive(activeNode);
 
-    /* Make sure the indicator is positioned before showing transitions/visibility */
     requestAnimationFrame(() => {
         moveIndicator(getVisualNode());
 
