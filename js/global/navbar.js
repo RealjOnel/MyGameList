@@ -10,7 +10,17 @@ window.initNavbar = function initNavbar() {
 
     const nodes = [...dock.querySelectorAll(".nav-dock__node")];
     const indicator = dock.querySelector(".nav-dock__indicator");
+    const pathnameLower = (window.location.pathname || "").toLowerCase();
     const currentFile = getFileName(window.location.pathname) || "index.html";
+
+    const isProfilePage =
+        pathnameLower.includes("/profile/") || currentFile === "profile.html";
+    const isGamePage =
+        pathnameLower.includes("/gamepage/") || currentFile === "game.html";
+
+    if (isProfilePage) {
+        dock.classList.add("nav-dock--hide-indicator");
+    }
 
     function getFileName(value) {
         if (!value) return "";
@@ -60,7 +70,11 @@ window.initNavbar = function initNavbar() {
         });
     }
 
-    let activeNode = findMatchingNode(currentFile) || nodes[0];
+    const routeFile = isGamePage ? "explore.html" : currentFile;
+
+    let activeNode = isProfilePage
+        ? null
+        : findMatchingNode(routeFile) || nodes[0];
 
     function getVisualNode() {
         return nodes.find(node => node.classList.contains("is-open")) || activeNode;
@@ -72,6 +86,7 @@ window.initNavbar = function initNavbar() {
     }
 
     function moveIndicator(node) {
+        if (dock.classList.contains("nav-dock--hide-indicator")) return;
         if (!node || !indicator) return;
 
         const dockRect = dock.getBoundingClientRect();
@@ -174,7 +189,12 @@ window.initNavbar = function initNavbar() {
 
     function setActive(node) {
         nodes.forEach(n => n.classList.remove("is-active"));
-        if (!node) return;
+        if (!node) {
+            activeNode = null;
+            moveIndicator(getVisualNode());
+            syncDockOpenState();
+            return;
+        }
 
         node.classList.add("is-active");
         activeNode = node;

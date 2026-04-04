@@ -326,6 +326,12 @@
         opacity 120ms ease;
 }
 
+.navbar.navbar--unified .nav-dock.nav-dock--hide-indicator .nav-dock__indicator,
+.navbar.navbar--unified .nav-dock.nav-dock--hide-indicator.is-ready .nav-dock__indicator{
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
 .navbar.navbar--unified .nav-dock__indicator::before,
 .navbar.navbar--unified .nav-dock__indicator::after{
     content: "";
