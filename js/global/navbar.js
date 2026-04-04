@@ -1,6 +1,8 @@
 window.initNavbar = function initNavbar() {
+    const nav = document.querySelector(".navbar.navbar--unified");
     const dock = document.getElementById("navDock");
-    if (!dock) return;
+
+    if (!nav || !dock) return;
 
     /* prevent double init */
     if (dock.dataset.initialized === "true") return;
@@ -94,6 +96,7 @@ window.initNavbar = function initNavbar() {
         const userIcon = document.getElementById("userIcon");
         const userDropdown = document.getElementById("userDropdown");
 
+        /* prevent double init */
         if (friendBellBtn && friendBellBtn.dataset.bound === "true" &&
             userIcon && userIcon.dataset.bound === "true") {
             return;
@@ -205,12 +208,13 @@ window.initNavbar = function initNavbar() {
     /* Initial state: place everything instantly, no animation */
     setActive(activeNode);
 
-    /* Make sure the indicator is positioned before showing transitions/visibility */
+    /* Make sure indicator is positioned before navbar becomes visible */
     requestAnimationFrame(() => {
         moveIndicator(getVisualNode());
 
         requestAnimationFrame(() => {
             dock.classList.add("is-ready");
+            nav.classList.add("is-mounted");
         });
     });
 

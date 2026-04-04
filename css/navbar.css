@@ -2,8 +2,18 @@
    FINAL NAVBAR
    ========================================== */
 
+#navbar-placeholder{
+    min-height: 84px;
+    width: 100%;
+    background: linear-gradient(180deg, rgba(24, 37, 66, 0.96), rgba(10, 17, 31, 0.98));
+}
+
+#navbar-placeholder[data-loaded="true"]{
+    background: transparent;
+}
+
 .navbar.navbar--unified{
-    display: block !important; /* kill old grid from style.css */
+    display: block !important;
     position: sticky;
     top: 0;
     z-index: 2000;
@@ -14,6 +24,14 @@
     border-bottom: none;
     box-shadow: none;
     backdrop-filter: none;
+
+    opacity: 0;
+    visibility: hidden;
+}
+
+.navbar.navbar--unified.is-mounted{
+    opacity: 1;
+    visibility: visible;
 }
 
 .navbar.navbar--unified .navbar-shell{
