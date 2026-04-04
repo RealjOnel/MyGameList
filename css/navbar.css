@@ -3,6 +3,9 @@
    ========================================== */
 
 #navbar-placeholder{
+    position: sticky;
+    top: 0;
+    z-index: 2000;
     min-height: 84px;
     width: 100%;
     background: linear-gradient(180deg, rgba(24, 37, 66, 0.96), rgba(10, 17, 31, 0.98));
@@ -14,9 +17,7 @@
 
 .navbar.navbar--unified{
     display: block !important;
-    position: sticky;
-    top: 0;
-    z-index: 2000;
+    position: relative;
     width: 100%;
     max-width: none;
     padding: 0;
