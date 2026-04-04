@@ -20,6 +20,10 @@ async function loadNavbar() {
             if (typeof window.initNavSearch === "function") {
                 window.initNavSearch();
             }
+
+            if (typeof window.initFriendNotifications === "function") {
+                window.initFriendNotifications();
+            }
         });
     } catch (err) {
         console.error("Navbar load error:", err);
