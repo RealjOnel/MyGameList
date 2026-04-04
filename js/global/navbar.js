@@ -1,6 +1,10 @@
-document.addEventListener("DOMContentLoaded", () => {
+window.initNavbar = function initNavbar() {
     const dock = document.getElementById("navDock");
     if (!dock) return;
+
+    /* prevent double init */
+    if (dock.dataset.initialized === "true") return;
+    dock.dataset.initialized = "true";
 
     const nodes = [...dock.querySelectorAll(".nav-dock__node")];
     const indicator = dock.querySelector(".nav-dock__indicator");
@@ -187,4 +191,4 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("resize", () => {
         moveIndicator(getVisualNode());
     });
-});
+};
