@@ -3,14 +3,13 @@ async function loadNavbar() {
     if (!placeholder) return;
 
     try {
-        const res = await fetch("/NavFooter/navbar.html", { cache: "no-store" });
+        const res = await fetch("/NavFooter/navbar.html");
         if (!res.ok) {
             throw new Error(`Failed to load navbar: ${res.status}`);
         }
 
         const data = await res.text();
         placeholder.innerHTML = data;
-        placeholder.dataset.loaded = "true";
 
         requestAnimationFrame(() => {
             if (typeof window.initNavbar === "function") {

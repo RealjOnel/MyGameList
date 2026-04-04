@@ -209,14 +209,16 @@ window.initNavbar = function initNavbar() {
     setActive(activeNode);
 
     /* Make sure indicator is positioned before navbar becomes visible */
-    requestAnimationFrame(() => {
-        moveIndicator(getVisualNode());
-
         requestAnimationFrame(() => {
-            dock.classList.add("is-ready");
-            nav.classList.add("is-mounted");
+            moveIndicator(getVisualNode());
+
+            requestAnimationFrame(() => {
+                dock.classList.add("is-ready");
+                nav.classList.add("is-mounted");
+                const navPlaceholder = nav.closest("#navbar-placeholder");
+                if (navPlaceholder) navPlaceholder.dataset.loaded = "true";
+            });
         });
-    });
 
     nodes.forEach(node => {
         node.addEventListener("mouseenter", () => {
