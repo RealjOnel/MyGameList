@@ -568,14 +568,23 @@ function mountSearch(){
   moveWithFlip(root, target, () => setVariant(root, isExplore ? "page" : "nav"));
 }
 
-document.addEventListener("DOMContentLoaded", mountSearch);
-window.addEventListener("pageshow", mountSearch);
+function initNavSearch() {
+  mountSearch();
 
-document.addEventListener("DOMContentLoaded", () => {
   loadCustomizationSettings().catch((err) => {
     console.error("Customization init failed", err);
   });
-});
+}
+
+window.initNavSearch = initNavSearch;
+
+if (document.readyState !== "loading") {
+  initNavSearch();
+} else {
+  document.addEventListener("DOMContentLoaded", initNavSearch, { once: true });
+}
+
+window.addEventListener("pageshow", mountSearch);
 
 window.addEventListener("mgl:settings-saved", (e) => {
   applyCustomization(e.detail?.settings?.customization);

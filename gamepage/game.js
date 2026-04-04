@@ -815,44 +815,12 @@ async function loadGame(){
   renderRelatedTab(g);
   initTabs();
 }
-
 document.addEventListener("DOMContentLoaded", () => {
+
+  // ===== Load Game =====
   loadGame().catch(err => {
     console.error(err);
-    qs("gameTitle").textContent = "Could not load game.";
+    const title = document.getElementById("gameTitle");
+    if (title) title.textContent = "Could not load game.";
   });
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-    const boxes = document.querySelectorAll(".review-box");
-
-    boxes.forEach(box => {
-        const btn = box.querySelector(".review-readmore-btn");
-        const content = box.querySelector(".review-middle");
-
-        btn.addEventListener("click", () => {
-            content.classList.toggle("expanded");
-
-            btn.textContent = content.classList.contains("expanded")
-                ? "Read Less"
-                : "Read More";
-        });
-    });
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.review-bottom').forEach(container => {
-        const defaultImg = container.querySelector('.default');
-        const likedImg = container.querySelector('.liked');
-
-        defaultImg.addEventListener('click', () => {
-            defaultImg.hidden = true;
-            likedImg.hidden = false;
-        });
-
-        likedImg.addEventListener('click', () => {
-            likedImg.hidden = true;
-            defaultImg.hidden = false;
-        });
-    });
 });

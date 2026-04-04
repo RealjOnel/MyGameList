@@ -600,7 +600,7 @@ async function loadProfile() {
 
   const descTitle = document.getElementById("playerDescriptionTitle");
   if (descTitle) {
-    descTitle.textContent = `${resolvedProfileUsername}'s Description:`;
+    descTitle.textContent = `Description:`;
   }
 
   document.title = `${resolvedProfileUsername} | MyGameList`;

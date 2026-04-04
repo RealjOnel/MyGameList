@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" data-auth="loading">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        (function () {
+            try {
+                const token = localStorage.getItem("token");
+                document.documentElement.dataset.auth = token ? "in" : "out";
+            } catch (e) {
+                document.documentElement.dataset.auth = "out";
+            }
+        })();
+    </script>
+    <title>MyGameList | Upcoming Games</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../css/upcoming.css">
+    <link rel="stylesheet" href="/css/navbar.css">
+</head>
+
+<body>
+
+    <div id="navbar-placeholder"></div>
+
+    <main class="upcoming-page">
+        <header class="upcoming-hero reveal">
+            <div class="badge-stats">Upcoming</div>
+            <h1>Future <span class="gradient-text">Releases</span></h1>
+            <p class="hero-lead">Track the most anticipated games upcoming release!</p>
+        </header>
+
+        <section class="upcoming-grid">
+            <!-- GAME CARD -->
+            <div class="game-card reveal">
+                <div class="game-cover">
+                    <img src="https://upload.wikimedia.org/wikipedia/en/4/46/Grand_Theft_Auto_VI.png">
+                    <div class="release-badges">
+                        <div class="release-badge">2026</div>
+                        <div class="release-badge">233 Days</div>
+                    </div>
+                </div>
+
+                <div class="game-info">
+                    <h3>Grand Theft Auto VI</h3>
+                    <p class="game-dev">Rockstar Games</p>
+                    <div class="platforms">
+                        <span>PS5</span>
+                        <span>Xbox</span>
+                        <span>PC</span>
+                    </div>
+
+                    <button class="wishlist-btn">Add to Wishlist</button>
+                </div>
+            </div>
+
+            <!-- GAME CARD -->
+            <div class="game-card reveal">
+                <div class="game-cover">
+                    <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/cobj7a.webp">
+                    <div class="release-badges">
+                        <div class="release-badge">2026</div>
+                        <div class="release-badge">TBD</div>
+                    </div>
+                </div>
+
+                <div class="game-info">
+                    <h3>Lost Little Things</h3>
+                    <p class="game-dev">Odd Grape Studio</p>
+
+                    <div class="platforms">
+                        <span>PS5</span>
+                        <span>PC</span>
+                    </div>
+
+                    <button class="wishlist-btn">
+                        Add to Wishlist
+                    </button>
+                </div>
+            </div>
+
+            <!-- GAME CARD -->
+            <div class="game-card reveal">
+                <div class="game-cover">
+                    <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co8yd0.webp">
+                    <div class="release-badges">
+                        <div class="release-badge">2027</div>
+                        <div class="release-badge">341 Days</div>
+                    </div>
+                </div>
+
+                <div class="game-info">
+                    <h3>Subnautica 2</h3>
+                    <p class="game-dev">Unkown Worlds Entertainment</p>
+
+                    <div class="platforms">
+                        <span>PC</span>
+                        <span>Xbox</span>
+                    </div>
+
+                    <div class="countdown" data-date="2026-09-01"></div>
+
+                    <button class="wishlist-btn">Add to Wishlist</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+<div id="footer-placeholder"></div>
+
+    <script src="/NavFooter/fetchNav.js"></script>
+    <script src="/NavFooter/fetchFooter.js"></script>
+    <script src="../js/HomePage/mouseeffect.js"></script>
+    <script src="../js/global/reveal.js"></script>
+    <script src="../js/global/active.js"></script>
+    <script src="../js/global/navbar.js"></script>
+    <script type="module" src="../js/global/storeuser.js"></script>
+    <script type="module" src="../js/global/nav-search.js"></script>
+    <script type="module" src="../js/global/friendNotifications.js"></script>
+    <script type="module" src="../js/global/settings.js"></script>
+    <script type="module" src="../SettingsLoader/settingsLoader.js"></script>
+
+</body>
+
+</html>
