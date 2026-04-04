@@ -85,6 +85,90 @@ window.initNavbar = function initNavbar() {
         indicator.style.transform = `translateX(${x}px)`;
     }
 
+    function initNavbarUtilityMenus() {
+        const friendBell = document.getElementById("friendBell");
+        const friendBellBtn = document.getElementById("friendBellBtn");
+        const friendBellDropdown = document.getElementById("friendBellDropdown");
+
+        const userMenu = document.getElementById("userMenu");
+        const userIcon = document.getElementById("userIcon");
+        const userDropdown = document.getElementById("userDropdown");
+
+        if (friendBellBtn && friendBellBtn.dataset.bound === "true" &&
+            userIcon && userIcon.dataset.bound === "true") {
+            return;
+        }
+
+        function closeFriendBell() {
+            if (!friendBellDropdown) return;
+            friendBellDropdown.classList.remove("open");
+            friendBellDropdown.setAttribute("aria-hidden", "true");
+        }
+
+        function closeUserMenu() {
+            if (!userDropdown) return;
+            userDropdown.classList.remove("open");
+            userDropdown.setAttribute("aria-hidden", "true");
+        }
+
+        if (friendBellBtn && friendBellDropdown) {
+            friendBellBtn.dataset.bound = "true";
+
+            friendBellBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const isOpen = friendBellDropdown.classList.contains("open");
+
+                closeUserMenu();
+
+                if (isOpen) {
+                    closeFriendBell();
+                } else {
+                    friendBellDropdown.classList.add("open");
+                    friendBellDropdown.setAttribute("aria-hidden", "false");
+                }
+            });
+        }
+
+        if (userIcon && userDropdown) {
+            userIcon.dataset.bound = "true";
+
+            userIcon.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const isOpen = userDropdown.classList.contains("open");
+
+                closeFriendBell();
+
+                if (isOpen) {
+                    closeUserMenu();
+                } else {
+                    userDropdown.classList.add("open");
+                    userDropdown.setAttribute("aria-hidden", "false");
+                }
+            });
+        }
+
+        document.addEventListener("click", (e) => {
+            if (friendBell && !friendBell.contains(e.target)) {
+                closeFriendBell();
+            }
+
+            if (userMenu && !userMenu.contains(e.target)) {
+                closeUserMenu();
+            }
+        });
+
+        window.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                closeFriendBell();
+                closeUserMenu();
+            }
+        });
+    }
+
     function setActive(node) {
         nodes.forEach(n => n.classList.remove("is-active"));
         if (!node) return;
@@ -116,8 +200,12 @@ window.initNavbar = function initNavbar() {
         syncDockOpenState();
     }
 
+    initNavbarUtilityMenus();
+
+    /* Initial state: place everything instantly, no animation */
     setActive(activeNode);
 
+    /* Make sure the indicator is positioned before showing transitions/visibility */
     requestAnimationFrame(() => {
         moveIndicator(getVisualNode());
 
