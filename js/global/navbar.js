@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const nodes = [...dock.querySelectorAll(".nav-dock__node")];
     const indicator = dock.querySelector(".nav-dock__indicator");
     const currentFile = getFileName(window.location.pathname) || "index.html";
+    const hasNoDefaultActive = (dock.dataset.defaultActive || "").trim().toLowerCase() === "none";
 
     function getFileName(value) {
         if (!value) return "";
@@ -54,7 +55,14 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    let activeNode = findMatchingNode(currentFile) || nodes[0];
+    let activeNode = findMatchingNode(currentFile) || (hasNoDefaultActive ? null : nodes[0]);
+    let transientIndicatorVisible = false;
+
+    function setIndicatorVisible(visible) {
+        if (!indicator) return;
+        indicator.style.opacity = visible ? "1" : "0";
+        indicator.style.visibility = visible ? "visible" : "hidden";
+    }
 
     function getVisualNode() {
         return nodes.find(node => node.classList.contains("is-open")) || activeNode;
@@ -83,11 +91,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function setActive(node) {
         nodes.forEach(n => n.classList.remove("is-active"));
-        if (!node) return;
-
-        node.classList.add("is-active");
-        activeNode = node;
-        moveIndicator(getVisualNode());
+        activeNode = node || null;
+        if (node) {
+            node.classList.add("is-active");
+            moveIndicator(getVisualNode());
+        } else {
+            transientIndicatorVisible = false;
+            setIndicatorVisible(false);
+        }
         syncDockOpenState();
     }
 
@@ -107,6 +118,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (activeNode) {
             activeNode.classList.add("is-active");
+        } else if (hasNoDefaultActive) {
+            transientIndicatorVisible = false;
+            setIndicatorVisible(false);
         }
 
         syncDockOpenState();
@@ -124,10 +138,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     nodes.forEach(node => {
         node.addEventListener("mouseenter", () => {
+            if (!activeNode && hasNoDefaultActive) {
+                transientIndicatorVisible = true;
+                setIndicatorVisible(true);
+            }
             moveIndicator(node);
         });
 
         node.addEventListener("mouseleave", () => {
+            if (!activeNode && hasNoDefaultActive) {
+                transientIndicatorVisible = false;
+                setIndicatorVisible(false);
+            }
             moveIndicator(getVisualNode());
         });
     });
@@ -146,6 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 node.classList.add("is-open");
                 toggle.setAttribute("aria-expanded", "true");
                 syncDockOpenState();
+                setIndicatorVisible(true);
                 moveIndicator(node);
             } else {
                 setActive(activeNode);
@@ -186,5 +209,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.addEventListener("resize", () => {
         moveIndicator(getVisualNode());
+        if (!activeNode && hasNoDefaultActive && !transientIndicatorVisible) {
+            setIndicatorVisible(false);
+        }
     });
 });
