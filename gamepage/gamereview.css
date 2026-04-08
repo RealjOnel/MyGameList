@@ -1,4 +1,3 @@
-
 .review-section {
     display: flex;
     flex-direction: row;
@@ -11,12 +10,28 @@
     flex: 1;
     max-width: 300px;      
     overflow: visible;
+    gap: 12px;
+    margin: 10px;
+    flex-direction: row;
+    flex-wrap: wrap;
 }
 
 .gamereview-dropdown {
     position: relative;
     width: 180px;
 }
+
+.recommendation-filter,
+.rating-filter {
+    display: flex;          /* Filter selbst als Flex */
+    flex-direction: column; /* Button + Dropdown untereinander */
+    gap: 10px;
+}
+
+.gamereview-dropdown {
+    width: 180px;           /* Einheitliche Breite */
+}
+
 
 .gamereview-dropdown-btn {
     width: 100%;
@@ -28,6 +43,7 @@
     cursor: pointer;
     text-align: left;
     transition: all 0.2s ease;
+    margin-bottom: 10px;
 }
 
 .gamereview-dropdown-btn.active {
@@ -49,6 +65,7 @@
     flex-direction: column;
     gap: 4px;
     z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 .gamereview-dropdown-item {
@@ -61,7 +78,27 @@
     background: var(--bg-hover);
 }
 
+.gamereview-dropdown-btn.state-recommended {
+    border-color: #3b82f6;
+    background: rgba(59,130,246,0.12);
+    color: #3b82f6;
+}
 
+.gamereview-dropdown-btn.state-mixed {
+    border-color: #6b7280;
+    background: rgba(107,114,128,0.12);
+    color: #6b7280;
+}
+
+.gamereview-dropdown-btn.state-not {
+    border-color: #ef4444;
+    background: rgba(239,68,68,0.12);
+    color: #ef4444;
+}
+
+.gamereview-dropdown.open .gamereview-dropdown-menu {
+    display: flex;
+}
 
 
 .reviews-container {
@@ -396,7 +433,7 @@
 
 }
 
-.review-footer {
+.game-review-footer {
   display: flex;
   align-items: center;
   margin-top: 12px;

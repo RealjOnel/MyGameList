@@ -6,21 +6,16 @@ document.querySelectorAll(".review-box").forEach(box => {
 
   const textLength = content.textContent.trim().length;
 
-  // Wenn Text zu kurz → alles anzeigen + Button verstecken
   if (textLength <= 700) {
-    content.classList.add("expanded"); // direkt offen
+    content.classList.add("expanded");
     btn.style.display = "none";
     return;
   }
 
-  // Wenn lang genug → normale Read More Logik
   btn.style.display = "inline-block";
-
   btn.addEventListener("click", () => {
     content.classList.toggle("expanded");
-    btn.textContent = content.classList.contains("expanded")
-      ? "Read Less"
-      : "Read More";
+    btn.textContent = content.classList.contains("expanded") ? "Read Less" : "Read More";
   });
 });
 
@@ -34,23 +29,19 @@ document.querySelectorAll(".review-bottom").forEach(container => {
     defaultImg.hidden = true;
     likedImg.hidden = false;
   });
-
   likedImg.addEventListener("click", () => {
     likedImg.hidden = true;
     defaultImg.hidden = false;
   });
 });
 
-// ===== Reactions (Hover oben rechts) =====
-// ===== Reactions Hover-Menü oben rechts =====
+// ===== Reactions Hover =====
 document.querySelectorAll(".review-box").forEach(box => {
   const hoverMenu = box.querySelector(".review-hover-menu");
-  if (!hoverMenu) return;
+  const bar = box.querySelector(".reaction-bar");
+  if (!hoverMenu || !bar) return;
 
   const items = hoverMenu.querySelectorAll(".reaction-item");
-  const bar = box.querySelector(".reaction-bar");
-  if (!bar) return;
-
   const state = new Map();
   const userReactions = new Map();
 
@@ -87,39 +78,43 @@ document.querySelectorAll(".review-box").forEach(box => {
   });
 });
 
-const dropdownBtn = document.querySelector('.gamereview-dropdown-btn');
-const dropdownMenu = document.querySelector('.gamereview-dropdown-menu');
-const dropdownItems = document.querySelectorAll('.gamereview-dropdown-item');
+// ===== Alle Dropdowns (inkl. Rating + Recommendation) =====
+document.querySelectorAll('.gamereview-dropdown').forEach(dropdown => {
+  const btn = dropdown.querySelector('.gamereview-dropdown-btn');
+  const menu = dropdown.querySelector('.gamereview-dropdown-menu');
+  const items = dropdown.querySelectorAll('.gamereview-dropdown-item');
 
-dropdownBtn.addEventListener('click', () => {
-  dropdownMenu.style.display = dropdownMenu.style.display === 'flex' ? 'none' : 'flex';
+  // Menü toggle
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    dropdown.classList.toggle('open');
+  });
+
+  // Auswahl anklicken
+  items.forEach(item => {
+    item.addEventListener('click', () => {
+      const value = item.getAttribute('data-value');
+      btn.textContent = value; // Button zeigt Auswahl
+
+      // Statusklasse nur für Recommendation Dropdown
+      btn.classList.remove('state-recommended', 'state-mixed', 'state-not');
+      if (dropdown.id === 'gamereviewDropdown' && value) {
+        btn.classList.add(`state-${value}`);
+      }
+
+      // Markierung für Item
+      items.forEach(i => i.classList.remove('selected'));
+      item.classList.add('selected');
+
+      // Dropdown schließen
+      dropdown.classList.remove('open');
+    });
+  });
 });
 
-// Klick außerhalb schließt das Menü
-document.addEventListener('click', (e) => {
-  if (!dropdownBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
-    dropdownMenu.style.display = 'none';
-  }
-});
-
-// Auswahl anklicken
-dropdownItems.forEach(item => {
-  item.addEventListener('click', () => {
-    const value = item.getAttribute('data-value');
-    const text = item.textContent;
-    
-    // Button aktualisieren
-    dropdownBtn.textContent = text;
-    dropdownBtn.classList.add('active');
-
-    // Menü schließen
-    dropdownMenu.style.display = 'none';
-
-    // Optional: aktive Klasse bei anderen entfernen
-    dropdownItems.forEach(i => i.classList.remove('selected'));
-    item.classList.add('selected');
-
-    // Hier kannst du jetzt noch die Reviews filtern nach `value`
-    // filterReviews(value);
+// Klick außerhalb schließt alle Dropdowns
+document.addEventListener('click', () => {
+  document.querySelectorAll('.gamereview-dropdown').forEach(dd => {
+    dd.classList.remove('open');
   });
 });
