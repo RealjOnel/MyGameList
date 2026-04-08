@@ -679,8 +679,8 @@ async function loadGame(){
     if (!c) return;
     c.innerHTML = `
       <div class="sub-empty">
-        <h4>Community</h4>
-        <p class="muted">Reviews & forums will live here. For now: Placeholder content.</p>
+        <h4>Forums</h4>
+        <p class="muted">Later Forums will be available here.</p>
       </div>
     `;
   }
