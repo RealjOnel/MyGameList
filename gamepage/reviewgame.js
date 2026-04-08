@@ -94,7 +94,7 @@ document.querySelectorAll('.gamereview-dropdown').forEach(dropdown => {
   items.forEach(item => {
     item.addEventListener('click', () => {
       const value = item.getAttribute('data-value');
-      btn.textContent = value; // Button zeigt Auswahl
+      btn.textContent = value; 
 
       // Statusklasse nur für Recommendation Dropdown
       btn.classList.remove('state-recommended', 'state-mixed', 'state-not');
