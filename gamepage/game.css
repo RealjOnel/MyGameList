@@ -66,10 +66,10 @@
 .btn-favorite{
   height: 42px;
   border-radius: 12px;
-  border: 1px solid rgba(15,23,42,0.10);
-  background: rgba(255,255,255,0.86);
+  border: 1px solid rgba(148,163,184,0.24);
+  background: rgba(21, 32, 56, 0.96);
   font-weight: 900;
-  color: #0f172a;
+  color: #eaf1ff;
   cursor: pointer;
   transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
@@ -162,8 +162,9 @@
 .btn-secondary{
   height: 44px;
   border-radius: 12px;
-  border: 1px solid rgba(15,23,42,0.10);
-  background: rgba(248,250,252,0.9);
+  border: 1px solid rgba(148,163,184,0.24);
+  background: rgba(21, 32, 56, 0.96);
+  color: #eaf1ff;
   font-weight: 800;
   cursor: pointer;
 }
@@ -254,6 +255,8 @@
   position: relative;
   overflow: hidden;
   transform: translateZ(0);
+  background: rgba(21, 32, 56, 0.96);
+  color: #eaf1ff;
 }
 
 .mgl-dd-label{
@@ -643,4 +646,45 @@
 @media (max-width: 640px){
   .sub-grid{ grid-template-columns: 1fr; }
   .sub-card-wide{ grid-column: span 1; }
+}
+
+/* =========================
+   Dark Text Tuning
+   ========================= */
+.game-head h1,
+.tags-title,
+.game-desc-card h3,
+.game-side-card h3,
+.stat .v,
+.pt-row b,
+.rel-row b,
+.sub-card h4,
+.sub-block .sub-title,
+.mini-title,
+.char-name,
+.char-fallback{
+  color: var(--text-main);
+}
+
+.stat .k,
+.pt-row span,
+.rel-row span,
+.muted,
+.game-desc-card p{
+  color: var(--text-muted);
+}
+
+.g-tab{
+  color: #b9c8e3;
+}
+
+.g-tab:hover,
+.g-tab.active{
+  color: var(--text-main);
+}
+
+.chip,
+.site-link,
+.mgl-dd-item{
+  color: #dbe6fb;
 }
