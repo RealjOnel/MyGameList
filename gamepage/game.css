@@ -375,17 +375,24 @@
 .mgl-dd-sep{
   height: 1px;
   margin: 8px 6px;
-  background: rgba(15,23,42,0.10);
+  background: rgba(148,163,184,0.4);
   border-radius: 999px;
 }
 
 .mgl-dd-item.danger{
-  color: #b91c1c;
+  color: #ef4444 !important;
+  font-weight: 900;
 }
 
 .mgl-dd-item.danger:hover{
   background: rgba(239,68,68,0.10);
   border-color: rgba(239,68,68,0.18);
+  color: #ef4444 !important;
+}
+
+.mgl-dd-item.danger:active,
+.mgl-dd-item.danger.active{
+  color: #ef4444 !important;
 }
 
 /* ===== Game lower tabs ===== */
