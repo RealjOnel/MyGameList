@@ -268,12 +268,12 @@
     font-size: 13px;
     font-weight: 600;
 
-    color: var(--primary);
+    color: #eaf1ff;
 
     background:
-        linear-gradient(135deg, rgba(255,255,255,0.95), rgba(248,250,252,0.92));
+        linear-gradient(135deg, rgba(14,22,40,0.96), rgba(20,31,55,0.94));
 
-    border: 1px solid rgba(255,255,255,0.6);
+    border: 1px solid rgba(148,163,184,0.24);
 
     box-shadow:
         0 10px 25px rgba(0,0,0,0.12),
