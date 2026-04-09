@@ -691,7 +691,20 @@ button {
     inherits: false;
 }
 
-.btn-primary:after, .btn-primary:before {
+.btn-primary,
+.btn-secondary,
+.profile_button,
+.comment_button,
+.show_more_button {
+    position: relative;
+    isolation: isolate;
+}
+
+.btn-primary:after, .btn-primary:before,
+.btn-secondary:after, .btn-secondary:before,
+.profile_button:after, .profile_button:before,
+.comment_button:after, .comment_button:before,
+.show_more_button:after, .show_more_button:before {
     content: '';
     position: absolute;
     inset: -1px;
@@ -719,18 +732,34 @@ button {
     mask-composite: exclude;
 }
 
-.btn-primary:before {
+.btn-primary:before,
+.btn-secondary:before,
+.profile_button:before,
+.comment_button:before,
+.show_more_button:before {
     filter: blur(1.2rem);
     opacity: 0;
 }
 
 .btn-primary:hover:after,
-.btn-primary:hover:before {
+.btn-secondary:hover:after,
+.profile_button:hover:after,
+.comment_button:hover:after,
+.show_more_button:hover:after,
+.btn-primary:hover:before,
+.btn-secondary:hover:before,
+.profile_button:hover:before,
+.comment_button:hover:before,
+.show_more_button:hover:before {
     opacity: 1;
     animation-play-state: running;
 }
 
-.btn-primary:hover:before {
+.btn-primary:hover:before,
+.btn-secondary:hover:before,
+.profile_button:hover:before,
+.comment_button:hover:before,
+.show_more_button:hover:before {
     opacity: 0.6;
 }
 
