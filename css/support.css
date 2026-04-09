@@ -72,8 +72,7 @@
 }
 
 .support-btn:hover {
-    background: var(--primary);
-    box-shadow: 0 15px 30px rgba(59, 130, 246, 0.4);
+    background: var(--button);
 }
 
 .emergency-box {
