@@ -224,6 +224,58 @@ function normalizeSearchScore(value = "") {
   return normalizeLooseSearch(String(value || "").toLowerCase());
 }
 
+function extractEntityIds(list) {
+  return [...new Set(
+    (Array.isArray(list) ? list : [])
+      .map(item => Number(item?.id ?? item))
+      .filter(Number.isFinite)
+  )];
+}
+
+async function fetchExpandedAgeRatingsByIds(ids, headers) {
+  const uniqueIds = extractEntityIds(ids);
+  if (!uniqueIds.length) return [];
+
+  const ageResp = await axios.post(
+    "https://api.igdb.com/v4/age_ratings",
+    `
+      fields
+        id,
+        category,
+        rating,
+        organization,
+        rating_category,
+        rating_cover_url,
+        synopsis;
+      where id = (${uniqueIds.join(",")});
+      limit ${uniqueIds.length};
+    `,
+    { headers, timeout: 15000 }
+  );
+
+  return Array.isArray(ageResp.data) ? ageResp.data : [];
+}
+
+async function fetchAgeRatingsForGameId(gameId, headers) {
+  const numericGameId = Number(gameId);
+  if (!Number.isFinite(numericGameId)) return [];
+
+  const gameRefResp = await axios.post(
+    "https://api.igdb.com/v4/games",
+    `
+      fields age_ratings;
+      where id = ${numericGameId};
+      limit 1;
+    `,
+    { headers, timeout: 15000 }
+  );
+
+  const refGame = Array.isArray(gameRefResp.data) ? gameRefResp.data[0] : null;
+  const ids = extractEntityIds(refGame?.age_ratings);
+
+  return fetchExpandedAgeRatingsByIds(ids, headers);
+}
+
 async function fetchGamesByCompanySearch(query, headers) {
   const raw = sanitizeSearchInput(query);
   if (!raw) return [];
@@ -529,6 +581,8 @@ router.get("/game/:id", async (req, res) => {
       `
         fields
           id, name,
+          age_ratings,
+
           parent_game.id, parent_game.name, parent_game.cover.image_id, parent_game.first_release_date,
           version_parent.id, version_parent.name, version_parent.cover.image_id, version_parent.first_release_date,
 
@@ -579,6 +633,21 @@ router.get("/game/:id", async (req, res) => {
       Number(game?.parent_game?.id) ||
       Number(game?.id);
 
+    // Resolve age rating reference IDs into full age rating objects
+    try {
+      const directAgeRatingIds = extractEntityIds(game?.age_ratings);
+      let expandedAgeRatings = await fetchExpandedAgeRatingsByIds(directAgeRatingIds, headers);
+
+      if (!expandedAgeRatings.length && Number.isFinite(baseId) && baseId !== Number(game?.id)) {
+        expandedAgeRatings = await fetchAgeRatingsForGameId(baseId, headers);
+      }
+
+      game.age_ratings = expandedAgeRatings;
+    } catch (e) {
+      console.warn("age ratings fetch failed:", e.response?.data || e.message);
+      game.age_ratings = [];
+    }
+
     game.characters = [];
 
     if (Number.isFinite(baseId)) {
@@ -616,10 +685,7 @@ router.get("/game/:id", async (req, res) => {
       }
     }
 
-    const ttbGameId =
-      Number(game?.version_parent?.id) ||
-      Number(game?.parent_game?.id) ||
-      Number(game?.id);
+    const ttbGameId = baseId;
 
     if (!Number.isFinite(ttbGameId)) {
       game.time_to_beat = null;

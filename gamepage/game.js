@@ -580,6 +580,344 @@ async function loadGame(){
     return a.map(x => `<span class="chip">${esc(x)}</span>`).join("");
   }
 
+  function normalizeRatingCoverUrl(rawUrl){
+    const url = String(rawUrl || "").trim();
+    if (!url) return "";
+    if (url.startsWith("//")) return `https:${url}`;
+    if (url.startsWith("http://") || url.startsWith("https://")) return url;
+    if (url.startsWith("/")) return `https://images.igdb.com${url}`;
+    return `https://${url}`;
+  }
+
+  function getAgeRatingSystemId(item){
+    const raw = item?.organization ?? item?.category;
+    const num = Number(raw);
+    return Number.isFinite(num) ? num : null;
+  }
+
+  function getAgeRatingValueId(item){
+    const raw = item?.rating_category ?? item?.rating;
+    const num = Number(raw);
+    return Number.isFinite(num) ? num : null;
+  }
+
+  function getAgeRatingSystemSlug(systemId){
+    const map = {
+      1: "esrb",
+      2: "pegi",
+      3: "cero",
+      4: "usk",
+      5: "grac",
+      6: "class-ind",
+      7: "acb"
+    };
+    return map[Number(systemId)] || "";
+  }
+
+  function ratingSystemLabel(systemId){
+    const map = {
+      1: "ESRB",
+      2: "PEGI",
+      3: "CERO",
+      4: "USK",
+      5: "GRAC",
+      6: "CLASS_IND",
+      7: "ACB"
+    };
+    return map[Number(systemId)] || "Rating";
+  }
+
+  function legacyRatingValueLabel(valueId){
+    const map = {
+      1: "3",
+      2: "7",
+      3: "12",
+      4: "16",
+      5: "18",
+
+      6: "RP",
+      7: "EC",
+      8: "E",
+      9: "E10+",
+      10: "T",
+      11: "M",
+      12: "AO",
+
+      13: "A",
+      14: "B",
+      15: "C",
+      16: "D",
+      17: "Z",
+
+      18: "0",
+      19: "6",
+      20: "12",
+      21: "16",
+      22: "18",
+
+      23: "ALL",
+      24: "12",
+      25: "15",
+      26: "18",
+
+      27: "TESTING",
+      28: "L",
+      29: "10",
+      30: "12",
+      31: "14",
+      32: "16",
+      33: "18",
+
+      34: "G",
+      35: "PG",
+      36: "M",
+      37: "MA15+",
+      38: "R18+",
+      39: "RC"
+    };
+
+    return map[Number(valueId)] || null;
+  }
+
+  function normalizeDisplayValue(rawValue, systemId){
+    if (!rawValue) return null;
+
+    let value = String(rawValue).trim().toUpperCase();
+
+    value = value
+      .replace(/^ESRB\s+/i, "")
+      .replace(/^PEGI\s+/i, "")
+      .replace(/^USK\s+/i, "")
+      .replace(/^CERO\s+/i, "")
+      .replace(/^GRAC\s+/i, "")
+      .replace(/^CLASS[_ -]?IND\s+/i, "")
+      .replace(/^ACB\s+/i, "")
+      .trim();
+
+    const aliasMap = {
+      "EVERYONE": "E",
+      "EVERYONE 10+": "E10+",
+      "EARLY CHILDHOOD": "EC",
+      "TEEN": "T",
+      "MATURE": "M",
+      "ADULTS ONLY": "AO",
+      "RATING PENDING": "RP",
+      "MA 15+": "MA15+",
+      "MA15": "MA15+",
+      "R 18+": "R18+",
+      "R18": "R18+",
+      "LIVRE": "L"
+    };
+
+    if (aliasMap[value]) {
+      value = aliasMap[value];
+    }
+
+    if (systemId === 4 && value.startsWith("USK ")) {
+      value = value.replace(/^USK\s+/i, "").trim();
+    }
+
+    return value || null;
+  }
+
+  function extractRatingValueFromSynopsis(synopsis, systemId){
+    const text = String(synopsis || "");
+    if (!text.trim()) return null;
+
+    const upper = text.toUpperCase();
+
+    if (systemId === 2) {
+      let m = upper.match(/\bPEGI\s*(3|7|12|16|18)\b/);
+      if (m) return m[1];
+
+      m = upper.match(/\bAGED?\s*(3|7|12|16|18)\b/);
+      if (m) return m[1];
+
+      m = upper.match(/\b(3|7|12|16|18)\s*YEARS?\s+AND\s+OVER\b/);
+      if (m) return m[1];
+    }
+
+    if (systemId === 4) {
+      let m = upper.match(/\bUSK\s*(0|6|12|16|18)\b/);
+      if (m) return m[1];
+
+      m = upper.match(/\bAB\s*(0|6|12|16|18)\s*JAHREN\b/);
+      if (m) return m[1];
+
+      m = upper.match(/\bFREIGEGEBEN\s+AB\s*(0|6|12|16|18)\b/);
+      if (m) return m[1];
+    }
+
+    if (systemId === 1) {
+      if (upper.includes("EARLY CHILDHOOD")) return "EC";
+      if (upper.includes("EVERYONE 10+")) return "E10+";
+      if (upper.includes("EVERYONE")) return "E";
+      if (upper.includes("TEEN")) return "T";
+      if (upper.includes("MATURE")) return "M";
+      if (upper.includes("ADULTS ONLY")) return "AO";
+      if (upper.includes("RATING PENDING")) return "RP";
+    }
+
+    if (systemId === 3) {
+      const m = upper.match(/\bCERO\s*([ABCDZ])\b/);
+      if (m) return m[1];
+    }
+
+    if (systemId === 5) {
+      let m = upper.match(/\bGRAC\s*(ALL|12|15|18)\b/);
+      if (m) return m[1];
+
+      m = upper.match(/\b(ALL|12|15|18)\b/);
+      if (m) return m[1];
+    }
+
+    if (systemId === 6) {
+      if (/\bLIVRE\b/i.test(text)) return "L";
+
+      let m = upper.match(/\b(10|12|14|16|18)\b/);
+      if (m) return m[1];
+    }
+
+    if (systemId === 7) {
+      if (upper.includes("MA15+")) return "MA15+";
+      if (upper.includes("R18+")) return "R18+";
+      if (upper.includes("PG")) return "PG";
+      if (upper.includes("RC")) return "RC";
+      if (upper.includes("G")) return "G";
+      if (upper.includes("M")) return "M";
+    }
+
+    return null;
+  }
+
+  function getAgeRatingDisplayValue(item){
+    const systemId = getAgeRatingSystemId(item);
+
+    const directLabel =
+      item?.rating_category_label ||
+      item?.rating_label ||
+      item?.rating_category_name ||
+      item?.rating_category?.rating ||
+      item?.rating_category_ref?.rating ||
+      null;
+
+    if (directLabel) {
+      return normalizeDisplayValue(directLabel, systemId);
+    }
+
+    const fromSynopsis = extractRatingValueFromSynopsis(item?.synopsis, systemId);
+    if (fromSynopsis) {
+      return normalizeDisplayValue(fromSynopsis, systemId);
+    }
+
+    const fromLegacy = legacyRatingValueLabel(getAgeRatingValueId(item));
+    if (fromLegacy) {
+      return normalizeDisplayValue(fromLegacy, systemId);
+    }
+
+    return null;
+  }
+
+  function normalizeBadgeValue(value){
+    return String(value || "").trim().toLowerCase().replace(/\s+/g, "");
+  }
+
+  function localAgeRatingBadgeUrl(item){
+    const systemId = getAgeRatingSystemId(item);
+    const slug = getAgeRatingSystemSlug(systemId);
+    const displayValue = getAgeRatingDisplayValue(item);
+    const value = normalizeBadgeValue(displayValue);
+
+    if (!slug || !value) return "";
+
+    const map = {
+      "pegi:3": "../assets/age-ratings/pegi-3.png",
+      "pegi:7": "../assets/age-ratings/pegi-7.png",
+      "pegi:12": "../assets/age-ratings/pegi-12.png",
+      "pegi:16": "../assets/age-ratings/pegi-16.png",
+      "pegi:18": "../assets/age-ratings/pegi-18.png",
+
+      "usk:0": "../assets/age-ratings/usk-0.png",
+      "usk:6": "../assets/age-ratings/usk-6.png",
+      "usk:12": "../assets/age-ratings/usk-12.png",
+      "usk:16": "../assets/age-ratings/usk-16.png",
+      "usk:18": "../assets/age-ratings/usk-18.png",
+
+      "esrb:ec": "../assets/age-ratings/esrb-ec.png",
+      "esrb:e": "../assets/age-ratings/esrb-e.png",
+      "esrb:e10+": "../assets/age-ratings/esrb-e10.png",
+      "esrb:t": "../assets/age-ratings/esrb-t.png",
+      "esrb:m": "../assets/age-ratings/esrb-m.png",
+      "esrb:ao": "../assets/age-ratings/esrb-ao.png",
+      "esrb:rp": "../assets/age-ratings/esrb-rp.png",
+
+      "cero:a": "../assets/age-ratings/cero-a.png",
+      "cero:b": "../assets/age-ratings/cero-b.png",
+      "cero:c": "../assets/age-ratings/cero-c.png",
+      "cero:d": "../assets/age-ratings/cero-d.png",
+      "cero:z": "../assets/age-ratings/cero-z.png",
+
+      "grac:all": "../assets/age-ratings/grac-all.png",
+      "grac:12": "../assets/age-ratings/grac-12.png",
+      "grac:15": "../assets/age-ratings/grac-15.png",
+      "grac:18": "../assets/age-ratings/grac-18.png",
+
+      "class-ind:l": "../assets/age-ratings/classind-l.png",
+      "class-ind:10": "../assets/age-ratings/classind-10.png",
+      "class-ind:12": "../assets/age-ratings/classind-12.png",
+      "class-ind:14": "../assets/age-ratings/classind-14.png",
+      "class-ind:16": "../assets/age-ratings/classind-16.png",
+      "class-ind:18": "../assets/age-ratings/classind-18.png",
+
+      "acb:g": "../assets/age-ratings/acb-g.png",
+      "acb:pg": "../assets/age-ratings/acb-pg.png",
+      "acb:m": "../assets/age-ratings/acb-m.png",
+      "acb:ma15+": "../assets/age-ratings/acb-ma15.png",
+      "acb:r18+": "../assets/age-ratings/acb-r18.png",
+      "acb:rc": "../assets/age-ratings/acb-rc.png"
+    };
+
+    return map[`${slug}:${value}`] || "";
+  }
+
+  function pickRegionalAgeRatings(ageRatings){
+    const list = Array.isArray(ageRatings) ? ageRatings : [];
+    if (!list.length) return [];
+
+    const priority = [4, 2, 1, 3, 5, 6, 7]; // USK -> PEGI -> ESRB -> others
+
+    const sorted = [...list].sort((a, b) => {
+      const aOrg = getAgeRatingSystemId(a);
+      const bOrg = getAgeRatingSystemId(b);
+
+      const aIdx = priority.indexOf(aOrg);
+      const bIdx = priority.indexOf(bOrg);
+
+      const pa = aIdx === -1 ? 999 : aIdx;
+      const pb = bIdx === -1 ? 999 : bIdx;
+
+      if (pa !== pb) return pa - pb;
+
+      const aHasBadge = !!(normalizeRatingCoverUrl(a?.rating_cover_url) || localAgeRatingBadgeUrl(a));
+      const bHasBadge = !!(normalizeRatingCoverUrl(b?.rating_cover_url) || localAgeRatingBadgeUrl(b));
+
+      return Number(bHasBadge) - Number(aHasBadge);
+    });
+
+    const seen = new Set();
+    const result = [];
+
+    for (const item of sorted){
+      const org = getAgeRatingSystemId(item);
+      if (!org || seen.has(org)) continue;
+      seen.add(org);
+      result.push(item);
+      if (result.length >= 2) break;
+    }
+
+    return result;
+  }
+
   function gameCard(gm){
     const gid = gm?.id;
     const name = gm?.name || "Unknown";
@@ -617,6 +955,7 @@ async function loadGame(){
     const collection = game?.collection?.name;
 
     const websites = Array.isArray(game?.websites) ? game.websites : [];
+    const ratings = pickRegionalAgeRatings(game?.age_ratings);
     const websiteHtml = websites.length
       ? websites.slice(0, 10).map(w => {
           const url = w?.url;
@@ -651,6 +990,36 @@ async function loadGame(){
         <div class="sub-card">
           <h4>Themes</h4>
           <div class="sub-body">${chipsHtml(themes)}</div>
+        </div>
+
+        <div class="sub-card">
+          <h4>Age Rating</h4>
+          <div class="sub-body">
+            ${
+              ratings.length
+                ? ratings.map(r => {
+                    const systemId = getAgeRatingSystemId(r);
+                    const label = ratingSystemLabel(systemId);
+                    const displayValue = getAgeRatingDisplayValue(r);
+                    const prettyValue = displayValue ? `${label} ${displayValue}` : label;
+
+                    const igdbBadgeUrl = normalizeRatingCoverUrl(r?.rating_cover_url);
+                    const localBadgeUrl = localAgeRatingBadgeUrl(r);
+                    const badgeUrl = igdbBadgeUrl || localBadgeUrl;
+
+                    return badgeUrl
+                      ? `<div class="age-rating-item">
+                          <span class="age-rating-label">${esc(label)}</span>
+                          <img class="age-rating-badge" src="${esc(badgeUrl)}" alt="${esc(prettyValue)}" loading="lazy">
+                        </div>`
+                      : `<div class="age-rating-item">
+                          <span class="age-rating-label">${esc(label)}</span>
+                          <span class="chip">${esc(prettyValue)}</span>
+                        </div>`;
+                  }).join("")
+                : `<span class="muted">No age rating available.</span>`
+            }
+          </div>
         </div>
 
         <div class="sub-card">
