@@ -1579,6 +1579,24 @@ html[data-auth="loading"] .notif-bell {
     }
 }
 
+/* .settings-modal uses overflow:hidden; btn-primary/secondary hover uses a
+   blurred conic pseudo that paints past the button. Clipping against the
+   modal edge draws a diagonal streak—clip on the button instead (same ring
+   as elsewhere). */
+   
+.settings-modal .btn-primary,
+.settings-modal .btn-secondary{
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.settings-modal .btn-primary::before,
+.settings-modal .btn-primary::after,
+.settings-modal .btn-secondary::before,
+.settings-modal .btn-secondary::after{
+    border-radius: 12px;
+}
+
 .settings-shell{
     display: flex;
     width: 100%;
