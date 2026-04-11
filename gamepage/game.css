@@ -395,6 +395,64 @@
   color: #ef4444 !important;
 }
 
+/* Primary CTA — Add to List (stands out from secondary row controls) */
+.game-user-card #btnAdd.btn-secondary.mgl-dd-btn{
+  border: 1px solid rgba(96, 165, 250, 0.26);
+  background: linear-gradient(125deg, #1d4ed8 0%, #3730a3 46%, #4c1d95 100%);
+  color: #f1f5ff;
+  box-shadow:
+    0 8px 22px rgba(15, 23, 42, 0.2),
+    0 3px 10px rgba(30, 64, 175, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  text-shadow: 0 1px 1px rgba(15, 23, 42, 0.2);
+}
+
+.game-user-card #btnAdd.btn-secondary.mgl-dd-btn .mgl-dd-label{
+  color: #f1f5ff;
+}
+
+.game-user-card #btnAdd.btn-secondary.mgl-dd-btn:hover{
+  transform: translateY(-2px);
+  border-color: rgba(125, 163, 232, 0.32);
+  box-shadow:
+    0 12px 28px rgba(15, 23, 42, 0.22),
+    0 4px 14px rgba(49, 46, 129, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: linear-gradient(125deg, #2563eb 0%, #4338ca 44%, #5b21b6 100%);
+}
+
+.game-user-card #btnAdd.btn-secondary.mgl-dd-btn:active{
+  transform: translateY(0);
+}
+
+.game-user-card #btnAdd.btn-secondary.mgl-dd-btn:disabled{
+  opacity: 0.62;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow:
+    0 6px 16px rgba(15, 23, 42, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Skip the global conic border on this control — gradient already carries focus */
+.game-user-card #btnAdd.btn-secondary::after{
+  content: none !important;
+}
+
+.game-user-card #btnAdd.mgl-dd-btn::before{
+  opacity: 0.18;
+  transition: opacity 220ms ease;
+}
+
+.game-user-card #btnAdd.mgl-dd-btn:hover::before{
+  opacity: 0.36;
+}
+
+.game-user-card #btnAdd.btn-secondary.mgl-dd-btn:disabled::before,
+.game-user-card #btnAdd.btn-secondary.mgl-dd-btn:disabled:hover::before{
+  opacity: 0.1;
+}
+
 /* ===== Game lower tabs ===== */
 
 .game-lower{
