@@ -1583,7 +1583,7 @@ html[data-auth="loading"] .notif-bell {
    blurred conic pseudo that paints past the button. Clipping against the
    modal edge draws a diagonal streak—clip on the button instead (same ring
    as elsewhere). */
-   
+
 .settings-modal .btn-primary,
 .settings-modal .btn-secondary{
     overflow: hidden;
@@ -1611,7 +1611,7 @@ html[data-auth="loading"] .notif-bell {
     background:
         linear-gradient(180deg, rgba(15,23,42,0.98), rgba(30,41,59,0.96));
     border-right: 1px solid rgba(255,255,255,0.06);
-    color: #e2e8f0;
+    color: var(--bg-card);
     display: flex;
     flex-direction: column;
     min-height: 0;

@@ -85,6 +85,11 @@ async function loadGame(){
 
   // ===== Library controls =====
   const btnAdd = qs("btnAdd");
+  function setAddButtonLabel(text){
+    const lab = btnAdd.querySelector(".mgl-dd-label");
+    if (lab) lab.textContent = text;
+    else btnAdd.textContent = text;
+  }
   const statusDD = qs("statusDD");
   const ratingDD = qs("ratingDD");
   const btnReview = qs("btnReview");
@@ -257,7 +262,7 @@ async function loadGame(){
 
     if (!getAccessToken()){
       if (userControls) userControls.classList.remove("is-loading");
-      btnAdd.textContent = "Login to add";
+      setAddButtonLabel("Login to add");
       return;
     }
 
@@ -273,7 +278,7 @@ async function loadGame(){
     }
 
     if (!entry){
-      btnAdd.textContent = "+ Add to List";
+      setAddButtonLabel("+ Add to List");
       if (btnFavorite) {
         btnFavorite.textContent = "♡ Favorite";
         btnFavorite.classList.remove("active");
