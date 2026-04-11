@@ -528,6 +528,12 @@
     background: rgba(255,255,255,0.06);
 }
 
+/* style.css adds horizontal padding to .navbar when compact interface is on;
+   unified layout must stay full-width like non-compact (shell is the visual bar). */
+html[data-compact-ui="true"] .navbar.navbar--unified{
+    padding: 0;
+}
+
 /* ==========================================
    RESPONSIVE
    ========================================== */
@@ -550,7 +556,8 @@
 }
 
 @media (max-width: 1180px){
-    .navbar.navbar--unified{
+    .navbar.navbar--unified,
+    html[data-compact-ui="true"] .navbar.navbar--unified{
         padding: 12px 16px;
     }
 
