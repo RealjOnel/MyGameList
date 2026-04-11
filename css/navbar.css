@@ -314,27 +314,10 @@
         opacity 120ms ease;
 }
 
-.navbar.navbar--unified .nav-dock__indicator::before,
-.navbar.navbar--unified .nav-dock__indicator::after{
-    content: "";
-    position: absolute;
-    top: 28px;
-    width: 18px;
-    height: 18px;
-    background: transparent;
-}
-
-.navbar.navbar--unified .nav-dock__indicator::before{
-    left: -17px;
-    border-top-right-radius: 18px;
-    box-shadow: 4px -6px 0 0 rgba(12, 19, 34, 0.98);
-}
-
-.navbar.navbar--unified .nav-dock__indicator::after{
-    right: -17px;
-    border-top-left-radius: 18px;
-    box-shadow: -4px -6px 0 0 rgba(12, 19, 34, 0.98);
-}
+/* Intentionally no ::before/::after “notch” shapes on the indicator: that trick
+   (transparent box + border-radius + solid box-shadow) draws curved tabs into
+   the dock, but Firefox often paints the shadow as dark horizontal wings. A
+   plain circle + border matches Chrome closely and is stable in Gecko. */
 
 /* ==========================================
    MENUS
