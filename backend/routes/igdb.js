@@ -256,6 +256,45 @@ async function fetchExpandedAgeRatingsByIds(ids, headers) {
   return Array.isArray(ageResp.data) ? ageResp.data : [];
 }
 
+async function fetchAgeRatingCategoriesByIds(ids, headers) {
+  const uniqueIds = [...new Set(
+    (Array.isArray(ids) ? ids : [])
+      .map(x => Number(x))
+      .filter(Number.isFinite)
+  )];
+
+  if (!uniqueIds.length) return [];
+
+  const resp = await axios.post(
+    "https://api.igdb.com/v4/age_rating_categories",
+    `
+      fields id,organization,rating;
+      where id = (${uniqueIds.join(",")});
+      limit ${uniqueIds.length};
+    `,
+    { headers, timeout: 15000 }
+  );
+
+  return Array.isArray(resp.data) ? resp.data : [];
+}
+
+async function enrichAgeRatingsWithCategoryRefs(ageRatings, headers) {
+  const list = Array.isArray(ageRatings) ? ageRatings : [];
+  if (!list.length) return [];
+
+  const ratingCategoryIds = list
+    .map(r => Number(r?.rating_category))
+    .filter(Number.isFinite);
+
+  const ratingCategories = await fetchAgeRatingCategoriesByIds(ratingCategoryIds, headers);
+  const ratingCategoryById = new Map(ratingCategories.map(x => [x.id, x]));
+
+  return list.map(r => ({
+    ...r,
+    rating_category_ref: ratingCategoryById.get(Number(r?.rating_category)) || null
+  }));
+}
+
 async function fetchAgeRatingsForGameId(gameId, headers) {
   const numericGameId = Number(gameId);
   if (!Number.isFinite(numericGameId)) return [];
@@ -642,7 +681,7 @@ router.get("/game/:id", async (req, res) => {
         expandedAgeRatings = await fetchAgeRatingsForGameId(baseId, headers);
       }
 
-      game.age_ratings = expandedAgeRatings;
+      game.age_ratings = await enrichAgeRatingsWithCategoryRefs(expandedAgeRatings, headers);
     } catch (e) {
       console.warn("age ratings fetch failed:", e.response?.data || e.message);
       game.age_ratings = [];

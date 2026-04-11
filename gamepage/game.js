@@ -608,7 +608,7 @@ async function loadGame(){
       3: "cero",
       4: "usk",
       5: "grac",
-      6: "class-ind",
+      6: "classind",
       7: "acb"
     };
     return map[Number(systemId)] || "";
@@ -699,14 +699,16 @@ async function loadGame(){
       "EVERYONE 10+": "E10+",
       "EARLY CHILDHOOD": "EC",
       "TEEN": "T",
+      "MATURE 17+": "M",
       "MATURE": "M",
+      "ADULTS ONLY 18+": "AO",
       "ADULTS ONLY": "AO",
       "RATING PENDING": "RP",
-      "MA 15+": "MA15+",
-      "MA15": "MA15+",
-      "R 18+": "R18+",
-      "R18": "R18+",
-      "LIVRE": "L"
+      "RATING PENDING LIKELY MATURE 17+": "RP Likely Mature 17+",
+      "RP LIKELY MATURE 17+": "RP Likely Mature 17+",
+      "PARENTAL GUIDANCE RECOMMENDED": "PG",
+      "PARENTAL GUIDANCE": "PG",
+      "PEGI !": "PG"
     };
 
     if (aliasMap[value]) {
@@ -735,6 +737,9 @@ async function loadGame(){
 
       m = upper.match(/\b(3|7|12|16|18)\s*YEARS?\s+AND\s+OVER\b/);
       if (m) return m[1];
+
+      if (upper.includes("PARENTAL GUIDANCE")) return "PG";
+      if (upper.includes("PEGI !")) return "PG";
     }
 
     if (systemId === 4) {
@@ -755,6 +760,7 @@ async function loadGame(){
       if (upper.includes("TEEN")) return "T";
       if (upper.includes("MATURE")) return "M";
       if (upper.includes("ADULTS ONLY")) return "AO";
+      if (upper.includes("RATING PENDING LIKELY MATURE")) return "RP Likely Mature 17+";
       if (upper.includes("RATING PENDING")) return "RP";
     }
 
@@ -794,11 +800,11 @@ async function loadGame(){
     const systemId = getAgeRatingSystemId(item);
 
     const directLabel =
+      item?.rating_category_ref?.rating ||
+      item?.rating_category?.rating ||
       item?.rating_category_label ||
       item?.rating_label ||
       item?.rating_category_name ||
-      item?.rating_category?.rating ||
-      item?.rating_category_ref?.rating ||
       null;
 
     if (directLabel) {
@@ -819,7 +825,12 @@ async function loadGame(){
   }
 
   function normalizeBadgeValue(value){
-    return String(value || "").trim().toLowerCase().replace(/\s+/g, "");
+    return String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "")
+      .replace(/[—–-]/g, "")
+      .replace(/\./g, "");
   }
 
   function localAgeRatingBadgeUrl(item){
@@ -831,18 +842,22 @@ async function loadGame(){
     if (!slug || !value) return "";
 
     const map = {
+      // PEGI
       "pegi:3": "../assets/age-ratings/pegi-3.png",
       "pegi:7": "../assets/age-ratings/pegi-7.png",
       "pegi:12": "../assets/age-ratings/pegi-12.png",
       "pegi:16": "../assets/age-ratings/pegi-16.png",
       "pegi:18": "../assets/age-ratings/pegi-18.png",
+      "pegi:pg": "../assets/age-ratings/pegi-pg.png",
 
+      // USK
       "usk:0": "../assets/age-ratings/usk-0.png",
       "usk:6": "../assets/age-ratings/usk-6.png",
       "usk:12": "../assets/age-ratings/usk-12.png",
       "usk:16": "../assets/age-ratings/usk-16.png",
       "usk:18": "../assets/age-ratings/usk-18.png",
 
+      // ESRB
       "esrb:ec": "../assets/age-ratings/esrb-ec.png",
       "esrb:e": "../assets/age-ratings/esrb-e.png",
       "esrb:e10+": "../assets/age-ratings/esrb-e10.png",
@@ -850,25 +865,30 @@ async function loadGame(){
       "esrb:m": "../assets/age-ratings/esrb-m.png",
       "esrb:ao": "../assets/age-ratings/esrb-ao.png",
       "esrb:rp": "../assets/age-ratings/esrb-rp.png",
+      "esrb:rplikelymature17+": "../assets/age-ratings/esrb-rp-likely-mature.png",
 
+      // CERO
       "cero:a": "../assets/age-ratings/cero-a.png",
       "cero:b": "../assets/age-ratings/cero-b.png",
       "cero:c": "../assets/age-ratings/cero-c.png",
       "cero:d": "../assets/age-ratings/cero-d.png",
       "cero:z": "../assets/age-ratings/cero-z.png",
 
+      // GRAC
       "grac:all": "../assets/age-ratings/grac-all.png",
       "grac:12": "../assets/age-ratings/grac-12.png",
       "grac:15": "../assets/age-ratings/grac-15.png",
       "grac:18": "../assets/age-ratings/grac-18.png",
 
-      "class-ind:l": "../assets/age-ratings/classind-l.png",
-      "class-ind:10": "../assets/age-ratings/classind-10.png",
-      "class-ind:12": "../assets/age-ratings/classind-12.png",
-      "class-ind:14": "../assets/age-ratings/classind-14.png",
-      "class-ind:16": "../assets/age-ratings/classind-16.png",
-      "class-ind:18": "../assets/age-ratings/classind-18.png",
+      // CLASS_IND
+      "classind:l": "../assets/age-ratings/classind-l.png",
+      "classind:10": "../assets/age-ratings/classind-10.png",
+      "classind:12": "../assets/age-ratings/classind-12.png",
+      "classind:14": "../assets/age-ratings/classind-14.png",
+      "classind:16": "../assets/age-ratings/classind-16.png",
+      "classind:18": "../assets/age-ratings/classind-18.png",
 
+      // ACB
       "acb:g": "../assets/age-ratings/acb-g.png",
       "acb:pg": "../assets/age-ratings/acb-pg.png",
       "acb:m": "../assets/age-ratings/acb-m.png",
@@ -881,45 +901,44 @@ async function loadGame(){
   }
 
   function collectAgeRatings(ageRatings){
-  const list = Array.isArray(ageRatings) ? ageRatings : [];
-  if (!list.length) return [];
+    const list = Array.isArray(ageRatings) ? ageRatings : [];
+    if (!list.length) return [];
 
-  const priority = [4, 2, 1, 3, 5, 6, 7]; // USK -> PEGI -> ESRB -> rest
+    const priority = [4, 2, 1, 3, 5, 6, 7];
+    const seenIds = new Set();
 
-  const seenIds = new Set();
+    return [...list]
+      .filter(item => {
+        const id = Number(item?.id);
+        if (!Number.isFinite(id)) return false;
+        if (seenIds.has(id)) return false;
+        seenIds.add(id);
+        return true;
+      })
+      .sort((a, b) => {
+        const aOrg = getAgeRatingSystemId(a);
+        const bOrg = getAgeRatingSystemId(b);
 
-  return [...list]
-    .filter(item => {
-      const id = Number(item?.id);
-      if (!Number.isFinite(id)) return false;
-      if (seenIds.has(id)) return false;
-      seenIds.add(id);
-      return true;
-    })
-    .sort((a, b) => {
-      const aOrg = getAgeRatingSystemId(a);
-      const bOrg = getAgeRatingSystemId(b);
+        const aIdx = priority.indexOf(aOrg);
+        const bIdx = priority.indexOf(bOrg);
 
-      const aIdx = priority.indexOf(aOrg);
-      const bIdx = priority.indexOf(bOrg);
+        const pa = aIdx === -1 ? 999 : aIdx;
+        const pb = bIdx === -1 ? 999 : bIdx;
 
-      const pa = aIdx === -1 ? 999 : aIdx;
-      const pb = bIdx === -1 ? 999 : bIdx;
+        if (pa !== pb) return pa - pb;
 
-      if (pa !== pb) return pa - pb;
+        const aHasBadge = !!(normalizeRatingCoverUrl(a?.rating_cover_url) || localAgeRatingBadgeUrl(a));
+        const bHasBadge = !!(normalizeRatingCoverUrl(b?.rating_cover_url) || localAgeRatingBadgeUrl(b));
 
-      const aHasBadge = !!(normalizeRatingCoverUrl(a?.rating_cover_url) || localAgeRatingBadgeUrl(a));
-      const bHasBadge = !!(normalizeRatingCoverUrl(b?.rating_cover_url) || localAgeRatingBadgeUrl(b));
+        if (aHasBadge !== bHasBadge) {
+          return Number(bHasBadge) - Number(aHasBadge);
+        }
 
-      if (aHasBadge !== bHasBadge) {
-        return Number(bHasBadge) - Number(aHasBadge);
-      }
-
-      const aLabel = ratingSystemLabel(aOrg);
-      const bLabel = ratingSystemLabel(bOrg);
-      return aLabel.localeCompare(bLabel);
-    });
-}
+        const aLabel = ratingSystemLabel(aOrg);
+        const bLabel = ratingSystemLabel(bOrg);
+        return aLabel.localeCompare(bLabel);
+      });
+  }
 
   function gameCard(gm){
     const gid = gm?.id;
@@ -1015,7 +1034,7 @@ async function loadGame(){
                         <div class="age-rating-label">${esc(label)}</div>
                         <div class="age-rating-media">
                           ${
-                              badgeUrl
+                            badgeUrl
                               ? `<img class="age-rating-badge" src="${esc(badgeUrl)}" alt="${esc(prettyValue)}" loading="lazy">`
                               : `<span class="chip">${esc(prettyValue)}</span>`
                           }
