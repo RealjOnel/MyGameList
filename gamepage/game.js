@@ -621,7 +621,7 @@ async function loadGame(){
       3: "CERO",
       4: "USK",
       5: "GRAC",
-      6: "CLASS_IND",
+      6: "CLASSIND",
       7: "ACB"
     };
     return map[Number(systemId)] || "Rating";
@@ -880,13 +880,23 @@ async function loadGame(){
     return map[`${slug}:${value}`] || "";
   }
 
-  function pickRegionalAgeRatings(ageRatings){
-    const list = Array.isArray(ageRatings) ? ageRatings : [];
-    if (!list.length) return [];
+  function collectAgeRatings(ageRatings){
+  const list = Array.isArray(ageRatings) ? ageRatings : [];
+  if (!list.length) return [];
 
-    const priority = [4, 2, 1, 3, 5, 6, 7]; // USK -> PEGI -> ESRB -> others
+  const priority = [4, 2, 1, 3, 5, 6, 7]; // USK -> PEGI -> ESRB -> rest
 
-    const sorted = [...list].sort((a, b) => {
+  const seenIds = new Set();
+
+  return [...list]
+    .filter(item => {
+      const id = Number(item?.id);
+      if (!Number.isFinite(id)) return false;
+      if (seenIds.has(id)) return false;
+      seenIds.add(id);
+      return true;
+    })
+    .sort((a, b) => {
       const aOrg = getAgeRatingSystemId(a);
       const bOrg = getAgeRatingSystemId(b);
 
@@ -901,22 +911,15 @@ async function loadGame(){
       const aHasBadge = !!(normalizeRatingCoverUrl(a?.rating_cover_url) || localAgeRatingBadgeUrl(a));
       const bHasBadge = !!(normalizeRatingCoverUrl(b?.rating_cover_url) || localAgeRatingBadgeUrl(b));
 
-      return Number(bHasBadge) - Number(aHasBadge);
+      if (aHasBadge !== bHasBadge) {
+        return Number(bHasBadge) - Number(aHasBadge);
+      }
+
+      const aLabel = ratingSystemLabel(aOrg);
+      const bLabel = ratingSystemLabel(bOrg);
+      return aLabel.localeCompare(bLabel);
     });
-
-    const seen = new Set();
-    const result = [];
-
-    for (const item of sorted){
-      const org = getAgeRatingSystemId(item);
-      if (!org || seen.has(org)) continue;
-      seen.add(org);
-      result.push(item);
-      if (result.length >= 2) break;
-    }
-
-    return result;
-  }
+}
 
   function gameCard(gm){
     const gid = gm?.id;
@@ -955,7 +958,7 @@ async function loadGame(){
     const collection = game?.collection?.name;
 
     const websites = Array.isArray(game?.websites) ? game.websites : [];
-    const ratings = pickRegionalAgeRatings(game?.age_ratings);
+    const ratings = collectAgeRatings(game?.age_ratings);
     const websiteHtml = websites.length
       ? websites.slice(0, 10).map(w => {
           const url = w?.url;
@@ -992,9 +995,9 @@ async function loadGame(){
           <div class="sub-body">${chipsHtml(themes)}</div>
         </div>
 
-        <div class="sub-card">
-          <h4>Age Rating</h4>
-          <div class="sub-body">
+        <div class="sub-card age-rating-card">
+          <h4>Age Ratings</h4>
+          <div class="sub-body age-rating-grid">
             ${
               ratings.length
                 ? ratings.map(r => {
@@ -1007,15 +1010,18 @@ async function loadGame(){
                     const localBadgeUrl = localAgeRatingBadgeUrl(r);
                     const badgeUrl = igdbBadgeUrl || localBadgeUrl;
 
-                    return badgeUrl
-                      ? `<div class="age-rating-item">
-                          <span class="age-rating-label">${esc(label)}</span>
-                          <img class="age-rating-badge" src="${esc(badgeUrl)}" alt="${esc(prettyValue)}" loading="lazy">
-                        </div>`
-                      : `<div class="age-rating-item">
-                          <span class="age-rating-label">${esc(label)}</span>
-                          <span class="chip">${esc(prettyValue)}</span>
-                        </div>`;
+                    return `
+                      <div class="age-rating-item">
+                        <div class="age-rating-label">${esc(label)}</div>
+                        <div class="age-rating-media">
+                          ${
+                              badgeUrl
+                              ? `<img class="age-rating-badge" src="${esc(badgeUrl)}" alt="${esc(prettyValue)}" loading="lazy">`
+                              : `<span class="chip">${esc(prettyValue)}</span>`
+                          }
+                        </div>
+                      </div>
+                    `;
                   }).join("")
                 : `<span class="muted">No age rating available.</span>`
             }
