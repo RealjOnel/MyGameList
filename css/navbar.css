@@ -19,6 +19,7 @@
 .navbar.navbar--unified .navbar-shell{
     width: 100%;
     max-width: none;
+    min-width: 0;
     display: grid;
     grid-template-columns: 220px minmax(320px, 560px) minmax(0, 1fr);
     align-items: center;
@@ -128,11 +129,16 @@
    ========================================== */
 
 .navbar.navbar--unified .navbar-main{
-    min-width: max-content;
-    width: 100%;
+    /* Avoid width:100% + min-width:max-content on a grid item — Firefox can
+       mis-resolve the third column and let the dock overlap the user cluster. */
+    justify-self: end;
+    min-width: 0;
+    width: min(max-content, 100%);
+    max-width: 100%;
     display: flex;
     align-items: center;
     justify-content: flex-end;
+    flex-wrap: nowrap;
     gap: 12px;
     padding-right: 50px;
 }
@@ -149,7 +155,7 @@
 
     position: relative;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     gap: 4px;
     padding: 8px 10px 6px;
     height: 62px;
@@ -418,8 +424,8 @@
     align-items: center;
     gap: 10px;
     margin-left: 14px;
-    position: relative;
-    left: 8px;
+    flex-shrink: 0;
+    min-width: 0;
 }
 
 .navbar.navbar--unified .notif-bell{
@@ -586,7 +592,6 @@
     }
 
     .navbar.navbar--unified .nav-user-wrap{
-        left: 0;
         margin-left: 10px;
     }
 }
