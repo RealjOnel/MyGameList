@@ -129,18 +129,39 @@
    ========================================== */
 
 .navbar.navbar--unified .navbar-main{
-    /* Avoid width:100% + min-width:max-content on a grid item — Firefox can
-       mis-resolve the third column and let the dock overlap the user cluster. */
+    /* Grid (not flex): Firefox was still painting the dock over the bell when
+       the flex row’s used widths were ambiguous. Fixed tracks + a 1fr spacer
+       match Chrome: dock | login | user with no overlap. */
     justify-self: end;
     min-width: 0;
-    width: min(max-content, 100%);
+    width: 100%;
     max-width: 100%;
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content max-content max-content;
     align-items: center;
-    justify-content: flex-end;
-    flex-wrap: nowrap;
-    gap: 12px;
+    column-gap: 14px;
     padding-right: 50px;
+}
+
+.navbar.navbar--unified .navbar-main::before{
+    content: "";
+    grid-column: 1;
+    min-width: 0;
+}
+
+.navbar.navbar--unified .navbar-main .nav-dock{
+    grid-column: 2;
+    justify-self: end;
+}
+
+.navbar.navbar--unified .navbar-main #loginBtn{
+    grid-column: 3;
+    justify-self: end;
+}
+
+.navbar.navbar--unified .navbar-main .nav-user-wrap{
+    grid-column: 4;
+    justify-self: end;
 }
 
 /* ==========================================
@@ -164,7 +185,6 @@
     border: 1px solid rgba(255,255,255,0.06);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
     overflow: visible;
-    flex: 0 0 auto;
 }
 
 .navbar.navbar--unified .nav-dock__node{
@@ -409,6 +429,14 @@
     margin-left: 14px;
     flex-shrink: 0;
     min-width: 0;
+    /* Sit above the dock when Gecko mis-overlaps rows (dock uses z-index on nodes). */
+    position: relative;
+    z-index: 12;
+}
+
+.navbar.navbar--unified #loginBtn{
+    position: relative;
+    z-index: 12;
 }
 
 .navbar.navbar--unified .notif-bell{
