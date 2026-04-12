@@ -8,12 +8,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="./login.css">
+    <link rel="stylesheet" href="../css/navbar.css">
 </head>
 <body class="auth-page">
 
-<nav class="navbar">
-    <div class="logo">
-        <a href="./login.html">MY<span class="accent">GAMELIST</span></a>
+<nav class="navbar navbar--unified">
+    <div class="navbar-shell">
+        <div class="logo">
+            <a href="/index.html">MY<span class="accent">GAMELIST</span></a>
+        </div>
     </div>
 </nav>
 
@@ -87,6 +90,9 @@
     <script type="module" src="./loginregisterswitch.js"></script>  <!--Ist das Notwendig das ist in zeile 113 doch schon da?-->
     <script type="module" src="./gallery.js"></script>
     <script src="./error-msg.js"></script>
+
+    <script type="module" src="../SettingsLoader/settingsLoader.js"></script>
+    <script src="../js/global/navbar.js"></script>
 
 </body>
 </html>

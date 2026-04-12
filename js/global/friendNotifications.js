@@ -1,8 +1,7 @@
 import { showToast } from "./toast.js";
 import { fetchWithAuth, clearAccessToken } from "./authClient.js";
 
-const LOGIN_URL = "/LoginPageAndLogic/login.html";
-let notificationPollId = null;
+const LOGIN_URL = "../LoginPageAndLogic/login.html";
 
 function escapeHtml(str = "") {
   return String(str).replace(/[&<>"']/g, (m) => ({
@@ -74,22 +73,6 @@ function renderEmpty(list, text = "No new notifications.") {
   list.innerHTML = `<div class="notif-empty">${escapeHtml(text)}</div>`;
 }
 
-function bindNotificationActions() {
-  const { list } = getEls();
-  if (!list) return;
-
-  list.querySelectorAll(".notif-action").forEach((btn) => {
-    if (btn.dataset.bound === "true") return;
-    btn.dataset.bound = "true";
-
-    btn.addEventListener("click", () => {
-      const action = btn.dataset.action;
-      const requestId = btn.dataset.requestId;
-      handleNotificationAction(action, requestId).catch(console.error);
-    });
-  });
-}
-
 function renderNotifications(notifications = []) {
   const { list } = getEls();
   if (!list) return;
@@ -103,13 +86,13 @@ function renderNotifications(notifications = []) {
     <div class="notif-item" data-request-id="${escapeHtml(item.requestId || "")}">
       <img
         class="notif-avatar"
-        src="${item.fromUser?.avatarUrl || "/assets/User/Default_User_Icon.png"}"
+        src="${item.fromUser?.avatarUrl || "../assets/User/Default_User_Icon.png"}"
         alt="${escapeHtml(item.fromUser?.username || "User")}"
       >
 
       <div class="notif-body">
         <div class="notif-text">
-          <a class="notif-user" href="/profile/profile.html?username=${encodeURIComponent(item.fromUser?.username || "")}">
+          <a class="notif-user" href="./profile.html?username=${encodeURIComponent(item.fromUser?.username || "")}">
             ${escapeHtml(item.fromUser?.username || "Unknown User")}
           </a>
           sent you a friend request.
@@ -235,43 +218,65 @@ async function handleNotificationAction(action, requestId) {
   }
 }
 
-function initFriendBellDataLoading() {
-  const { bellBtn } = getEls();
-  if (!bellBtn) return;
-  if (bellBtn.dataset.friendDataBound === "true") return;
-  bellBtn.dataset.friendDataBound = "true";
+function bindNotificationActions() {
+  const { list } = getEls();
+  if (!list) return;
 
-  bellBtn.addEventListener("click", () => {
-    requestAnimationFrame(() => {
-      const { dropdown } = getEls();
-      if (dropdown?.classList.contains("open")) {
-        loadNotifications().catch(console.error);
-      }
+  list.querySelectorAll(".notif-action").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const action = btn.dataset.action;
+      const requestId = btn.dataset.requestId;
+      handleNotificationAction(action, requestId).catch(console.error);
     });
   });
 }
 
-function startNotificationPolling() {
-  if (notificationPollId) return;
+function initBellToggle() {
+  const { bellBtn, dropdown } = getEls();
+  if (!bellBtn || !dropdown) return;
 
-  notificationPollId = window.setInterval(() => {
+  bellBtn.addEventListener("click", async (e) => {
+    e.stopPropagation();
+
+    const willOpen = !dropdown.classList.contains("open");
+
+    document.querySelectorAll(".notif-dropdown.open").forEach((el) => {
+      el.classList.remove("open");
+      el.setAttribute("aria-hidden", "true");
+    });
+
+    if (willOpen) {
+      dropdown.classList.add("open");
+      dropdown.setAttribute("aria-hidden", "false");
+      await loadNotifications();
+    }
+  });
+
+  document.addEventListener("click", (e) => {
+    const { bellWrap, dropdown } = getEls();
+    if (!bellWrap || !dropdown) return;
+
+    if (!bellWrap.contains(e.target)) {
+      dropdown.classList.remove("open");
+      dropdown.setAttribute("aria-hidden", "true");
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const { dropdown } = getEls();
+      if (!dropdown) return;
+      dropdown.classList.remove("open");
+      dropdown.setAttribute("aria-hidden", "true");
+    }
+  });
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  initBellToggle();
+  await loadNotificationCount();
+
+  setInterval(() => {
     loadNotificationCount().catch(console.error);
   }, 30000);
-}
-
-function initFriendNotifications() {
-  const { bellBtn, list } = getEls();
-  if (!bellBtn || !list) return;
-
-  initFriendBellDataLoading();
-  loadNotificationCount().catch(console.error);
-  startNotificationPolling();
-}
-
-window.initFriendNotifications = initFriendNotifications;
-
-if (document.readyState !== "loading") {
-  initFriendNotifications();
-} else {
-  document.addEventListener("DOMContentLoaded", initFriendNotifications, { once: true });
-}
+});

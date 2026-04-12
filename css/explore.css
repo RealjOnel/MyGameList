@@ -200,12 +200,13 @@
   gap: 0.75rem;
   padding: 0.8rem 1.4rem;
   min-width: 170px;
-  background: var(--bg-body);
-  border: 1px solid var(--button);
+  background: #162544;
+  border: 1px solid rgba(148,163,184,0.24);
   border-radius: 14px;
   font-weight: 600;
+  color: var(--text-main);
   cursor: pointer;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+  box-shadow: 0 10px 24px rgba(2,6,23,0.32);
   transition: all 0.25s ease;
 }
 
@@ -232,9 +233,10 @@
   top: calc(100% + 0.5rem);
   left: 0;
   width: 100%;
-  background: white;
+  background: #13203a;
   border-radius: 14px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+  border: 1px solid rgba(148,163,184,0.24);
+  box-shadow: 0 24px 44px rgba(2,6,23,0.46);
   list-style: none;
   padding: 0.4rem;
   opacity: 0;
@@ -256,7 +258,7 @@
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--text-main);
+  color: #e7efff;
   transition: background 0.2s ease, color 0.2s ease;
 }
 
@@ -284,11 +286,11 @@
   margin: 0.15rem 0.15rem 0.65rem;
   border-radius: 12px;
 
-  background: rgba(255,255,255,0.92);
-  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: #1a2a49;
+  border: 1px solid rgba(148,163,184,0.24);
   box-shadow:
-    0 10px 24px rgba(0,0,0,0.08),
-    inset 0 -1px 0 rgba(15, 23, 42, 0.08);
+    0 10px 24px rgba(2,6,23,0.35),
+    inset 0 -1px 0 rgba(148, 163, 184, 0.18);
 
 transform: none !important;
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
@@ -306,14 +308,14 @@ transform: none !important;
 
 .custom-dropdown-menu .dropdown-main .main-title{
   font-weight: 800;
-  color: var(--primary);
+  color: #eef4ff;
 }
 
 .custom-dropdown-menu .dropdown-main::after{
   content: "";
   display: block;
   height: 1px;
-  background: rgba(15, 23, 42, 0.08);    
+  background: rgba(148,163,184,0.26);
   border-radius: 999px;
   opacity: 0.9;
 }
@@ -493,16 +495,42 @@ transform: none !important;
     height: 46px;
     padding: 0 1.5rem;
     border-radius: 14px;
-    border: 1px solid var(--button);
+    border: 1px solid rgba(148,163,184,0.24);
+    background: rgba(16, 25, 45, 0.92);
+    color: var(--text-main);
     font-size: 0.9rem;
     width: 280px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.32);
     transition: all 0.25s ease;
+}
+
+.search-input::placeholder{
+  color: var(--text-muted);
+}
+
+/* Force dark page-search component styling */
+.page-search-slot .nav-search-input{
+  border: 1px solid rgba(148,163,184,0.24);
+  background: #162544;
+  box-shadow: 0 10px 24px rgba(2,6,23,0.36);
+  backdrop-filter: none;
+}
+
+.page-search-slot .nav-search-input svg{
+  color: #9bb0d3;
+}
+
+.page-search-slot .nav-search-input input{
+  color: #e7efff;
+}
+
+.page-search-slot .nav-search-input input::placeholder{
+  color: #8ea1bf;
 }
 
 .search-input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
 }
 
 .game-grid {
@@ -896,18 +924,24 @@ transform: none !important;
 .btn-add {
     width: 100%;
     padding: 0.6rem;
-    background:var(--button);
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
+    background: linear-gradient(135deg, rgba(28,42,72,0.96), rgba(20,32,56,0.96));
+    border: 1px solid rgba(103,161,255,0.28);
+    border-radius: 10px;
+    color: #eaf1ff;
+    font-weight: 800;
     cursor: pointer;
-    transition: 0.2s;
+    letter-spacing: 0.01em;
+    box-shadow: 0 10px 24px rgba(2,6,23,0.35), inset 0 1px 0 rgba(255,255,255,0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
     margin-top: auto; 
 }
 
 .btn-add:hover {
-    background: var(--primary);
-    color: var(--bg-body);
+    transform: translateY(-1px);
+    background: linear-gradient(135deg, rgba(36,56,95,0.98), rgba(28,44,76,0.98));
+    border-color: rgba(103,161,255,0.5);
+    color: #ffffff;
+    box-shadow: 0 14px 30px rgba(2,6,23,0.45), 0 0 0 2px rgba(59,130,246,0.12);
 }
 
 .load-more-btn {
@@ -1026,15 +1060,18 @@ html[data-theme]:not([data-theme="neutral"]) .theme-bg{ opacity: 1; }
   --stripe-new: 255,255,255;
 }
 
-.theme-bg{ filter: saturate(1.05); }
+.theme-bg{ filter: saturate(1.05) brightness(1.18); }
 
 /* Base: einfarbig + subtil */
-.theme-bg .bg-old-base { fill: rgb(var(--base-old)); opacity: 0.06; }
-.theme-bg .bg-new-base { fill: rgb(var(--base-new)); opacity: 0.06; }
+.theme-bg .bg-old-base { fill: rgb(var(--base-old)); opacity: 0.05; }
+.theme-bg .bg-new-base { fill: rgb(var(--base-new)); opacity: 0.05; }
 
 /* Stripes: kommen aus dem Gradient-Fill im SVG, Stärke hier */
 .theme-bg .bg-old-stripe,
-.theme-bg .bg-new-stripe { opacity: 0.14; }
+.theme-bg .bg-new-stripe {
+  opacity: 0.18;
+  mix-blend-mode: screen;
+}
 
 /* Wipe animation */
 .theme-bg .wipe-reveal,
@@ -1074,9 +1111,9 @@ html[data-theme="neutral"]{  --tint: 255, 255, 255; }
 /* boost only for MyGameList default theme */
 html[data-theme="mgl"] .theme-bg .bg-old-base,
 html[data-theme="mgl"] .theme-bg .bg-new-base{
-  opacity: 0.11;
+  opacity: 0.07;
 }
 html[data-theme="mgl"] .theme-bg .bg-old-stripe,
 html[data-theme="mgl"] .theme-bg .bg-new-stripe{
-  opacity: 0.35;  
+  opacity: 0.24;
 }

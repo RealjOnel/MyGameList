@@ -1,26 +1,11 @@
-window.initNavbar = function initNavbar() {
-    const nav = document.querySelector(".navbar.navbar--unified");
+document.addEventListener("DOMContentLoaded", () => {
     const dock = document.getElementById("navDock");
-
-    if (!nav || !dock) return;
-
-    /* prevent double init */
-    if (dock.dataset.initialized === "true") return;
-    dock.dataset.initialized = "true";
+    if (!dock) return;
 
     const nodes = [...dock.querySelectorAll(".nav-dock__node")];
     const indicator = dock.querySelector(".nav-dock__indicator");
-    const pathnameLower = (window.location.pathname || "").toLowerCase();
     const currentFile = getFileName(window.location.pathname) || "index.html";
-
-    const isProfilePage =
-        pathnameLower.includes("/profile/") || currentFile === "profile.html";
-    const isGamePage =
-        pathnameLower.includes("/gamepage/") || currentFile === "game.html";
-
-    if (isProfilePage) {
-        dock.classList.add("nav-dock--hide-indicator");
-    }
+    const hasNoDefaultActive = (dock.dataset.defaultActive || "").trim().toLowerCase() === "none";
 
     function getFileName(value) {
         if (!value) return "";
@@ -70,11 +55,14 @@ window.initNavbar = function initNavbar() {
         });
     }
 
-    const routeFile = isGamePage ? "explore.html" : currentFile;
+    let activeNode = findMatchingNode(currentFile) || (hasNoDefaultActive ? null : nodes[0]);
+    let transientIndicatorVisible = false;
 
-    let activeNode = isProfilePage
-        ? null
-        : findMatchingNode(routeFile) || nodes[0];
+    function setIndicatorVisible(visible) {
+        if (!indicator) return;
+        indicator.style.opacity = visible ? "1" : "0";
+        indicator.style.visibility = visible ? "visible" : "hidden";
+    }
 
     function getVisualNode() {
         return nodes.find(node => node.classList.contains("is-open")) || activeNode;
@@ -86,7 +74,6 @@ window.initNavbar = function initNavbar() {
     }
 
     function moveIndicator(node) {
-        if (dock.classList.contains("nav-dock--hide-indicator")) return;
         if (!node || !indicator) return;
 
         const dockRect = dock.getBoundingClientRect();
@@ -102,103 +89,16 @@ window.initNavbar = function initNavbar() {
         indicator.style.transform = `translateX(${x}px)`;
     }
 
-    function initNavbarUtilityMenus() {
-        const friendBell = document.getElementById("friendBell");
-        const friendBellBtn = document.getElementById("friendBellBtn");
-        const friendBellDropdown = document.getElementById("friendBellDropdown");
-
-        const userMenu = document.getElementById("userMenu");
-        const userIcon = document.getElementById("userIcon");
-        const userDropdown = document.getElementById("userDropdown");
-
-        /* prevent double init */
-        if (friendBellBtn && friendBellBtn.dataset.bound === "true" &&
-            userIcon && userIcon.dataset.bound === "true") {
-            return;
-        }
-
-        function closeFriendBell() {
-            if (!friendBellDropdown) return;
-            friendBellDropdown.classList.remove("open");
-            friendBellDropdown.setAttribute("aria-hidden", "true");
-        }
-
-        function closeUserMenu() {
-            if (!userDropdown) return;
-            userDropdown.classList.remove("open");
-            userDropdown.setAttribute("aria-hidden", "true");
-        }
-
-        if (friendBellBtn && friendBellDropdown) {
-            friendBellBtn.dataset.bound = "true";
-
-            friendBellBtn.addEventListener("click", (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                const isOpen = friendBellDropdown.classList.contains("open");
-
-                closeUserMenu();
-
-                if (isOpen) {
-                    closeFriendBell();
-                } else {
-                    friendBellDropdown.classList.add("open");
-                    friendBellDropdown.setAttribute("aria-hidden", "false");
-                }
-            });
-        }
-
-        if (userIcon && userDropdown) {
-            userIcon.dataset.bound = "true";
-
-            userIcon.addEventListener("click", (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                const isOpen = userDropdown.classList.contains("open");
-
-                closeFriendBell();
-
-                if (isOpen) {
-                    closeUserMenu();
-                } else {
-                    userDropdown.classList.add("open");
-                    userDropdown.setAttribute("aria-hidden", "false");
-                }
-            });
-        }
-
-        document.addEventListener("click", (e) => {
-            if (friendBell && !friendBell.contains(e.target)) {
-                closeFriendBell();
-            }
-
-            if (userMenu && !userMenu.contains(e.target)) {
-                closeUserMenu();
-            }
-        });
-
-        window.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") {
-                closeFriendBell();
-                closeUserMenu();
-            }
-        });
-    }
-
     function setActive(node) {
         nodes.forEach(n => n.classList.remove("is-active"));
-        if (!node) {
-            activeNode = null;
+        activeNode = node || null;
+        if (node) {
+            node.classList.add("is-active");
             moveIndicator(getVisualNode());
-            syncDockOpenState();
-            return;
+        } else {
+            transientIndicatorVisible = false;
+            setIndicatorVisible(false);
         }
-
-        node.classList.add("is-active");
-        activeNode = node;
-        moveIndicator(getVisualNode());
         syncDockOpenState();
     }
 
@@ -218,34 +118,38 @@ window.initNavbar = function initNavbar() {
 
         if (activeNode) {
             activeNode.classList.add("is-active");
+        } else if (hasNoDefaultActive) {
+            transientIndicatorVisible = false;
+            setIndicatorVisible(false);
         }
 
         syncDockOpenState();
     }
 
-    initNavbarUtilityMenus();
-
-    /* Initial state: place everything instantly, no animation */
     setActive(activeNode);
 
-    /* Make sure indicator is positioned before navbar becomes visible */
-        requestAnimationFrame(() => {
-            moveIndicator(getVisualNode());
+    requestAnimationFrame(() => {
+        moveIndicator(getVisualNode());
 
-            requestAnimationFrame(() => {
-                dock.classList.add("is-ready");
-                nav.classList.add("is-mounted");
-                const navPlaceholder = nav.closest("#navbar-placeholder");
-                if (navPlaceholder) navPlaceholder.dataset.loaded = "true";
-            });
+        requestAnimationFrame(() => {
+            dock.classList.add("is-ready");
         });
+    });
 
     nodes.forEach(node => {
         node.addEventListener("mouseenter", () => {
+            if (!activeNode && hasNoDefaultActive) {
+                transientIndicatorVisible = true;
+                setIndicatorVisible(true);
+            }
             moveIndicator(node);
         });
 
         node.addEventListener("mouseleave", () => {
+            if (!activeNode && hasNoDefaultActive) {
+                transientIndicatorVisible = false;
+                setIndicatorVisible(false);
+            }
             moveIndicator(getVisualNode());
         });
     });
@@ -264,6 +168,7 @@ window.initNavbar = function initNavbar() {
                 node.classList.add("is-open");
                 toggle.setAttribute("aria-expanded", "true");
                 syncDockOpenState();
+                setIndicatorVisible(true);
                 moveIndicator(node);
             } else {
                 setActive(activeNode);
@@ -304,5 +209,8 @@ window.initNavbar = function initNavbar() {
 
     window.addEventListener("resize", () => {
         moveIndicator(getVisualNode());
+        if (!activeNode && hasNoDefaultActive && !transientIndicatorVisible) {
+            setIndicatorVisible(false);
+        }
     });
-};
+});

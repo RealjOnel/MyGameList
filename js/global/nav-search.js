@@ -130,6 +130,22 @@ function getExploreHref(){
   return a?.getAttribute("href") || "./OtherPages/explore.html";
 }
 
+function getGameHref(gameId){
+  const path = window.location.pathname.replace(/\\/g, "/");
+  let base;
+  if (path.includes("/gamepage/")) {
+    base = "./game.html";
+  } else if (path.includes("/OtherPages/") || path.includes("/profile/")) {
+    base = "../gamepage/game.html";
+  } else {
+    base = "gamepage/game.html";
+  }
+
+  const url = new URL(base, window.location.href);
+  url.searchParams.set("id", String(gameId));
+  return url.toString();
+}
+
 function getProfileHref(username = ""){
   const a = document.querySelector('#userDropdown a[href*="profile.html"], a[href*="profile.html"]');
   const base = a?.getAttribute("href") || "./profile/profile.html";
@@ -331,19 +347,8 @@ function renderSuggestions(root, mode, items, q){
       `;
 
       li.addEventListener("click", () => {
-        const isExplore = !!document.getElementById("pageSearchSlot");
-        const input = root.querySelector("#globalSearchInput");
-        input.value = g.name;
-        input.dispatchEvent(new Event("input", { bubbles: true }));
-
-        if (!isExplore){
-          const exploreHref = getExploreHref();
-          const url = new URL(exploreHref, window.location.href);
-          url.searchParams.set("search", g.name);
-          window.location.href = url.toString();
-        }
-
         root.querySelector(".nav-search-panel").hidden = true;
+        window.location.href = getGameHref(g.id);
       });
 
       list.appendChild(li);
@@ -568,23 +573,14 @@ function mountSearch(){
   moveWithFlip(root, target, () => setVariant(root, isExplore ? "page" : "nav"));
 }
 
-function initNavSearch() {
-  mountSearch();
+document.addEventListener("DOMContentLoaded", mountSearch);
+window.addEventListener("pageshow", mountSearch);
 
+document.addEventListener("DOMContentLoaded", () => {
   loadCustomizationSettings().catch((err) => {
     console.error("Customization init failed", err);
   });
-}
-
-window.initNavSearch = initNavSearch;
-
-if (document.readyState !== "loading") {
-  initNavSearch();
-} else {
-  document.addEventListener("DOMContentLoaded", initNavSearch, { once: true });
-}
-
-window.addEventListener("pageshow", mountSearch);
+});
 
 window.addEventListener("mgl:settings-saved", (e) => {
   applyCustomization(e.detail?.settings?.customization);

@@ -24,7 +24,106 @@
 </head>
 <body>
 
-<div id="navbar-placeholder"></div>
+<nav class="navbar navbar--unified">
+    <div class="navbar-shell">
+        <div class="logo">
+            <a href="/index.html">MY<span class="accent">GAMELIST</span></a>
+        </div>
+
+        <div class="nav-search-slot" id="navSearchSlot"></div>
+
+        <div class="navbar-main">
+            <div class="nav-dock" id="navDock">
+                <a href="/index.html" class="nav-dock__node nav-dock__node--link" data-route="index.html">
+                    <span class="nav-dock__icon"><i class="fa-solid fa-house"></i></span>
+                    <span class="nav-dock__text">Home</span>
+                </a>
+
+                <div class="nav-dock__node nav-dock__node--dropdown" data-route="explore.html">
+                    <button class="nav-dock__button" type="button" data-dropdown-toggle aria-expanded="false">
+                        <span class="nav-dock__icon"><i class="fa-solid fa-gamepad"></i></span>
+                        <span class="nav-dock__text">Games</span>
+                    </button>
+
+                    <div class="nav-dock__menu">
+                        <a href="/OtherPages/explore.html">Explore</a>
+                        <a href="#">Trending Games</a>
+                        <a href="/OtherPages/upcoming.html">Upcoming Games</a>
+                        <a href="#">New Releases</a>
+                    </div>
+                </div>
+
+                <a href="/OtherPages/features.html" class="nav-dock__node nav-dock__node--link" data-route="features.html">
+                    <span class="nav-dock__icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+                    <span class="nav-dock__text">Features</span>
+                </a>
+
+                <div class="nav-dock__node nav-dock__node--dropdown" data-route="statistics.html">
+                    <button class="nav-dock__button" type="button" data-dropdown-toggle aria-expanded="false">
+                        <span class="nav-dock__icon"><i class="fa-solid fa-chart-simple"></i></span>
+                        <span class="nav-dock__text">Statistics</span>
+                    </button>
+
+                    <div class="nav-dock__menu">
+                        <a href="/OtherPages/statistics.html">Overview</a>
+                        <a href="/OtherPages/methodology.html">Our Methodology</a>
+                        <a href="#">Top Games</a>
+                        <a href="#">Hidden Gems</a>
+                        <a href="#">Overhyped Titles</a>
+                    </div>
+                </div>
+
+                <div class="nav-dock__node nav-dock__node--dropdown" data-route="help.html">
+                    <button class="nav-dock__button" type="button" data-dropdown-toggle aria-expanded="false">
+                        <span class="nav-dock__icon"><i class="fa-solid fa-circle-question"></i></span>
+                        <span class="nav-dock__text">Help</span>
+                    </button>
+
+                    <div class="nav-dock__menu">
+                        <a href="/OtherPages/help.html">Overview</a>
+                        <a href="/OtherPages/about.html">About</a>
+                        <a href="/OtherPages/faq.html">FAQ</a>
+                        <a href="/OtherPages/support.html">Support</a>
+                        <a href="/OtherPages/staff.html">Staff</a>
+                    </div>
+                </div>
+
+                <span class="nav-dock__indicator" aria-hidden="true"></span>
+            </div>
+
+            <button id="loginBtn" class="btn-login nav-chip nav-chip--login" onclick="window.location.href='../LoginPageAndLogic/login.html'">
+                LOGIN
+            </button>
+
+            <div class="nav-user-wrap" id="navUserWrap">
+                <div id="friendBell" class="notif-bell">
+                    <button id="friendBellBtn" class="notif-bell-btn nav-chip nav-chip--icon" type="button" aria-label="Friend Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        <span id="friendBellBadge" class="notif-bell-badge" hidden>0</span>
+                    </button>
+
+                    <div id="friendBellDropdown" class="notif-dropdown" aria-hidden="true">
+                        <div class="notif-dropdown-head">Friend Requests</div>
+                        <div id="friendBellList" class="notif-dropdown-list">
+                            <div class="notif-empty">No new notifications.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="userMenu" class="user-menu">
+                    <img id="userIcon" src="/assets/User/Default_User_Icon.png" alt="User" class="user-icon">
+
+                    <div id="userDropdown" class="user-dropdown" aria-hidden="true">
+                        <a class="dropdown-item" href="/profile/profile.html">Profile</a>
+                        <button class="dropdown-item" type="button" data-open-settings>Settings</button>
+                        <div class="dropdown-divider"></div>
+                        <button id="logoutBtn" class="dropdown-item danger" type="button">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
 
 <main class="game-detail">
   <section class="game-main">
@@ -48,11 +147,11 @@
 
         <div class="game-user-card" id="userControls">
           <!-- Add Button (shown when not in list) -->
-          <button class="btn-add" id="btnAdd">+ Add to List</button>
+          <button class="btn-secondary mgl-dd-btn" id="btnAdd" type="button"><span class="mgl-dd-label">+ Add to List</span></button>
 
           <!-- Status Dropdown (shown when in list) -->
           <div class="mgl-dd" id="statusDD" hidden>
-            <button class="btn-add mgl-dd-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
+            <button class="btn-secondary mgl-dd-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
               <span class="mgl-dd-label">Planned</span>
               <span class="mgl-dd-caret" aria-hidden="true"></span>
             </button>
@@ -131,7 +230,7 @@
   <section class="game-lower" id="gameLower">
     <div class="game-subnav" role="tablist" aria-label="Game sections">
       <button class="g-tab active" type="button" data-tab="about" role="tab" aria-selected="true">About</button>
-      <button class="g-tab" type="button" data-tab="community" role="tab" aria-selected="false">Community</button>
+      <button class="g-tab" type="button" data-tab="community" role="tab" aria-selected="false">Forums</button>
       <button class="g-tab" type="button" data-tab="characters" role="tab" aria-selected="false">Characters</button>
       <button class="g-tab" type="button" data-tab="related" role="tab" aria-selected="false">Related Games</button>
     </div>
@@ -154,18 +253,36 @@
   </div>
   <!-- review Start -->
     <div class="review-section">
-      <div class="review-filter">
         <div class="review-filter">
-          <div class="gamereview-dropdown" id="gamereviewDropdown">
-            <button class="gamereview-dropdown-btn">Recommendation</button>
-            <div class="gamereview-dropdown-menu">
-              <div class="gamereview-dropdown-item recommended" data-value="recommended">Recommended</div>
-              <div class="gamereview-dropdown-item mixed" data-value="mixed">Mixed Feelings</div>
-              <div class="gamereview-dropdown-item not" data-value="not">Not Recommended</div>
+          <div class="recommendation-filter">
+            <div class="gamereview-dropdown" id="gamereviewDropdown">
+              <button class="gamereview-dropdown-btn">Recommendation</button>
+              <div class="gamereview-dropdown-menu">
+                <div class="gamereview-dropdown-item recommended" data-value="recommended">Recommended</div>
+                <div class="gamereview-dropdown-item mixed" data-value="mixed">Mixed Feelings</div>
+                <div class="gamereview-dropdown-item not" data-value="not">Not Recommended</div>
+              </div>
+            </div>
+            <div class="rating-filter">
+              <div class="gamereview-dropdown" id="ratingFilterDropdown">
+                <button class="gamereview-dropdown-btn">Rating</button>
+                <div class="gamereview-dropdown-menu">
+                  <div class="gamereview-dropdown-item" data-value="10">10</div>
+                  <div class="gamereview-dropdown-item" data-value="9">9</div>
+                  <div class="gamereview-dropdown-item" data-value="8">8</div>
+                  <div class="gamereview-dropdown-item" data-value="7">7</div>
+                  <div class="gamereview-dropdown-item" data-value="6">6</div>
+                  <div class="gamereview-dropdown-item" data-value="5">5</div>
+                  <div class="gamereview-dropdown-item" data-value="4">4</div>
+                  <div class="gamereview-dropdown-item" data-value="3">3</div>
+                  <div class="gamereview-dropdown-item" data-value="2">2</div>
+                  <div class="gamereview-dropdown-item" data-value="1">1</div>
+                </div>
+              </div>     
             </div>
           </div>
         </div>
-      </div>
+
       <div class="reviews-container">
         <div class="review-box recommended">
           <div class="review-hover-menu">
@@ -205,7 +322,7 @@
           <div class="review-middle">
             Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet asclita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut laboreaa
           </div>
-          <div class="review-footer">
+          <div class="game-review-footer">
             <button class="review-readmore-btn">Read More</button>
             <div class="reaction-bar"></div>
           </div>
@@ -248,7 +365,7 @@
           <div class="review-middle">
             Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet asclita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et
           </div>
-          <div class="review-footer">
+          <div class="game-review-footer">
             <button class="review-readmore-btn">Read More</button>
             <div class="reaction-bar"></div>
           </div>
@@ -259,7 +376,48 @@
 </main>
 
 
-<div id="footer-placeholder"></div>
+
+<footer class="main-footer">
+    <div class="footer-content">
+        <div class="footer-brand">
+            <div class="logo">MY<span class="accent">GAMELIST</span></div>
+            <p>Your ultimate destination to track, discover, and share your gaming journey.</p>
+        </div>
+        
+        <div class="footer-links">
+            <div class="link-group">
+                <h4>Platform</h4>
+                <a href="/OtherPages/explore.html">Games</a>
+                <a href="#">Top Games</a>
+                <a href="/OtherPages/statistics.html">Statistics</a>
+            </div>
+            <div class="link-group">
+                <h4>Community</h4>
+                <a href="#">Discord</a>
+                <a href="#">Forum</a>
+                <a href="/OtherPages/guidelines.html">Guidelines</a>
+            </div>
+            <div class="link-group">
+                <h4>Legal</h4>
+
+                <a href="/OtherPages/terms_of_service.html">Terms of Service</a>
+                <a href="/OtherPages/legal_notice.html">Legal Notice</a>
+                <a href="/OtherPages/privacy_policy.html">Privacy Policy</a>
+                <a href="#">Cookie Policy</a>
+            </div>
+            <div class="link-group">
+                <h4>Help</h4>
+                <a href="/OtherPages/about.html">About</a>
+                <a href="/OtherPages/faq.html">FAQ</a>
+                <a href="/OtherPages/support.html">Support</a>
+                <a href="/OtherPages/staff.html">Staff</a>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2026 MyGameList. All rights reserved. Built with love for gamers.</p>
+    </div>
+</footer>
 
     <script type="module" src="./game.js"></script>
     <script src="../js/global/confirmBox.js"></script>
@@ -268,8 +426,7 @@
     <script type="module" src="../js/global/storeuser.js"></script>
     <script type="module" src="../js/global/nav-search.js"></script>
     <script type="module" src="../js/global/friendNotifications.js"></script>
-    <script src="/NavFooter/fetchNav.js"></script>
-    <script src="../js/global/navbar.js"></script>
+    <script type="module" src="../SettingsLoader/settingsLoader.js"></script>
 
     <div class="mgl-modal-backdrop" id="mglConfirmModal" hidden>
         <div class="mgl-modal" role="dialog" aria-modal="true" aria-labelledby="mglConfirmTitle">
@@ -291,6 +448,8 @@
             </div>
         </div>
     </div>
+
+    <script src="../js/global/navbar.js"></script>
 
 </body>
 </html>
