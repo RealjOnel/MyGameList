@@ -1,40 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Review Popup</title>
-    <link rel="stylesheet" href="review.css">
-    <link rel="stylesheet" href="../../css/navbar.css">
-</head>
-<body>
-
-<div id="reviewOverlay" class="review-overlay hidden">
+<div id="reviewOverlay" class="review-overlay hidden" aria-hidden="true">
     <div class="review-backdrop"></div>
-    <div class="review-modal">
+
+    <div class="review-modal" role="dialog" aria-modal="true" aria-labelledby="reviewModalTitle">
         <div class="review-header">
-            <h2>Write a Review for</h2>
-            <button id="closeReview" class="review-close">✕</button>
+            <h2 id="reviewModalTitle">Write a Review</h2>
+            <button id="closeReview" class="review-close" type="button" aria-label="Close review modal">✕</button>
         </div>
+
         <div class="review-description">
-            <div class="review-item">Genre</div>
-            <div class="review-item">Publisher</div>
-            <div class="review-item">Release Date</div>
+            <div class="review-item" id="reviewMetaGenre">Genre: —</div>
+            <div class="review-item" id="reviewMetaPublisher">Publisher: —</div>
+            <div class="review-item" id="reviewMetaRelease">Release Date: —</div>
         </div>
 
         <div class="review-content">
             <div class="content-top">
                 <div class="review-toolbar">
-                    <button id="btnBold" type="button" onclick="formatText('bold')">B</button>
-                    <button id="btnItalic" type="button" onclick="formatText('italic')">I</button>
-                    <button id="btnUnderline" type="button" onclick="formatText('underline')">U</button>
+                    <button id="btnBold" type="button" aria-label="Bold"><strong>B</strong></button>
+                    <button id="btnItalic" type="button" aria-label="Italic"><em>I</em></button>
+                    <button id="btnUnderline" type="button" aria-label="Underline"><u>U</u></button>
                 </div>
+
                 <div class="content-dropdown-wrapper">
-                    <button id="btnReset" class="reset-btn" title="Reset">
+                    <div class="review-char-counter" id="reviewCharCounter">0 / 3000</div>
+
+                    <button id="btnReset" class="reset-btn" type="button" title="Reset review">
                         <i class="fa fa-refresh" aria-hidden="true"></i>
                     </button>
 
                     <div class="review-dropdown" id="reviewDropdown">
-                        <button class="review-dropdown-btn"> Recommendation</button>
+                        <button class="review-dropdown-btn" id="reviewRecommendationBtn" type="button">
+                            Recommendation
+                        </button>
+
                         <div class="review-dropdown-menu">
                             <div class="review-dropdown-item recommended" data-value="recommended">Recommended</div>
                             <div class="review-dropdown-item mixed" data-value="mixed">Mixed Feelings</div>
@@ -43,18 +41,18 @@
                     </div>
                 </div>
             </div>
-            <div id="editor" contenteditable="true" class="editor"></div>
+
+            <div
+                id="editor"
+                contenteditable="true"
+                class="editor"
+                data-placeholder="Write your review here..."
+            ></div>
         </div>
 
         <div class="review-footer">
-            <button id="submitReview" class="review-submit">Submit</button>
+            <button id="deleteReview" class="review-delete" type="button" hidden>Delete Review</button>
+            <button id="submitReview" class="review-submit" type="button">Submit</button>
         </div>
     </div>
 </div>
-
-<script type="module" src="review.js"></script>
-    <script type="module" src="../../SettingsLoader/settingsLoader.js"></script>
-    <script src="../../js/global/navbar.js"></script>
-
-</body>
-</html>
