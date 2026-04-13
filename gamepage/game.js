@@ -78,6 +78,10 @@ async function loadGame(){
   qs("gameTitle").textContent = g.name || "Unknown";
   document.title = `${g.name} | MGL`;
 
+  window.dispatchEvent(new CustomEvent("mgl:game-loaded", {
+  detail: { game: g }
+  }));
+
   const coverId = g?.cover?.image_id;
   qs("gameCover").src = coverId
     ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${coverId}.jpg`

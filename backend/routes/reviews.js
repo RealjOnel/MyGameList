@@ -8,6 +8,8 @@ import { UserGameEntry } from "../models/userGameEntry.js";
 import { Review } from "../models/review.js";
 import { ReviewReaction } from "../models/reviewReaction.js";
 import { sanitizeReviewHtml } from "../utils/sanitizeReviewHtml.js";
+import jwt from "jsonwebtoken";
+import { env } from "../config/validateEnv.js";
 
 const router = express.Router();
 
@@ -182,6 +184,35 @@ async function getGameByIgdbId(igdbId) {
   return Game.findOne({ igdbId });
 }
 
+function getOptionalViewerId(req) {
+  const authHeader = String(req.headers?.authorization || "").trim();
+  if (!authHeader) return null;
+
+  const [scheme, token] = authHeader.split(" ");
+
+  if (scheme !== "Bearer" || !token) {
+    return null;
+  }
+
+  try {
+    const payload = jwt.verify(token, env.JWT_SECRET);
+
+    if (!payload?.userId) {
+      return null;
+    }
+
+    const viewerId = String(payload.userId);
+
+    if (!mongoose.Types.ObjectId.isValid(viewerId)) {
+      return null;
+    }
+
+    return viewerId;
+  } catch {
+    return null;
+  }
+}
+
 async function buildReactionState(reviewIds, viewerId = null) {
   const state = new Map();
 
@@ -332,6 +363,8 @@ router.get("/game/:igdbId", async (req, res) => {
     const page = parsePage(req.query.page);
     const limit = parseLimit(req.query.limit, 10, 50);
 
+    const viewerId = getOptionalViewerId(req);
+
     const game = await getGameByIgdbId(igdbIdResult.value);
     if (!game) {
       return res.json({
@@ -346,11 +379,12 @@ router.get("/game/:igdbId", async (req, res) => {
     }
 
     const reviewMatch = { gameId: game._id };
+
     if (recommendationResult.value) {
       reviewMatch.recommendation = recommendationResult.value;
     }
 
-    let allowedUserIds = null;
+    let userIdFilter = null;
 
     if (ratingResult.value !== undefined) {
       const matchingEntries = await UserGameEntry.find({
@@ -358,9 +392,13 @@ router.get("/game/:igdbId", async (req, res) => {
         rating: ratingResult.value
       }).select("userId");
 
-      allowedUserIds = matchingEntries.map((entry) => entry.userId);
+      let matchingUserIds = matchingEntries.map((entry) => String(entry.userId));
 
-      if (!allowedUserIds.length) {
+      if (viewerId) {
+        matchingUserIds = matchingUserIds.filter((id) => !sameId(id, viewerId));
+      }
+
+      if (!matchingUserIds.length) {
         return res.json({
           reviews: [],
           pagination: {
@@ -372,7 +410,13 @@ router.get("/game/:igdbId", async (req, res) => {
         });
       }
 
-      reviewMatch.userId = { $in: allowedUserIds };
+      userIdFilter = { $in: matchingUserIds };
+    } else if (viewerId) {
+      userIdFilter = { $ne: viewerId };
+    }
+
+    if (userIdFilter) {
+      reviewMatch.userId = userIdFilter;
     }
 
     const total = await Review.countDocuments(reviewMatch);
@@ -403,7 +447,7 @@ router.get("/game/:igdbId", async (req, res) => {
         gameId: game._id,
         userId: { $in: userIds }
       }).select("userId rating"),
-      buildReactionState(reviewIds)
+      buildReactionState(reviewIds, viewerId)
     ]);
 
     const authorById = new Map(authors.map((user) => [String(user._id), user]));
@@ -417,7 +461,7 @@ router.get("/game/:igdbId", async (req, res) => {
           game,
           rating: ratingByUserId.get(String(review.userId)) ?? null,
           reactionState: reactionStateMap.get(String(review._id)),
-          isOwner: false
+          isOwner: viewerId ? sameId(review.userId, viewerId) : false
         })
       ),
       pagination: {

@@ -137,7 +137,6 @@ export function initReviewModal() {
     const btnUnderline = document.getElementById("btnUnderline");
     const btnReset = document.getElementById("btnReset");
     const submitBtn = document.getElementById("submitReview");
-    const deleteBtn = document.getElementById("deleteReview");
     const counter = document.getElementById("reviewCharCounter");
 
     const dropdown = document.getElementById("reviewDropdown");
@@ -172,7 +171,6 @@ export function initReviewModal() {
         editor.innerHTML = "";
         applyRecommendation("", dropdownBtn, editor);
         updateCharCounter(editor, counter);
-        deleteBtn.hidden = true;
         submitBtn.textContent = "Submit";
         state.currentReview = null;
     }
@@ -188,7 +186,6 @@ export function initReviewModal() {
         editor.innerHTML = review.html || "";
         applyRecommendation(review.recommendation, dropdownBtn, editor);
         updateCharCounter(editor, counter);
-        deleteBtn.hidden = false;
         submitBtn.textContent = "Save Changes";
     }
 
@@ -283,7 +280,6 @@ export function initReviewModal() {
 
         state.busy = true;
         submitBtn.disabled = true;
-        deleteBtn.disabled = true;
         submitBtn.textContent = state.currentReview ? "Saving..." : "Submitting...";
 
         try {
@@ -327,69 +323,7 @@ export function initReviewModal() {
         } finally {
             state.busy = false;
             submitBtn.disabled = false;
-            deleteBtn.disabled = false;
             submitBtn.textContent = state.currentReview ? "Save Changes" : "Submit";
-        }
-    }
-
-    async function handleDelete() {
-        if (state.busy || !state.currentReview) return;
-
-        const gameId = getCurrentGameId();
-        if (!gameId) return;
-
-        const ok = await window.openMglConfirm({
-            title: "Delete Review",
-            text: "Do you really want to delete your review for this game?",
-            confirmText: "Delete",
-            cancelText: "Keep"
-        });
-
-        if (!ok) return;
-
-        state.busy = true;
-        submitBtn.disabled = true;
-        deleteBtn.disabled = true;
-        deleteBtn.textContent = "Deleting...";
-
-        try {
-            await apiAuth(`/api/reviews/game/${encodeURIComponent(gameId)}`, {
-                method: "DELETE"
-            });
-
-            resetForm();
-
-            showToast({
-                title: "Review deleted",
-                message: "Your review has been removed.",
-                type: "success"
-            });
-
-            window.dispatchEvent(
-                new CustomEvent("mgl:review-deleted", {
-                    detail: { gameId }
-                })
-            );
-
-            closeOverlay();
-        } catch (err) {
-            console.error(err);
-
-            if (err.message === "SESSION_EXPIRED") {
-                redirectToLogin();
-                return;
-            }
-
-            showToast({
-                title: "Delete failed",
-                message: err.message || "Could not delete your review.",
-                type: "error"
-            });
-        } finally {
-            state.busy = false;
-            submitBtn.disabled = false;
-            deleteBtn.disabled = false;
-            deleteBtn.textContent = "Delete Review";
         }
     }
 
@@ -456,7 +390,10 @@ export function initReviewModal() {
     });
 
     submitBtn.addEventListener("click", handleSubmit);
-    deleteBtn.addEventListener("click", handleDelete);
+
+     window.addEventListener("mgl:open-review-editor", () => {
+        handleOpen().catch(console.error);
+    });
 
     resetForm();
 }

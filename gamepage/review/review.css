@@ -421,5 +421,5 @@
 
 .review-footer {
     gap: 12px;
-    justify-content: space-between;
+    justify-content: flex-end;
 }

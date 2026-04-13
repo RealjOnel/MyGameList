@@ -474,3 +474,70 @@ a.review-user:hover {
     gap: 6px;
     align-items: center;
 }
+
+.game-review-section-title {
+    margin: 0 0 14px;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--primary);
+}
+
+.game-review-section-title--center {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#ownReviewContainer,
+#gameReviewsContainer {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto 24px;
+}
+
+.review-box.review-box--own {
+    position: relative;
+}
+
+.review-box-own-label {
+    display: inline-block;
+    margin-bottom: 12px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.14);
+    color: #3b82f6;
+    font-size: 0.85rem;
+    font-weight: 800;
+}
+
+.review-owner-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-left: auto;
+}
+
+.review-owner-btn {
+    border: 1px solid rgba(203, 213, 225, 0.8);
+    background: var(--bg-secondary);
+    color: var(--primary);
+    border-radius: 10px;
+    padding: 6px 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.review-owner-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+}
+
+.review-owner-btn.delete {
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.review-owner-btn.delete:hover {
+    background: rgba(239, 68, 68, 0.14);
+}

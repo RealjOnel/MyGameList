@@ -254,6 +254,8 @@
   <!-- review Start -->
   <div class="review-section">
     <div class="review-filter">
+        <h3 class="game-review-section-title">Filters</h3>
+
         <div class="recommendation-filter">
             <div class="gamereview-dropdown" id="gamereviewDropdown">
                 <button class="gamereview-dropdown-btn" type="button">Recommendation</button>
@@ -286,11 +288,18 @@
         </div>
     </div>
 
-    <div class="reviews-container" id="gameReviewsContainer">
-        <div class="game-reviews-empty">Loading reviews...</div>
+    <div class="reviews-container">
+        <h3 class="game-review-section-title game-review-section-title--center" id="gameReviewsHeading">
+            Reviews for this Game
+        </h3>
+
+        <div id="ownReviewContainer"></div>
+
+        <div id="gameReviewsContainer">
+            <div class="game-reviews-empty">Loading reviews...</div>
+        </div>
     </div>
-  </div>
-    </div>  
+  </div>  
   </div>
 </main>
 

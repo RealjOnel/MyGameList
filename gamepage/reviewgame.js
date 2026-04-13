@@ -5,12 +5,14 @@ const LOGIN_URL = "../LoginPageAndLogic/login.html";
 const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "😭", "💀", "🌹"];
 
 const state = {
+  ownReview: null,
   reviews: [],
   filters: {
     recommendation: "",
     rating: ""
   },
-  loading: false
+  loadingOwn: false,
+  loadingList: false
 };
 
 function redirectToLogin() {
@@ -110,16 +112,22 @@ function applyDropdownButtonState(btn, type, value) {
   }
 }
 
-function buildReviewCard(review) {
-  const recommendation = review?.recommendation || "";
-  const authorName = review?.author?.username || "Unknown User";
-  const plainLength = Number(review?.plainText?.length || 0);
-  const rating = review?.rating ?? "—";
-  const html = review?.html || "";
+function getGameTitle() {
+  const el = document.getElementById("gameTitle");
+  return el?.textContent?.trim() || "this game";
+}
+
+function updateReviewsHeading() {
+  const heading = document.getElementById("gameReviewsHeading");
+  if (!heading) return;
+  heading.textContent = `Reviews for ${getGameTitle()}`;
+}
+
+function buildReactionBadges(review) {
   const reactionCounts = review?.reactionCounts || {};
   const viewerReactions = Array.isArray(review?.viewerReactions) ? review.viewerReactions : [];
 
-  const reactionBadgesHtml = Object.entries(reactionCounts)
+  return Object.entries(reactionCounts)
     .filter(([, count]) => Number(count) > 0)
     .map(([emoji, count]) => `
       <div
@@ -133,8 +141,10 @@ function buildReviewCard(review) {
       </div>
     `)
     .join("");
+}
 
-  const reactionItemsHtml = REACTION_EMOJIS.map((emoji) => `
+function buildReactionItems() {
+  return REACTION_EMOJIS.map((emoji) => `
     <div
       class="reaction-item"
       data-action="add-reaction"
@@ -144,12 +154,22 @@ function buildReviewCard(review) {
       ${escapeHtml(emoji)}
     </div>
   `).join("");
+}
+
+function buildReviewCard(review, { own = false } = {}) {
+  const recommendation = review?.recommendation || "";
+  const authorName = review?.author?.username || "Unknown User";
+  const plainLength = Number(review?.plainText?.length || 0);
+  const rating = review?.rating ?? "—";
+  const html = review?.html || "";
 
   return `
-    <div class="review-box ${escapeHtml(recommendation)}" data-review-id="${escapeHtml(review.id)}">
+    <div class="review-box ${escapeHtml(recommendation)} ${own ? "review-box--own" : ""}" data-review-id="${escapeHtml(review.id)}">
+      ${own ? `<div class="review-box-own-label">Your Review</div>` : ""}
+
       <div class="review-hover-menu">
         <div class="reaction-items">
-          ${reactionItemsHtml}
+          ${buildReactionItems()}
         </div>
       </div>
 
@@ -164,15 +184,34 @@ function buildReviewCard(review) {
           </a>
         </div>
 
-        <div class="review-status ${escapeHtml(recommendation)}">
-          ${escapeHtml(recommendationLabel(recommendation))}
-        </div>
+        ${
+          own
+            ? `
+              <div class="review-owner-actions">
+                <button class="review-owner-btn" type="button" data-action="edit-own-review">Edit</button>
+                <button class="review-owner-btn delete" type="button" data-action="delete-own-review">Delete</button>
+              </div>
+            `
+            : `
+              <div class="review-status ${escapeHtml(recommendation)}">
+                ${escapeHtml(recommendationLabel(recommendation))}
+              </div>
+            `
+        }
       </div>
 
-      <div class="review-meta">
-        <span>${escapeHtml(formatReviewDate(review.createdAt))}</span>
-        <span>• ${escapeHtml(String(rating))}/10</span>
-      </div>
+      ${own ? `
+        <div class="review-meta">
+          <span>${escapeHtml(formatReviewDate(review.createdAt))}</span>
+          <span>• ${escapeHtml(String(rating))}/10</span>
+          <span>• ${escapeHtml(recommendationLabel(recommendation))}</span>
+        </div>
+      ` : `
+        <div class="review-meta">
+          <span>${escapeHtml(formatReviewDate(review.createdAt))}</span>
+          <span>• ${escapeHtml(String(rating))}/10</span>
+        </div>
+      `}
 
       <div class="review-middle" data-plain-length="${escapeHtml(String(plainLength))}">
         ${html}
@@ -181,7 +220,7 @@ function buildReviewCard(review) {
       <div class="game-review-footer">
         <button class="review-readmore-btn" type="button">Read More</button>
         <div class="reaction-bar">
-          ${reactionBadgesHtml}
+          ${buildReactionBadges(review)}
         </div>
       </div>
     </div>
@@ -230,7 +269,7 @@ async function handleReactionAdd(reviewId, emoji) {
       body: { emoji }
     });
 
-    await loadGameReviews();
+    await Promise.all([loadOwnReview(), loadGameReviews()]);
   } catch (err) {
     console.error(err);
 
@@ -263,7 +302,7 @@ async function handleReactionRemove(reviewId, emoji) {
       method: "DELETE"
     });
 
-    await loadGameReviews();
+    await Promise.all([loadOwnReview(), loadGameReviews()]);
   } catch (err) {
     console.error(err);
 
@@ -280,7 +319,52 @@ async function handleReactionRemove(reviewId, emoji) {
   }
 }
 
-function bindReviewInteractions(container) {
+async function deleteOwnReview() {
+  const gameId = getCurrentGameId();
+  if (!gameId) return;
+
+  const ok = await window.openMglConfirm({
+    title: "Delete Review",
+    text: "Do you really want to delete your review for this game?",
+    confirmText: "Delete",
+    cancelText: "Keep"
+  });
+
+  if (!ok) return;
+
+  try {
+    await api(`/api/reviews/game/${encodeURIComponent(gameId)}`, {
+      method: "DELETE"
+    });
+
+    showToast({
+      title: "Review deleted",
+      message: "Your review has been removed.",
+      type: "success"
+    });
+
+    window.dispatchEvent(new CustomEvent("mgl:review-deleted", {
+      detail: { gameId }
+    }));
+
+    await Promise.all([loadOwnReview(), loadGameReviews()]);
+  } catch (err) {
+    console.error(err);
+
+    if (err.message === "SESSION_EXPIRED") {
+      redirectToLogin();
+      return;
+    }
+
+    showToast({
+      title: "Delete failed",
+      message: err.message || "Could not delete your review.",
+      type: "error"
+    });
+  }
+}
+
+function bindReviewInteractions(container, { own = false } = {}) {
   setupReadMore(container);
 
   container.querySelectorAll(".review-box").forEach((box) => {
@@ -306,14 +390,49 @@ function bindReviewInteractions(container) {
         await handleReactionRemove(reviewId, emoji);
       });
     });
+
+    if (own) {
+      const editBtn = box.querySelector('[data-action="edit-own-review"]');
+      const deleteBtn = box.querySelector('[data-action="delete-own-review"]');
+
+      editBtn?.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        window.dispatchEvent(new CustomEvent("mgl:open-review-editor"));
+      });
+
+      deleteBtn?.addEventListener("click", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        await deleteOwnReview();
+      });
+    }
   });
+}
+
+function renderOwnReview() {
+  const container = document.getElementById("ownReviewContainer");
+  if (!container) return;
+
+  if (state.loadingOwn) {
+    container.innerHTML = "";
+    return;
+  }
+
+  if (!state.ownReview) {
+    container.innerHTML = "";
+    return;
+  }
+
+  container.innerHTML = buildReviewCard(state.ownReview, { own: true });
+  bindReviewInteractions(container, { own: true });
 }
 
 function renderGameReviews() {
   const container = document.getElementById("gameReviewsContainer");
   if (!container) return;
 
-  if (state.loading) {
+  if (state.loadingList) {
     container.innerHTML = `<div class="game-reviews-empty">Loading reviews...</div>`;
     return;
   }
@@ -323,15 +442,44 @@ function renderGameReviews() {
     return;
   }
 
-  container.innerHTML = state.reviews.map(buildReviewCard).join("");
+  container.innerHTML = state.reviews.map((review) => buildReviewCard(review)).join("");
   bindReviewInteractions(container);
+}
+
+async function loadOwnReview() {
+  const gameId = getCurrentGameId();
+  if (!gameId || !getAccessToken()) {
+    state.ownReview = null;
+    renderOwnReview();
+    return;
+  }
+
+  state.loadingOwn = true;
+  renderOwnReview();
+
+  try {
+    const data = await api(`/api/reviews/game/${encodeURIComponent(gameId)}/me`);
+    state.ownReview = data?.review || null;
+  } catch (err) {
+    console.error(err);
+
+    if (err.message === "SESSION_EXPIRED") {
+      redirectToLogin();
+      return;
+    }
+
+    state.ownReview = null;
+  } finally {
+    state.loadingOwn = false;
+    renderOwnReview();
+  }
 }
 
 async function loadGameReviews() {
   const gameId = getCurrentGameId();
   if (!gameId) return;
 
-  state.loading = true;
+  state.loadingList = true;
   renderGameReviews();
 
   const params = new URLSearchParams();
@@ -363,7 +511,7 @@ async function loadGameReviews() {
       type: "error"
     });
   } finally {
-    state.loading = false;
+    state.loadingList = false;
     renderGameReviews();
   }
 }
@@ -410,6 +558,8 @@ function closeAllReviewDropdowns() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  updateReviewsHeading();
+
   setupDropdown("gamereviewDropdown", "recommendation");
   setupDropdown("ratingFilterDropdown", "rating");
 
@@ -423,13 +573,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  await loadGameReviews();
+  await Promise.all([loadOwnReview(), loadGameReviews()]);
 });
 
-window.addEventListener("mgl:review-saved", () => {
-  loadGameReviews().catch(console.error);
+window.addEventListener("mgl:review-saved", async () => {
+  await Promise.all([loadOwnReview(), loadGameReviews()]);
 });
 
-window.addEventListener("mgl:review-deleted", () => {
-  loadGameReviews().catch(console.error);
+window.addEventListener("mgl:review-deleted", async () => {
+  await Promise.all([loadOwnReview(), loadGameReviews()]);
+});
+
+window.addEventListener("mgl:game-loaded", () => {
+  updateReviewsHeading();
 });
