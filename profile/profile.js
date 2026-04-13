@@ -339,6 +339,239 @@ function renderFriendsList(friends = []) {
   }
 }
 
+function recommendationLabel(value) {
+  return ({
+    recommended: "Recommended",
+    mixed: "Mixed Feelings",
+    not: "Not Recommended"
+  })[value] || "Unknown";
+}
+
+function recommendationClass(value) {
+  return ({
+    recommended: "recommended",
+    mixed: "mixed",
+    not: "not"
+  })[value] || "";
+}
+
+function truncateText(value = "", max = 220) {
+  const text = String(value || "").trim();
+  if (text.length <= max) return text;
+  return `${text.slice(0, max).trim()}...`;
+}
+
+function renderProfileReviewsCard(review) {
+  const game = review?.game || {};
+  const rating = review?.rating ?? "—";
+  const date = formatDate(review?.createdAt);
+  const preview = truncateText(review?.plainText || "", 220);
+
+  return `
+    <button class="review_item" type="button" data-review-id="${review.id}">
+      <div class="review_card">
+        <div class="review_iconclass">
+          <img
+            src="${coverUrl(game.coverImageId)}"
+            class="review_icon"
+            alt="${game.name || "Game cover"}"
+          >
+        </div>
+
+        <div class="review_contentclass">
+          <div class="review_top">
+            <h3>${game.name || "Unknown Game"}</h3>
+            <p>${preview || "No preview available."}</p>
+          </div>
+
+          <div class="review_bottom">
+            <div class="review_text">
+              <p class="review_rating">${recommendationLabel(review.recommendation)} • ${rating}/10</p>
+              <p>${date}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </button>
+  `;
+}
+
+function getProfileReviewModalEls() {
+  return {
+    modal: document.getElementById("profileReviewModal"),
+    closeBtn: document.getElementById("profileReviewModalClose"),
+    openGameBtn: document.getElementById("profileReviewModalOpenGame"),
+    title: document.getElementById("profileReviewModalTitle"),
+    cover: document.getElementById("profileReviewModalCover"),
+    game: document.getElementById("profileReviewModalGame"),
+    author: document.getElementById("profileReviewModalAuthor"),
+    info: document.getElementById("profileReviewModalInfo"),
+    recommendation: document.getElementById("profileReviewModalRecommendation"),
+    content: document.getElementById("profileReviewModalContent")
+  };
+}
+
+function openProfileReviewModal() {
+  const { modal } = getProfileReviewModalEls();
+  if (!modal) return;
+  modal.hidden = false;
+  document.body.style.overflow = "hidden";
+}
+
+function closeProfileReviewModal() {
+  const { modal } = getProfileReviewModalEls();
+  if (!modal) return;
+  modal.hidden = true;
+  document.body.style.overflow = "";
+}
+
+function fillProfileReviewModal(review) {
+  const els = getProfileReviewModalEls();
+  if (!els.modal) return;
+
+  const game = review?.game || {};
+  const authorName = review?.author?.username || "Unknown User";
+  const rating = review?.rating ?? "—";
+  const date = formatDate(review?.createdAt);
+
+  els.title.textContent = "Review";
+  els.cover.src = coverUrl(game.coverImageId);
+  els.cover.alt = game.name || "Game cover";
+  els.game.textContent = game.name || "Unknown Game";
+  els.author.textContent = `By ${authorName}`;
+  els.info.textContent = `${date} • ${rating}/10`;
+  els.recommendation.textContent = recommendationLabel(review?.recommendation);
+  els.recommendation.className = `profile-review-modal-recommendation ${recommendationClass(review?.recommendation)}`;
+  els.content.innerHTML = review?.html || "<p>No review content available.</p>";
+
+  els.openGameBtn.onclick = () => {
+    if (!game.igdbId) return;
+    window.location.href = `../gamepage/game.html?id=${encodeURIComponent(game.igdbId)}`;
+  };
+}
+
+function bindProfileReviewModal() {
+  const { modal, closeBtn } = getProfileReviewModalEls();
+  if (!modal || modal.dataset.bound === "true") return;
+
+  modal.dataset.bound = "true";
+
+  closeBtn?.addEventListener("click", closeProfileReviewModal);
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      closeProfileReviewModal();
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !modal.hidden) {
+      closeProfileReviewModal();
+    }
+  });
+}
+
+async function openReviewDetails(reviewId) {
+  if (!reviewId) return;
+
+  try {
+    const data = await api(`/api/reviews/${encodeURIComponent(reviewId)}`);
+    fillProfileReviewModal(data?.review);
+    openProfileReviewModal();
+  } catch (err) {
+    console.error(err);
+
+    if (err.message === "SESSION_EXPIRED") {
+      redirectToLogin();
+      return;
+    }
+
+    showToast({
+      title: "Review failed to load",
+      message: err.message || "Could not load the full review.",
+      type: "error"
+    });
+  }
+}
+
+async function loadProfileReviews(username) {
+  const list = document.getElementById("profileReviewsList");
+  const showMoreBtn = document.getElementById("profileReviewsShowMore");
+  if (!list || !showMoreBtn || !username) return;
+
+  bindProfileReviewModal();
+
+  let page = 1;
+  const limit = 2;
+  let loading = false;
+  let hasMore = false;
+
+  async function loadPage({ append = false } = {}) {
+    if (loading) return;
+    loading = true;
+
+    if (!append) {
+      list.innerHTML = `<div class="profile_review_empty">Loading reviews...</div>`;
+    }
+
+    try {
+      const data = await api(`/api/reviews/profile/${encodeURIComponent(username)}?page=${page}&limit=${limit}`);
+      const reviews = Array.isArray(data?.reviews) ? data.reviews : [];
+      hasMore = Boolean(data?.pagination?.hasMore);
+
+      if (!append) {
+        if (!reviews.length) {
+          list.innerHTML = `<div class="profile_review_empty">No reviews yet.</div>`;
+        } else {
+          list.innerHTML = reviews.map(renderProfileReviewsCard).join("");
+        }
+      } else {
+        list.insertAdjacentHTML("beforeend", reviews.map(renderProfileReviewsCard).join(""));
+      }
+
+      list.querySelectorAll(".review_item[data-review-id]").forEach((btn) => {
+        if (btn.dataset.bound === "true") return;
+        btn.dataset.bound = "true";
+
+        btn.addEventListener("click", () => {
+          openReviewDetails(btn.dataset.reviewId).catch(console.error);
+        });
+      });
+
+      showMoreBtn.hidden = !hasMore;
+    } catch (err) {
+      console.error(err);
+
+      if (err.message === "SESSION_EXPIRED") {
+        redirectToLogin();
+        return;
+      }
+
+      if (!append) {
+        list.innerHTML = `<div class="profile_review_empty">Failed to load reviews.</div>`;
+      }
+
+      showToast({
+        title: "Reviews failed to load",
+        message: err.message || "Could not load profile reviews.",
+        type: "error"
+      });
+
+      showMoreBtn.hidden = true;
+    } finally {
+      loading = false;
+    }
+  }
+
+  showMoreBtn.onclick = async () => {
+    if (!hasMore || loading) return;
+    page += 1;
+    await loadPage({ append: true });
+  };
+
+  await loadPage();
+}
+
 function applyFriendButtonState(button, status) {
   if (!button) return;
 
@@ -620,6 +853,7 @@ async function loadProfile() {
 
   window.currentProfileUsername = resolvedProfileUsername;
   window.currentViewerUsername = me.username;
+  await loadProfileReviews(resolvedProfileUsername);
 
   const favWrap = document.getElementById("profileFavorites");
   if (favWrap) {
@@ -708,25 +942,5 @@ window.addEventListener("mgl:settings-saved", () => {
     if (err.message === "SESSION_EXPIRED") {
       redirectToLogin();
     }
-  });
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  const likeBtn = document.querySelector(".review_likesbtn");
-  const likeIcon = document.querySelector(".review_likesicon");
-
-  if (!likeBtn || !likeIcon) return;
-
-  let liked = false;
-
-  likeBtn.addEventListener("click", () => {
-    liked = !liked;
-
-    likeIcon.src = liked
-      ? "../assets/User/thumbupliked.jpg"
-      : "../assets/User/thumbup.png";
-
-    likeBtn.classList.add("liked");
-    setTimeout(() => likeBtn.classList.remove("liked"), 150);
   });
 });
