@@ -252,125 +252,44 @@
     <div id="charactersGrid" class="char-grid"></div>
   </div>
   <!-- review Start -->
-    <div class="review-section">
-        <div class="review-filter">
-          <div class="recommendation-filter">
+  <div class="review-section">
+    <div class="review-filter">
+        <div class="recommendation-filter">
             <div class="gamereview-dropdown" id="gamereviewDropdown">
-              <button class="gamereview-dropdown-btn">Recommendation</button>
-              <div class="gamereview-dropdown-menu">
-                <div class="gamereview-dropdown-item recommended" data-value="recommended">Recommended</div>
-                <div class="gamereview-dropdown-item mixed" data-value="mixed">Mixed Feelings</div>
-                <div class="gamereview-dropdown-item not" data-value="not">Not Recommended</div>
-              </div>
-            </div>
-            <div class="rating-filter">
-              <div class="gamereview-dropdown" id="ratingFilterDropdown">
-                <button class="gamereview-dropdown-btn">Rating</button>
+                <button class="gamereview-dropdown-btn" type="button">Recommendation</button>
                 <div class="gamereview-dropdown-menu">
-                  <div class="gamereview-dropdown-item" data-value="10">10</div>
-                  <div class="gamereview-dropdown-item" data-value="9">9</div>
-                  <div class="gamereview-dropdown-item" data-value="8">8</div>
-                  <div class="gamereview-dropdown-item" data-value="7">7</div>
-                  <div class="gamereview-dropdown-item" data-value="6">6</div>
-                  <div class="gamereview-dropdown-item" data-value="5">5</div>
-                  <div class="gamereview-dropdown-item" data-value="4">4</div>
-                  <div class="gamereview-dropdown-item" data-value="3">3</div>
-                  <div class="gamereview-dropdown-item" data-value="2">2</div>
-                  <div class="gamereview-dropdown-item" data-value="1">1</div>
+                    <div class="gamereview-dropdown-item" data-value="">All Recommendations</div>
+                    <div class="gamereview-dropdown-item recommended" data-value="recommended">Recommended</div>
+                    <div class="gamereview-dropdown-item mixed" data-value="mixed">Mixed Feelings</div>
+                    <div class="gamereview-dropdown-item not" data-value="not">Not Recommended</div>
                 </div>
-              </div>     
             </div>
-          </div>
+
+            <div class="rating-filter">
+                <div class="gamereview-dropdown" id="ratingFilterDropdown">
+                    <button class="gamereview-dropdown-btn" type="button">Rating</button>
+                    <div class="gamereview-dropdown-menu">
+                        <div class="gamereview-dropdown-item" data-value="">All Ratings</div>
+                        <div class="gamereview-dropdown-item" data-value="10">10</div>
+                        <div class="gamereview-dropdown-item" data-value="9">9</div>
+                        <div class="gamereview-dropdown-item" data-value="8">8</div>
+                        <div class="gamereview-dropdown-item" data-value="7">7</div>
+                        <div class="gamereview-dropdown-item" data-value="6">6</div>
+                        <div class="gamereview-dropdown-item" data-value="5">5</div>
+                        <div class="gamereview-dropdown-item" data-value="4">4</div>
+                        <div class="gamereview-dropdown-item" data-value="3">3</div>
+                        <div class="gamereview-dropdown-item" data-value="2">2</div>
+                        <div class="gamereview-dropdown-item" data-value="1">1</div>
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
 
-      <div class="reviews-container">
-        <div class="review-box recommended">
-          <div class="review-hover-menu">
-            <div class="reaction-items">
-              <div class="reaction-item" data-emoji="👍">👍</div>
-              <div class="reaction-item" data-emoji="❤️">❤️</div>
-              <div class="reaction-item" data-emoji="😂">😂</div>
-              <div class="reaction-item" data-emoji="😮">😮</div>
-              <div class="reaction-item" data-emoji="😭">😭</div>
-              <div class="reaction-item" data-emoji="💀">💀</div>
-              <div class="reaction-item" data-emoji="🌹">🌹</div>
-            </div>
-
-            <div class="reaction-flag">
-              |
-              <i class="fa-solid fa-flag"></i>
-            </div>
-          </div>
-
-          <!-- Kopfbereich -->
-          <div class="review-head">
-            <div class="review-left">
-              <div class="profile-picture">
-                <img src="../assets/User/Default_User_Icon.png" alt="user-icon">
-              </div>
-              <div class="review-user">Tester</div>
-            </div>
-
-            <div class="review-status recommended">Recommended</div>
-          </div>
-
-          <div class="review-meta">
-            <span>12 March 2026</span>
-            <span>• 9/10</span>
-          </div>
-
-          <div class="review-middle">
-            Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet asclita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut laboreaa
-          </div>
-          <div class="game-review-footer">
-            <button class="review-readmore-btn">Read More</button>
-            <div class="reaction-bar"></div>
-          </div>
-        </div>
-              <div class="review-box not"> <!-- Status badge 2 -->
-          <div class="review-hover-menu">
-            <div class="reaction-items">
-              <div class="reaction-item" data-emoji="👍">👍</div>
-              <div class="reaction-item" data-emoji="❤️">❤️</div>
-              <div class="reaction-item" data-emoji="😂">😂</div>
-              <div class="reaction-item" data-emoji="😮">😮</div>
-              <div class="reaction-item" data-emoji="😭">😭</div>
-              <div class="reaction-item" data-emoji="💀">💀</div>
-              <div class="reaction-item" data-emoji="🌹">🌹</div>
-            </div>
-
-            <div class="reaction-flag">
-              |
-              <i class="fa-solid fa-flag"></i>
-            </div>
-          </div>
-
-          <!-- Kopfbereich -->
-          <div class="review-head">
-            <div class="review-left">
-              <div class="profile-picture">
-                <img src="../assets/User/Default_User_Icon.png" alt="user-icon">
-              </div>
-              <div class="review-user">MaxMustermann</div>
-            </div>
-
-            <div class="review-status not">Not Recommended</div>  <!-- Status Badge 1 -->
-          </div>
-
-          <div class="review-meta">
-            <span>12 March 2026</span>
-            <span>• 9/10</span>
-          </div>
-
-          <div class="review-middle">
-            Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet asclita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et
-          </div>
-          <div class="game-review-footer">
-            <button class="review-readmore-btn">Read More</button>
-            <div class="reaction-bar"></div>
-          </div>
-        </div>
-      </div>
+    <div class="reviews-container" id="gameReviewsContainer">
+        <div class="game-reviews-empty">Loading reviews...</div>
+    </div>
+  </div>
     </div>  
   </div>
 </main>

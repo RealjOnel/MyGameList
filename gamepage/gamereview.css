@@ -441,3 +441,36 @@
   margin-top: 12px;
   padding: 0 !important;
 }
+
+.game-reviews-empty {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto 20px;
+    padding: 18px 20px;
+    border-radius: 16px;
+    background: var(--bg-secondary);
+    border: 1px dashed rgba(203, 213, 225, 0.9);
+    color: var(--text-muted);
+    font-weight: 600;
+    text-align: center;
+}
+
+a.review-user {
+    text-decoration: none;
+    color: var(--primary);
+}
+
+a.review-user:hover {
+    text-decoration: underline;
+}
+
+.reaction-badge.active {
+    outline: 2px solid #3b82f6;
+    box-shadow: 0 8px 18px rgba(59,130,246,0.25);
+}
+
+.review-hover-menu .reaction-items {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}

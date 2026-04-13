@@ -370,10 +370,6 @@ async function loadGame(){
     });
   }
 
-  btnReview.addEventListener("click", () => {
-    console.log("Review feature later.");
-  });
-
   await refreshControls();
   if (userControls) userControls.classList.add("is-ready");
 
