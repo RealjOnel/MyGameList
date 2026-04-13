@@ -221,59 +221,12 @@
 
             <div class="profile_review" id="profileReviewsSection">
                 <h3 class="section-title section-title--gradient section-title--glow section-title--short">Reviews</h3>
-                <div class="form_content_class">
-                <button class="review_item">
-                    <div class="review_card">
-                        <div class="review_iconclass">
-                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co66n7.jpg" class="review_icon" alt="Grand Theft Auto V: Story Mode">
-                        </div>
-                        <div class="review_contentclass">
-                            <div class="review_top">
-                                <h3>GTA</h3>
-                                <p> Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. </p>
-                            </div>
-                            <div class="review_bottom">
-                                <div class="review_text">
-                                    <p class="review_rating">Rating</p>
-                                    <p> 08/03/2026 </p>
-                                </div>
-                               <div class="review_likes">
-                                    <span class="likes_count">20</span>
-                                    <div class="review_likesbtn">
-                                        <img class="review_likesicon" src="../assets/User/thumbup.png" alt="ThumbUp">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </button>
-                <button class="review_item">
-                    <div class="review_card">
-                        <div class="review_iconclass">
-                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co66n7.jpg" class="review_icon" alt="Grand Theft Auto V: Story Mode">
-                        </div>
-                        <div class="review_contentclass">
-                            <div class="review_top">
-                                <h3>GTA</h3>
-                                <p> Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. </p>
-                            </div>
-                            <div class="review_bottom">
-                                <div class="review_text">
-                                    <p class="review_rating">Rating</p>
-                                    <p> 08/03/2026 </p>
-                                </div>
-                               <div class="review_likes">
-                                    <span class="likes_count">20</span>
-                                    <div class="review_likesbtn">
-                                        <img class="review_likesicon" src="../assets/User/thumbup.png" alt="ThumbUp">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </button>
+
+                <div class="form_content_class" id="profileReviewsList">
+                    <div class="muted">Loading reviews...</div>
                 </div>
-                <button class="show_more_button">
+
+                <button class="show_more_button" id="profileReviewsShowMore" hidden>
                     Show more
                 </button>
             </div>
@@ -400,6 +353,40 @@
             <button type="button" class="mgl-modal-btn mgl-modal-btn-confirm" id="mglConfirmOk">
                 Confirm
             </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="mgl-modal-backdrop" id="profileReviewModal" hidden>
+        <div class="mgl-modal profile-review-modal" role="dialog" aria-modal="true" aria-labelledby="profileReviewModalTitle">
+            <div class="mgl-modal-head">
+                <h3 id="profileReviewModalTitle">Review</h3>
+            </div>
+
+            <div class="mgl-modal-body profile-review-modal-body">
+                <div class="profile-review-modal-top">
+                    <div class="profile-review-modal-coverwrap">
+                        <img id="profileReviewModalCover" src="../assets/placeholder-cover.png" alt="Game cover" class="profile-review-modal-cover">
+                    </div>
+
+                    <div class="profile-review-modal-meta">
+                        <h4 id="profileReviewModalGame">Game</h4>
+                        <p id="profileReviewModalAuthor">By —</p>
+                        <p id="profileReviewModalInfo">—</p>
+                        <p id="profileReviewModalRecommendation" class="profile-review-modal-recommendation">—</p>
+                    </div>
+                </div>
+
+                <div id="profileReviewModalContent" class="profile-review-modal-content"></div>
+            </div>
+
+            <div class="mgl-modal-actions">
+                <button type="button" class="mgl-modal-btn mgl-modal-btn-cancel" id="profileReviewModalClose">
+                    Close
+                </button>
+                <button type="button" class="mgl-modal-btn mgl-modal-btn-confirm" id="profileReviewModalOpenGame">
+                    Open Game
+                </button>
             </div>
         </div>
     </div>
