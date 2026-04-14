@@ -5,15 +5,18 @@
 .review-section {
     grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: 240px minmax(0, 960px);
-    gap: 28px;
-    justify-content: center;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 960px) minmax(0, 1fr);
+    column-gap: 72px;
     align-items: start;
-    margin-top: 26px;
+    margin-top: 34px;
 }
 
 .reviews-container {
-    min-width: 0;
+    grid-column: 2;
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -22,8 +25,8 @@
 #ownReviewContainer,
 #gameReviewsContainer {
     width: 100%;
-    max-width: none;
-    margin: 0;
+    max-width: 960px;
+    margin: 0 auto 24px;
 }
 
 /* =========================================================
@@ -32,11 +35,17 @@
 
 .review-filter {
     position: sticky;
-    top: 94px;
+    grid-column: 1;
+    justify-self: end;
+    width: 220px;
+    position: sticky;
+    top: 96px;
+
     display: flex;
     flex-direction: column;
     gap: 14px;
     padding: 18px;
+
     border-radius: 18px;
     border: 1px solid rgba(59,130,246,0.16);
     background:
@@ -206,16 +215,19 @@
 
 .game-reviews-empty {
     width: 100%;
-    margin: 0 auto 18px;
+    max-width: 960px;
+    margin: 0 0 20px;
     padding: 18px 20px;
     border-radius: 18px;
-    border: 1px dashed rgba(15,23,42,0.12);
-    background: rgba(255,255,255,0.80);
-    backdrop-filter: blur(12px);
-    color: var(--text-muted);
+    border: 1px dashed rgba(59,130,246,0.18);
+    background:
+        linear-gradient(180deg, rgba(10,18,38,0.96), rgba(9,16,34,0.96));
+    color: #94a3b8;
     font-weight: 700;
     text-align: center;
-    box-shadow: 0 14px 30px rgba(0,0,0,0.05);
+    box-shadow:
+        0 14px 30px rgba(0,0,0,0.18),
+        inset 0 1px 0 rgba(255,255,255,0.03);
 }
 
 /* =========================================================
@@ -594,23 +606,29 @@ a.review-user:hover {
    RESPONSIVE
    ========================================================= */
 
-@media (max-width: 1180px) {
+@media (max-width: 1280px) {
     .review-section {
         grid-template-columns: 1fr;
+        row-gap: 20px;
     }
 
     .review-filter {
+        grid-column: 1;
+        justify-self: stretch;
+        width: 100%;
+        max-width: 960px;
+        margin: 0 auto;
         position: static;
     }
 
-    .recommendation-filter {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
+    .reviews-container {
+        grid-column: 1;
+        max-width: 960px;
     }
 
-    .rating-filter {
-        display: block;
+    #ownReviewContainer,
+    #gameReviewsContainer {
+        max-width: 960px;
     }
 }
 
