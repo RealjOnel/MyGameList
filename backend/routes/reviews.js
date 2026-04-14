@@ -10,6 +10,7 @@ import { ReviewReaction } from "../models/reviewReaction.js";
 import { sanitizeReviewHtml } from "../utils/sanitizeReviewHtml.js";
 import jwt from "jsonwebtoken";
 import { env } from "../config/validateEnv.js";
+import { reviewWriteLimiter, reviewReactionLimiter } from "../middleware/rateLimiter.js";
 
 const router = express.Router();
 
@@ -611,7 +612,7 @@ router.get("/:reviewId", async (req, res) => {
 });
 
 // CREATE or UPDATE own review for game
-router.put("/game/:igdbId", requireAuth, async (req, res) => {
+router.put("/game/:igdbId", requireAuth, reviewWriteLimiter, async (req, res) => {
   try {
     const igdbIdResult = parseIgdbId(req.params.igdbId);
     if (!igdbIdResult.ok) {
@@ -694,7 +695,7 @@ router.put("/game/:igdbId", requireAuth, async (req, res) => {
 });
 
 // DELETE own review for game
-router.delete("/game/:igdbId", requireAuth, async (req, res) => {
+router.delete("/game/:igdbId", requireAuth, reviewWriteLimiter, async (req, res) => {
   try {
     const igdbIdResult = parseIgdbId(req.params.igdbId);
     if (!igdbIdResult.ok) {
@@ -728,7 +729,7 @@ router.delete("/game/:igdbId", requireAuth, async (req, res) => {
 });
 
 // ADD reaction
-router.post("/:reviewId/reactions", requireAuth, async (req, res) => {
+router.post("/:reviewId/reactions", requireAuth, reviewReactionLimiter, async (req, res) => {
   try {
     const reviewIdResult = parseObjectId(req.params.reviewId, "Review id");
     if (!reviewIdResult.ok) {
@@ -779,7 +780,7 @@ router.post("/:reviewId/reactions", requireAuth, async (req, res) => {
 });
 
 // REMOVE reaction
-router.delete("/:reviewId/reactions/:emoji", requireAuth, async (req, res) => {
+router.delete("/:reviewId/reactions/:emoji", requireAuth, reviewReactionLimiter, async (req, res) => {
   try {
     const reviewIdResult = parseObjectId(req.params.reviewId, "Review id");
     if (!reviewIdResult.ok) {
