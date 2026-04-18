@@ -14,6 +14,7 @@ import userRoutes from "./routes/users.js";
 import profileCommentRoutes from "./routes/profileComments.js";
 import friendsRoutes from "./routes/friends.js";
 import reviewRoutes from "./routes/reviews.js";
+import supportRoutes from "./routes/support.js";
 import { loginLimiter, registerLimiter, authLimiter, apiLimiter } from "./middleware/rateLimiter.js";
 
 const app = express();
@@ -84,6 +85,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/profile-comments", profileCommentRoutes);
 app.use("/api/friends", friendsRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/support", supportRoutes);
 
 app.use((err, req, res, next) => {
   console.error("Global error handler caught:", {

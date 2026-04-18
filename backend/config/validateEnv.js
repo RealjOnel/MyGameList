@@ -3,9 +3,11 @@ import { z } from "zod";
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 
-  PORT: z
-    .string()
-    .optional(),
+  PORT: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(3000),
 
   MONGO_URI: z
     .string()
@@ -30,6 +32,35 @@ const envSchema = z.object({
   TWITCH_CLIENT_SECRET: z
     .string()
     .min(1, "TWITCH_CLIENT_SECRET is required"),
+
+  SMTP_HOST: z
+    .string()
+    .min(1, "SMTP_HOST is required"),
+
+  SMTP_PORT: z.coerce
+    .number()
+    .int()
+    .positive("SMTP_PORT must be a positive number"),
+
+  SMTP_SECURE: z
+    .enum(["true", "false"])
+    .transform((value) => value === "true"),
+
+  SMTP_USER: z
+    .string()
+    .min(1, "SMTP_USER is required"),
+
+  SMTP_PASS: z
+    .string()
+    .min(1, "SMTP_PASS is required"),
+
+  SUPPORT_EMAIL_FROM: z
+    .string()
+    .email("SUPPORT_EMAIL_FROM must be a valid email address"),
+
+  SUPPORT_EMAIL_TO: z
+    .string()
+    .email("SUPPORT_EMAIL_TO must be a valid email address"),
 });
 
 const parsed = envSchema.safeParse(process.env);
