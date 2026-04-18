@@ -1,5 +1,6 @@
 import express from "express";
 import multer from "multer";
+import mongoose from "mongoose";
 import { z } from "zod";
 import { Counter } from "../models/counter.js";
 import { SupportTicket } from "../models/supportTicket.js";
@@ -74,7 +75,14 @@ router.post("/bug-report", async (req, res) => {
     let safeUsername = username || "";
 
     if (userId) {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({
+          message: "Invalid userId"
+        });
+      }
+
       const user = await User.findById(userId).select("_id username displayUsername");
+
       if (user) {
         safeUserId = user._id;
         safeUsername = user.displayUsername || user.username || safeUsername;

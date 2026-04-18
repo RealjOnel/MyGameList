@@ -83,7 +83,7 @@ export async function sendBugReportMail({ ticket, files = [] }) {
   ].join("\n");
 
   await transporter.sendMail({
-    from: env.SUPPORT_EMAIL_FROM,
+    from: `"MyGameList Support" <${env.SUPPORT_EMAIL_FROM}>`,
     to: env.SUPPORT_EMAIL_TO,
     replyTo: ticket.reporter.email,
     subject,
