@@ -1,81 +1,71 @@
 import { API_BASE_URL } from "../backend/config.js";
-import { fetchWithAuth, clearAccessToken, getAccessToken } from "./global/authClient.js";
-
-const LOGIN_URL = "../LoginPageAndLogic/login.html";
+import { fetchWithAuth, getAccessToken, clearAccessToken } from "./global/authClient.js";
+import { showToast } from "./global/toast.js";
 
 const MAX_FILES = 3;
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/png", "image/jpeg"]);
 
 let selectedFiles = [];
+let currentUser = null;
+let isSubmitting = false;
 
 function qs(id) {
   return document.getElementById(id);
 }
 
-function redirectToLogin() {
-  window.location.href = LOGIN_URL;
+function notifyError(message) {
+  showToast({
+    title: "Ticket Error",
+    message,
+    type: "error"
+  });
+}
+
+function notifySuccess(message) {
+  showToast({
+    title: "Ticket submitted",
+    message,
+    type: "success"
+  });
 }
 
 function formatBytes(bytes) {
-  if (!Number.isFinite(bytes)) return "0 B";
-
-  const units = ["B", "KB", "MB"];
-  let value = bytes;
-  let index = 0;
-
-  while (value >= 1024 && index < units.length - 1) {
-    value /= 1024;
-    index += 1;
-  }
-
-  return `${value.toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
+  if (!Number.isFinite(bytes)) return "0 MB";
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
-function showStatus(message, type = "error") {
-  const box = qs("bugReportStatus");
-  if (!box) return;
+function setModalOpen(open) {
+  const modal = qs("bugReportModal");
+  if (!modal) return;
 
-  box.hidden = false;
-  box.textContent = message;
-  box.classList.remove("error", "success");
-  box.classList.add(type);
+  modal.classList.toggle("hidden", !open);
+  modal.setAttribute("aria-hidden", open ? "false" : "true");
+
+  document.body.classList.toggle("support-modal-open", open);
+
+  if (open) {
+    setTimeout(() => qs("bugSubject")?.focus(), 50);
+  }
 }
 
 function clearStatus() {
-  const box = qs("bugReportStatus");
-  if (!box) return;
+  const status = qs("bugReportStatus");
+  if (!status) return;
 
-  box.hidden = true;
-  box.textContent = "";
-  box.classList.remove("error", "success");
+  status.hidden = true;
+  status.textContent = "";
+  status.classList.remove("success", "error");
 }
 
-function openBugModal() {
-  if (!getAccessToken()) {
-    redirectToLogin();
-    return;
-  }
+function showStatus(message, type = "error") {
+  const status = qs("bugReportStatus");
+  if (!status) return;
 
-  const modal = qs("bugReportModal");
-  if (!modal) return;
-
-  modal.classList.remove("hidden");
-  modal.setAttribute("aria-hidden", "false");
-
-  clearStatus();
-
-  setTimeout(() => {
-    qs("bugSubject")?.focus();
-  }, 50);
-}
-
-function closeBugModal() {
-  const modal = qs("bugReportModal");
-  if (!modal) return;
-
-  modal.classList.add("hidden");
-  modal.setAttribute("aria-hidden", "true");
+  status.hidden = false;
+  status.textContent = message;
+  status.classList.remove("success", "error");
+  status.classList.add(type);
 }
 
 function updateCounter() {
@@ -83,11 +73,61 @@ function updateCounter() {
   const counter = qs("bugMessageCounter");
   if (!textarea || !counter) return;
 
-  const length = textarea.value.length;
-  counter.textContent = `${length} / 4000`;
+  counter.textContent = `${textarea.value.length} / 4000`;
 
-  counter.classList.toggle("limit-near", length >= 3600 && length < 4000);
-  counter.classList.toggle("limit-hit", length >= 4000);
+  counter.classList.toggle("limit-near", textarea.value.length >= 3600 && textarea.value.length < 4000);
+  counter.classList.toggle("limit-hit", textarea.value.length >= 4000);
+}
+
+function resetForm() {
+  const form = qs("bugReportForm");
+  const fileInput = qs("bugScreenshots");
+
+  if (form) form.reset();
+  if (fileInput) fileInput.value = "";
+
+  selectedFiles = [];
+  updateFileList();
+  updateCounter();
+  clearStatus();
+}
+
+function closeModal() {
+  if (isSubmitting) return;
+  setModalOpen(false);
+  resetForm();
+}
+
+function validateForm(subject, message) {
+  if (subject.length < 5) {
+    return {
+      message: "Subject must be at least 5 characters.",
+      fieldId: "bugSubject"
+    };
+  }
+
+  if (subject.length > 120) {
+    return {
+      message: "Subject must be 120 characters or less.",
+      fieldId: "bugSubject"
+    };
+  }
+
+  if (message.length < 20) {
+    return {
+      message: "Description must be at least 20 characters.",
+      fieldId: "bugMessage"
+    };
+  }
+
+  if (message.length > 4000) {
+    return {
+      message: "Description must be 4000 characters or less.",
+      fieldId: "bugMessage"
+    };
+  }
+
+  return null;
 }
 
 function updateFileList() {
@@ -96,38 +136,70 @@ function updateFileList() {
 
   list.innerHTML = "";
 
-  for (const file of selectedFiles) {
+  if (!selectedFiles.length) return;
+
+  selectedFiles.forEach((file, index) => {
     const item = document.createElement("div");
     item.className = "support-file-item";
 
+    const info = document.createElement("div");
+    info.className = "support-file-info";
+
+    const icon = document.createElement("i");
+    icon.className = "fa-regular fa-image";
+
     const name = document.createElement("span");
+    name.className = "support-file-name";
     name.textContent = file.name;
 
     const size = document.createElement("small");
+    size.className = "support-file-size";
     size.textContent = formatBytes(file.size);
 
-    item.appendChild(name);
-    item.appendChild(size);
+    info.appendChild(icon);
+    info.appendChild(name);
+    info.appendChild(size);
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "support-file-remove";
+    removeBtn.setAttribute("aria-label", `Remove ${file.name}`);
+    removeBtn.innerHTML = `<i class="fa-solid fa-xmark"></i>`;
+
+    removeBtn.addEventListener("click", () => {
+      selectedFiles.splice(index, 1);
+
+      const input = qs("bugScreenshots");
+      if (input && selectedFiles.length === 0) {
+        input.value = "";
+      }
+
+      updateFileList();
+      clearStatus();
+    });
+
+    item.appendChild(info);
+    item.appendChild(removeBtn);
     list.appendChild(item);
-  }
+  });
 }
 
 function handleFiles(files) {
   const incoming = Array.from(files || []);
 
   if (incoming.length > MAX_FILES) {
-    showStatus(`You can upload at most ${MAX_FILES} screenshots.`);
+    notifyError(`You can upload at most ${MAX_FILES} screenshots.`);
     return;
   }
 
   for (const file of incoming) {
     if (!ALLOWED_TYPES.has(file.type)) {
-      showStatus("Only PNG and JPEG screenshots are allowed.");
+      notifyError("Only PNG and JPEG screenshots are allowed.");
       return;
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      showStatus(`"${file.name}" is too large. Each screenshot may be at most 5 MB.`);
+      notifyError(`"${file.name}" is too large. Each screenshot may be at most 5 MB.`);
       return;
     }
   }
@@ -137,61 +209,112 @@ function handleFiles(files) {
   updateFileList();
 }
 
-function validateForm(subject, message) {
-  if (subject.length < 5) return "Subject must be at least 5 characters.";
-  if (subject.length > 120) return "Subject must be 120 characters or less.";
-  if (message.length < 20) return "Description must be at least 20 characters.";
-  if (message.length > 4000) return "Description must be 4000 characters or less.";
-  return "";
-}
+function setSubmitting(submitting) {
+  isSubmitting = submitting;
 
-function resetForm() {
-  const form = qs("bugReportForm");
-  const input = qs("bugScreenshots");
-
-  form?.reset();
-
-  selectedFiles = [];
-
-  if (input) input.value = "";
-
-  updateCounter();
-  updateFileList();
-  clearStatus();
-}
-
-async function submitBugReport(e) {
-  e.preventDefault();
-
-  const subject = String(qs("bugSubject")?.value || "").trim();
-  const message = String(qs("bugMessage")?.value || "").trim();
   const submitBtn = qs("submitBugReportBtn");
+  const cancelBtn = qs("cancelBugReportBtn");
+  const closeBtn = qs("closeBugReportBtn");
 
-  const validationError = validateForm(subject, message);
-  if (validationError) {
-    showStatus(validationError);
+  if (submitBtn) {
+    submitBtn.disabled = submitting;
+    submitBtn.textContent = submitting ? "Submitting..." : "Submit Ticket";
+  }
+
+  if (cancelBtn) cancelBtn.disabled = submitting;
+  if (closeBtn) closeBtn.disabled = submitting;
+}
+
+async function loadCurrentUser() {
+  if (!getAccessToken()) {
+    currentUser = null;
+    return null;
+  }
+
+  try {
+    const res = await fetchWithAuth("/api/users/me", {
+      method: "GET"
+    });
+
+    const text = await res.text();
+    const data = text ? JSON.parse(text) : {};
+
+    if (res.status === 401) {
+      clearAccessToken();
+      currentUser = null;
+      return null;
+    }
+
+    if (!res.ok) {
+      currentUser = null;
+      return null;
+    }
+
+    currentUser = data;
+    return data;
+  } catch (err) {
+    console.error("Could not load current user:", err);
+    currentUser = null;
+    return null;
+  }
+}
+
+async function submitBugReport(event) {
+  event.preventDefault();
+
+  if (isSubmitting) return;
+
+  if (!getAccessToken()) {
+    notifyError("Please log in before submitting a bug report.");
     return;
   }
 
-  const formData = new FormData();
-  formData.append("subject", subject);
-  formData.append("message", message);
-  formData.append("pageUrl", window.location.href);
-  formData.append("browserInfo", navigator.userAgent || "");
+  const subject = qs("bugSubject")?.value.trim() || "";
+  const message = qs("bugMessage")?.value.trim() || "";
 
-  for (const file of selectedFiles) {
-    formData.append("screenshots", file);
-  }
+  const validationError = validateForm(subject, message);
 
-  if (submitBtn) {
-    submitBtn.disabled = true;
-    submitBtn.textContent = "Submitting...";
+  if (validationError) {
+    notifyError(validationError.message);
+
+    const field = qs(validationError.fieldId);
+    if (field) field.focus();
+
+    return;
   }
 
   clearStatus();
+  setSubmitting(true);
 
   try {
-    const res = await fetchWithAuth(`${API_BASE_URL}/api/support/bug-report`, {
+    if (!currentUser) {
+      await loadCurrentUser();
+    }
+
+    const formData = new FormData();
+
+    formData.append("subject", subject);
+    formData.append("message", message);
+    formData.append("pageUrl", window.location.href);
+    formData.append("browserInfo", navigator.userAgent || "");
+
+    if (currentUser?.username) {
+      formData.append("username", currentUser.username);
+    }
+
+    if (currentUser?.id) {
+      formData.append("userId", currentUser.id);
+    }
+
+    if (currentUser?.email) {
+      formData.append("email", currentUser.email);
+    }
+
+    selectedFiles.forEach((file) => {
+      formData.append("screenshots", file);
+    });
+
+    const res = await fetchWithAuth("/api/support/bug-report", {
       method: "POST",
       body: formData
     });
@@ -201,7 +324,7 @@ async function submitBugReport(e) {
 
     if (res.status === 401) {
       clearAccessToken();
-      redirectToLogin();
+      notifyError("Your session expired. Please log in again.");
       return;
     }
 
@@ -209,48 +332,85 @@ async function submitBugReport(e) {
       throw new Error(data?.message || `Request failed (${res.status})`);
     }
 
+    notifySuccess(`Ticket #${data.ticketNumber} was submitted successfully.`);
     showStatus(`Ticket #${data.ticketNumber} was submitted successfully.`, "success");
 
-    setTimeout(() => {
-      resetForm();
-      closeBugModal();
-    }, 1400);
+    resetForm();
+    setModalOpen(false);
   } catch (err) {
     console.error("Bug report submit failed:", err);
-    showStatus(err.message || "Failed to submit bug report.");
+    notifyError(err.message || "Failed to submit bug report.");
+    showStatus(err.message || "Failed to submit bug report.", "error");
   } finally {
-    if (submitBtn) {
-      submitBtn.disabled = false;
-      submitBtn.textContent = "Submit Ticket";
-    }
+    setSubmitting(false);
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  qs("openBugReportBtn")?.addEventListener("click", openBugModal);
-  qs("closeBugReportBtn")?.addEventListener("click", closeBugModal);
-  qs("cancelBugReportBtn")?.addEventListener("click", closeBugModal);
+function setupDragAndDrop() {
+  const drop = document.querySelector(".support-file-drop");
+  const input = qs("bugScreenshots");
 
-  document.querySelectorAll("[data-close-bug-modal]").forEach((el) => {
-    el.addEventListener("click", closeBugModal);
+  if (!drop || !input) return;
+
+  ["dragenter", "dragover"].forEach((eventName) => {
+    drop.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      drop.classList.add("is-dragging");
+    });
   });
 
-  qs("bugMessage")?.addEventListener("input", updateCounter);
+  ["dragleave", "drop"].forEach((eventName) => {
+    drop.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      drop.classList.remove("is-dragging");
+    });
+  });
 
-  qs("bugScreenshots")?.addEventListener("change", (e) => {
-    handleFiles(e.target.files);
+  drop.addEventListener("drop", (event) => {
+    handleFiles(event.dataTransfer?.files);
+    input.value = "";
+  });
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadCurrentUser();
+
+  qs("openBugReportBtn")?.addEventListener("click", () => {
+    clearStatus();
+    setModalOpen(true);
+  });
+
+  qs("closeBugReportBtn")?.addEventListener("click", closeModal);
+  qs("cancelBugReportBtn")?.addEventListener("click", closeModal);
+
+  document.querySelectorAll("[data-close-bug-modal]").forEach((el) => {
+    el.addEventListener("click", closeModal);
   });
 
   qs("bugReportForm")?.addEventListener("submit", submitBugReport);
 
-  document.addEventListener("keydown", (e) => {
-    if (e.key !== "Escape") return;
-
-    const modal = qs("bugReportModal");
-    if (!modal || modal.classList.contains("hidden")) return;
-
-    closeBugModal();
+  qs("bugMessage")?.addEventListener("input", () => {
+    updateCounter();
+    clearStatus();
   });
 
+  qs("bugSubject")?.addEventListener("input", clearStatus);
+
+  qs("bugScreenshots")?.addEventListener("change", (event) => {
+    handleFiles(event.target.files);
+    event.target.value = "";
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      const modal = qs("bugReportModal");
+      const isOpen = modal && !modal.classList.contains("hidden");
+      if (isOpen) closeModal();
+    }
+  });
+
+  setupDragAndDrop();
   updateCounter();
 });

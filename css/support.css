@@ -440,6 +440,84 @@
     transform: none;
 }
 
+.support-file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.support-file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(59, 130, 246, 0.22);
+
+    background:
+        radial-gradient(circle at 8% 20%, rgba(59, 130, 246, 0.14), transparent 42%),
+        rgba(15, 23, 42, 0.74);
+
+    color: var(--text-main);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+}
+
+.support-file-info {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.support-file-name {
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    font-weight: 800;
+    color: var(--text-main);
+}
+
+.support-file-size {
+    flex-shrink: 0;
+    color: var(--text-muted);
+    font-weight: 800;
+}
+
+.support-file-remove {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid rgba(239, 68, 68, 0.28);
+    background: rgba(239, 68, 68, 0.10);
+    color: #ef4444;
+
+    cursor: pointer;
+    transition:
+        transform 0.16s ease,
+        background 0.16s ease,
+        box-shadow 0.16s ease;
+}
+
+.support-file-remove:hover {
+    transform: translateY(-1px) scale(1.06);
+    background: rgba(239, 68, 68, 0.18);
+    box-shadow: 0 10px 22px rgba(239, 68, 68, 0.14);
+}
+
+.support-file-remove:active {
+    transform: scale(0.95);
+}
+
 @keyframes supportModalIn {
     from {
         opacity: 0;
