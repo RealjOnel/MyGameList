@@ -187,7 +187,7 @@ function updateFileList() {
 function handleFiles(files) {
   const incoming = Array.from(files || []);
 
-  if (incoming.length > MAX_FILES) {
+  if (selectedFiles.length + incoming.length > MAX_FILES) {
     notifyError(`You can upload at most ${MAX_FILES} screenshots.`);
     return;
   }
@@ -204,7 +204,7 @@ function handleFiles(files) {
     }
   }
 
-  selectedFiles = incoming;
+  selectedFiles = [...selectedFiles, ...incoming];
   clearStatus();
   updateFileList();
 }
