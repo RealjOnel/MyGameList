@@ -136,7 +136,9 @@
             <h3>Report a Bug</h3>
             <h4><strong>Found something that shouldn't happen?</strong></h4>
             <p>You can report a bug by creating a ticket below and we will fix it as fast as possible. Screenshots also help!</p>
-            <a href="#" class="support-btn">Open Ticket</a>
+            <button id="openBugReportBtn" class="support-btn" type="button">
+                Open Ticket
+            </button>
         </div>
 
         <div class="support-card glass reveal">
@@ -166,6 +168,92 @@
         </div>
     </section>
 </main>
+
+<!-- Bug Report Flexbox -->
+
+<div id="bugReportModal" class="support-modal-overlay hidden" aria-hidden="true">
+    <div class="support-modal-backdrop" data-close-bug-modal></div>
+
+    <div class="support-modal" role="dialog" aria-modal="true" aria-labelledby="bugReportTitle">
+        <div class="support-modal-header">
+            <div>
+                <p class="support-modal-kicker">MGL Support Ticket</p>
+                <h2 id="bugReportTitle">Report a Bug</h2>
+                <p class="support-modal-subtitle">
+                    Tell us what broke, where it happened, and attach screenshots if possible.
+                </p>
+            </div>
+
+            <button id="closeBugReportBtn" class="support-modal-close" type="button" aria-label="Close bug report modal">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form id="bugReportForm" class="support-modal-form">
+            <div class="support-field">
+                <label for="bugSubject">Subject</label>
+                <input
+                    id="bugSubject"
+                    name="subject"
+                    type="text"
+                    maxlength="120"
+                    placeholder="Example: Review modal does not close"
+                    required
+                >
+                <span class="support-field-hint">Minimum 5 characters.</span>
+            </div>
+
+            <div class="support-field">
+                <label for="bugMessage">Description</label>
+                <textarea
+                    id="bugMessage"
+                    name="message"
+                    maxlength="4000"
+                    placeholder="What happened? What did you expect? How can we reproduce it?"
+                    required
+                ></textarea>
+
+                <div class="support-field-row">
+                    <span class="support-field-hint">Minimum 20 characters.</span>
+                    <span id="bugMessageCounter" class="support-counter">0 / 4000</span>
+                </div>
+            </div>
+
+            <div class="support-field">
+                <label for="bugScreenshots">Screenshots</label>
+
+                <label class="support-file-drop" for="bugScreenshots">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Click to attach PNG or JPEG screenshots</span>
+                    <small>Maximum 3 files, 5 MB each.</small>
+                </label>
+
+                <input
+                    id="bugScreenshots"
+                    name="screenshots"
+                    type="file"
+                    accept="image/png,image/jpeg"
+                    multiple
+                    hidden
+                >
+
+                <div id="bugFileList" class="support-file-list"></div>
+            </div>
+
+            <div id="bugReportStatus" class="support-submit-status" hidden></div>
+
+            <div class="support-modal-actions">
+                <button id="cancelBugReportBtn" class="support-modal-btn support-modal-btn-secondary" type="button">
+                    Cancel
+                </button>
+
+                <button id="submitBugReportBtn" class="support-modal-btn support-modal-btn-primary" type="submit">
+                    Submit Ticket
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <footer class="main-footer">
     <div class="footer-content">
@@ -215,6 +303,7 @@
     <script type="module" src="../js/global/storeuser.js"></script>
     <script type="module" src="../js/global/friendNotifications.js"></script>
     <script type="module" src="../SettingsLoader/settingsLoader.js"></script>
+    <script type="module" src="../js/supportBugReport.js"></script>
 
     <script src="../js/global/navbar.js"></script>
 
