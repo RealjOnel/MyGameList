@@ -6,6 +6,7 @@ import { SupportTicket } from "../models/supportTicket.js";
 import { sendBugReportMail } from "../services/supportMailer.js";
 import { User } from "../models/user.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
+import { supportBugReportLimiter } from "../middleware/rateLimiter.js";
 
 const router = express.Router();
 
@@ -78,7 +79,7 @@ async function getNextTicketNumber() {
 }
 
 // POST /api/support/bug-report
-router.post("/bug-report", requireAuth, async (req, res) => {
+router.post("/bug-report", requireAuth, supportBugReportLimiter, async (req, res) => {
   try {
     await runUpload(req, res);
 
@@ -162,7 +163,7 @@ router.post("/bug-report", requireAuth, async (req, res) => {
       });
     }
 
-    if (err?.code === "LIMIT_FILE_COUNT") {
+    if (err?.code === "LIMIT_FILE_COUNT" || err?.code === "LIMIT_UNEXPECTED_FILE") {
       return res.status(400).json({
         message: "You can upload at most 3 screenshots"
       });

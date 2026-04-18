@@ -67,3 +67,15 @@ export const reviewReactionLimiter = rateLimit({
     message: "Too many review reactions. Please slow down for a moment."
   }
 });
+
+// Rate Limit for all E-Mail related actions
+
+export const supportBugReportLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message: "Too many bug reports. Please wait a bit before submitting another ticket."
+  }
+});
