@@ -1,11 +1,11 @@
 import express from "express";
 import multer from "multer";
-import mongoose from "mongoose";
 import { z } from "zod";
 import { Counter } from "../models/counter.js";
 import { SupportTicket } from "../models/supportTicket.js";
 import { sendBugReportMail } from "../services/supportMailer.js";
 import { User } from "../models/user.js";
+import { requireAuth } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -17,21 +17,41 @@ const upload = multer({
   },
   fileFilter(req, file, cb) {
     const allowed = ["image/png", "image/jpeg"];
+
     if (!allowed.includes(file.mimetype)) {
       return cb(new Error("Only PNG and JPEG screenshots are allowed"));
     }
+
     cb(null, true);
   }
 });
 
 const bugReportSchema = z.object({
-  email: z.string().trim().email("A valid email is required").max(160),
-  subject: z.string().trim().min(5, "Subject is too short").max(120, "Subject is too long"),
-  message: z.string().trim().min(20, "Message is too short").max(4000, "Message is too long"),
-  pageUrl: z.string().trim().max(500).optional().or(z.literal("")),
-  browserInfo: z.string().trim().max(500).optional().or(z.literal("")),
-  username: z.string().trim().max(40).optional().or(z.literal("")),
-  userId: z.string().trim().max(50).optional().or(z.literal(""))
+  subject: z
+    .string()
+    .trim()
+    .min(5, "Subject is too short")
+    .max(120, "Subject is too long"),
+
+  message: z
+    .string()
+    .trim()
+    .min(20, "Message is too short")
+    .max(4000, "Message is too long"),
+
+  pageUrl: z
+    .string()
+    .trim()
+    .max(500, "Page URL is too long")
+    .optional()
+    .or(z.literal("")),
+
+  browserInfo: z
+    .string()
+    .trim()
+    .max(500, "Browser info is too long")
+    .optional()
+    .or(z.literal(""))
 });
 
 function runUpload(req, res) {
@@ -57,37 +77,41 @@ async function getNextTicketNumber() {
   return counter.value;
 }
 
-router.post("/bug-report", async (req, res) => {
+// POST /api/support/bug-report
+router.post("/bug-report", requireAuth, async (req, res) => {
   try {
     await runUpload(req, res);
 
     const parsed = bugReportSchema.safeParse(req.body);
+
     if (!parsed.success) {
       return res.status(400).json({
         message: parsed.error.issues[0]?.message || "Invalid bug report payload"
       });
     }
 
-    const { email, subject, message, pageUrl, browserInfo, username, userId } = parsed.data;
+    const { subject, message, pageUrl, browserInfo } = parsed.data;
     const files = Array.isArray(req.files) ? req.files : [];
 
-    let safeUserId = null;
-    let safeUsername = username || "";
+    const user = await User.findById(req.userId).select(
+      "_id username displayUsername email"
+    );
 
-    if (userId) {
-      if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(400).json({
-          message: "Invalid userId"
-        });
-      }
-
-      const user = await User.findById(userId).select("_id username displayUsername");
-
-      if (user) {
-        safeUserId = user._id;
-        safeUsername = user.displayUsername || user.username || safeUsername;
-      }
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found"
+      });
     }
+
+    if (!user.email) {
+      return res.status(400).json({
+        message: "Your account has no email address assigned"
+      });
+    }
+
+    const safeUserId = user._id;
+    const safeUsername = user.displayUsername || user.username || "Unknown User";
+    const safeEmail = user.email;
 
     const ticketNumber = await getNextTicketNumber();
 
@@ -97,7 +121,7 @@ router.post("/bug-report", async (req, res) => {
       status: "open",
       reporter: {
         username: safeUsername,
-        email,
+        email: safeEmail,
         userId: safeUserId
       },
       subject,
@@ -111,7 +135,10 @@ router.post("/bug-report", async (req, res) => {
       }))
     });
 
-    await sendBugReportMail({ ticket, files });
+    await sendBugReportMail({
+      ticket,
+      files
+    });
 
     ticket.mailSentAt = new Date();
     await ticket.save();
@@ -124,18 +151,26 @@ router.post("/bug-report", async (req, res) => {
     console.error("Bug report submit failed:", err);
 
     if (err?.message?.includes("Only PNG and JPEG")) {
-      return res.status(400).json({ message: err.message });
+      return res.status(400).json({
+        message: err.message
+      });
     }
 
     if (err?.code === "LIMIT_FILE_SIZE") {
-      return res.status(400).json({ message: "Each screenshot may be at most 5 MB" });
+      return res.status(400).json({
+        message: "Each screenshot may be at most 5 MB"
+      });
     }
 
     if (err?.code === "LIMIT_FILE_COUNT") {
-      return res.status(400).json({ message: "You can upload at most 3 screenshots" });
+      return res.status(400).json({
+        message: "You can upload at most 3 screenshots"
+      });
     }
 
-    return res.status(500).json({ message: "Failed to submit bug report" });
+    return res.status(500).json({
+      message: "Failed to submit bug report"
+    });
   }
 });
 
