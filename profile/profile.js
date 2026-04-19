@@ -338,18 +338,13 @@ function applyProfileVisibility(settings, visibility = {}) {
   const favoritesSection = document.getElementById("profileFavoritesSection");
   const recentActivitySection = document.getElementById("profileRecentActivitySection");
   const commentsSection = document.getElementById("profileCommentsSection");
-  const commentComposer = document.getElementById("profileCommentComposer");
   const reviewsSection = document.getElementById("profileReviewsSection");
-
-  const showProfileComments = social.showProfileComments !== false;
-  const allowProfileComments = social.allowProfileComments !== false;
 
   if (isOwner) {
     if (friendsSection) friendsSection.hidden = false;
     if (favoritesSection) favoritesSection.hidden = false;
     if (recentActivitySection) recentActivitySection.hidden = false;
     if (commentsSection) commentsSection.hidden = false;
-    if (commentComposer) commentComposer.hidden = true;
     if (reviewsSection) reviewsSection.hidden = false;
     return;
   }
@@ -357,11 +352,34 @@ function applyProfileVisibility(settings, visibility = {}) {
   if (friendsSection) friendsSection.hidden = !social.showFriendsList;
   if (favoritesSection) favoritesSection.hidden = !social.showFavoriteGames;
   if (recentActivitySection) recentActivitySection.hidden = !social.showActivityHistory;
-
-  if (commentsSection) commentsSection.hidden = !showProfileComments;
-  if (commentComposer) commentComposer.hidden = !showProfileComments || !allowProfileComments;
-
+  if (commentsSection) commentsSection.hidden = social.showProfileComments === false;
   if (reviewsSection) reviewsSection.hidden = !social.showReviews;
+}
+
+function applyCommentComposerVisibility(settings, isOwner) {
+  const social = settings?.social || {};
+
+  const commentHeading = document.querySelector(".profile_comments h3");
+  const commentWrapper = document.querySelector(".profile_comments .comment_wrapper");
+  const commentMeta = document.querySelector(".profile_comments .comment_meta");
+
+  const commentsAllowed = social.allowProfileComments !== false;
+
+  if (commentWrapper) {
+    commentWrapper.hidden = !commentsAllowed || isOwner;
+  }
+
+  if (commentMeta) {
+    commentMeta.hidden = !commentsAllowed || isOwner;
+  }
+
+  if (commentHeading) {
+    if (!commentsAllowed || isOwner) {
+      commentHeading.textContent = "Profile Comments";
+    } else {
+      commentHeading.textContent = `Leave a Comment`;
+    }
+  }
 }
 
 function renderRecentActivity(items) {
@@ -965,6 +983,7 @@ async function loadProfile() {
   renderProfileSocialLinks(profileSettings);
   renderProfileBio(profileSettings);
   applyProfileVisibility(profileSettings, profileVisibility);
+  applyCommentComposerVisibility(profileSettings, isOwner);
 
   let entries = [];
 
@@ -1039,15 +1058,6 @@ async function loadProfile() {
 
   if (typeof window.updateProfileChart === "function") {
     window.updateProfileChart(counts);
-  }
-
-  const commentHeading = document.querySelector(".profile_comments h3");
-
-  if (commentHeading) {
-    commentHeading.textContent =
-      isOwner
-        ? "Leave a Comment"
-        : `Leave a Comment for ${profile.username}`;
   }
 
   await setupFriendSection({ me, profile });
