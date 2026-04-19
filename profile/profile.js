@@ -28,7 +28,8 @@ const DEFAULT_SETTINGS = Object.freeze({
     showForumActivity: true,
     showFavoriteGames: true,
     showActivityHistory: true,
-    allowProfileComments: true
+    allowProfileComments: true,
+    showProfileComments: true
   },
   privacy: {
     publicProfile: true,
@@ -337,13 +338,18 @@ function applyProfileVisibility(settings, visibility = {}) {
   const favoritesSection = document.getElementById("profileFavoritesSection");
   const recentActivitySection = document.getElementById("profileRecentActivitySection");
   const commentsSection = document.getElementById("profileCommentsSection");
+  const commentComposer = document.getElementById("profileCommentComposer");
   const reviewsSection = document.getElementById("profileReviewsSection");
+
+  const showProfileComments = social.showProfileComments !== false;
+  const allowProfileComments = social.allowProfileComments !== false;
 
   if (isOwner) {
     if (friendsSection) friendsSection.hidden = false;
     if (favoritesSection) favoritesSection.hidden = false;
     if (recentActivitySection) recentActivitySection.hidden = false;
     if (commentsSection) commentsSection.hidden = false;
+    if (commentComposer) commentComposer.hidden = true;
     if (reviewsSection) reviewsSection.hidden = false;
     return;
   }
@@ -351,7 +357,10 @@ function applyProfileVisibility(settings, visibility = {}) {
   if (friendsSection) friendsSection.hidden = !social.showFriendsList;
   if (favoritesSection) favoritesSection.hidden = !social.showFavoriteGames;
   if (recentActivitySection) recentActivitySection.hidden = !social.showActivityHistory;
-  if (commentsSection) commentsSection.hidden = !social.allowProfileComments;
+
+  if (commentsSection) commentsSection.hidden = !showProfileComments;
+  if (commentComposer) commentComposer.hidden = !showProfileComments || !allowProfileComments;
+
   if (reviewsSection) reviewsSection.hidden = !social.showReviews;
 }
 

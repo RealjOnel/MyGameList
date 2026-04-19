@@ -32,6 +32,17 @@ function getPublicUsername(user) {
   return user?.displayUsername || user?.username || "Unknown User";
 }
 
+function normalizeSettings(settings = {}) {
+  const raw = settings?.toObject ? settings.toObject() : settings || {};
+
+  return {
+    social: {
+      showProfileComments: raw?.social?.showProfileComments !== false,
+      allowProfileComments: raw?.social?.allowProfileComments !== false
+    }
+  };
+}
+
 function parseUsername(value) {
   const parsed = usernameSchema.safeParse(value);
   if (!parsed.success) {
@@ -76,10 +87,16 @@ router.get("/:username", async (req, res) => {
     }
 
     const profileUser = await User.findOne({ username: usernameResult.normalizedValue })
-      .select("_id username displayUsername");
+      .select("_id username displayUsername settings");
 
     if (!profileUser) {
       return res.status(404).json({ message: "Profile user not found" });
+    }
+
+    const settings = normalizeSettings(profileUser.settings);
+
+    if (!settings.social.showProfileComments) {
+      return res.json({ comments: [] });
     }
 
     const comments = await ProfileComment.find({ profileUserId: profileUser._id })
@@ -119,10 +136,24 @@ router.post("/:username", requireAuth, postCommentLimiter, async (req, res) => {
     }
 
     const profileUser = await User.findOne({ username: usernameResult.normalizedValue })
-      .select("_id username displayUsername");
+      .select("_id username displayUsername settings");
 
     if (!profileUser) {
       return res.status(404).json({ message: "Profile user not found" });
+    }
+
+    const settings = normalizeSettings(profileUser.settings);
+
+    if (!settings.social.showProfileComments) {
+      return res.status(403).json({
+        message: "This user has hidden profile comments"
+      });
+    }
+
+    if (!settings.social.allowProfileComments) {
+      return res.status(403).json({
+        message: "This user does not allow new profile comments"
+      });
     }
 
     const authorUser = await User.findById(req.userId).select("_id username displayUsername");

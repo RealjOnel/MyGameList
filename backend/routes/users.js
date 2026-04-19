@@ -28,6 +28,7 @@ const DEFAULT_SETTINGS = Object.freeze({
     showFavoriteGames: true,
     showActivityHistory: true,
     allowProfileComments: true,
+    showProfileComments: true,
   },
   privacy: {
     publicProfile: true,
@@ -104,6 +105,7 @@ const settingsPatchSchema = z.object({
     showFavoriteGames: z.boolean().optional(),
     showActivityHistory: z.boolean().optional(),
     allowProfileComments: z.boolean().optional(),
+    showProfileComments: z.boolean().optional(),
   }).partial().optional(),
 
   privacy: z.object({

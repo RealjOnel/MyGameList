@@ -193,14 +193,17 @@
 
         <!-- COMMENT FIELD -->
         <div class="profile_comments" id="profileCommentsSection">
-            <h3>Leave a Comment</h3>
-            <div class="comment_wrapper">
-                <textarea class="comment_input" maxlength="100" placeholder="Write your comment here..."></textarea>
-                <button class="comment_button">Post</button>
-            </div>
+            <h3 id="profileCommentsTitle">Profile Comments</h3>
 
-            <div class="comment_meta">
-                <span class="comment_counter">0 / 100</span>
+            <div class="comment_composer" id="profileCommentComposer">
+                <div class="comment_wrapper">
+                    <textarea class="comment_input" maxlength="100" placeholder="Write your comment here..."></textarea>
+                    <button class="comment_button">Post</button>
+                </div>
+
+                <div class="comment_meta" id="profileCommentMeta">
+                    <span class="comment_counter">0 / 100</span>
+                </div>
             </div>
 
             <div class="profile_comment_list" id="profileCommentList"></div>
