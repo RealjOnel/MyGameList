@@ -25,6 +25,7 @@ const settingsSchema = new mongoose.Schema(
       showFavoriteGames: { type: Boolean, default: true },
       showActivityHistory: { type: Boolean, default: true },
       allowProfileComments: { type: Boolean, default: true },
+      showProfileComments: { type: Boolean, default: true },
     },
 
     privacy: {
