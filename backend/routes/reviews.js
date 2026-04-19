@@ -169,11 +169,17 @@ function hasFriend(user, targetUserId) {
 }
 
 function canViewProfile(viewer, targetUser) {
-  if (!viewer || !targetUser) return false;
+  if (!targetUser) return false;
+
+  const settings = normalizeSettings(targetUser.settings);
+
+  if (!viewer) {
+    return settings.privacy.publicProfile !== false;
+  }
+
   if (sameId(viewer._id, targetUser._id)) return true;
   if (hasFriend(viewer, targetUser._id)) return true;
 
-  const settings = normalizeSettings(targetUser.settings);
   return settings.privacy.publicProfile !== false;
 }
 
@@ -479,8 +485,10 @@ router.get("/game/:igdbId", async (req, res) => {
 });
 
 // GET reviews for one profile
-router.get("/profile/:username", requireAuth, async (req, res) => {
+router.get("/profile/:username", async (req, res) => {
   try {
+    res.set("Cache-Control", "no-store");
+
     const usernameResult = parseUsername(req.params.username);
     if (!usernameResult.ok) {
       return res.status(400).json({ message: usernameResult.message });
@@ -489,22 +497,22 @@ router.get("/profile/:username", requireAuth, async (req, res) => {
     const page = parsePage(req.query.page);
     const limit = parseLimit(req.query.limit, 6, 50);
 
+    const viewerId = getOptionalViewerId(req);
+
     const [viewer, targetUser] = await Promise.all([
-      User.findById(req.userId).select("_id username displayUsername friends"),
+      viewerId
+        ? User.findById(viewerId).select("_id username displayUsername friends")
+        : null,
       User.findOne({ username: usernameResult.normalizedValue })
         .select("_id username displayUsername settings friends")
     ]);
-
-    if (!viewer) {
-      return res.status(404).json({ message: "Viewer not found" });
-    }
 
     if (!targetUser) {
       return res.status(404).json({ message: "User not found" });
     }
 
     const settings = normalizeSettings(targetUser.settings);
-    const isOwner = sameId(viewer._id, targetUser._id);
+    const isOwner = viewer ? sameId(viewer._id, targetUser._id) : false;
 
     if (!canViewProfile(viewer, targetUser)) {
       return res.status(403).json({ message: "This profile is private" });
@@ -542,7 +550,7 @@ router.get("/profile/:username", requireAuth, async (req, res) => {
         userId: targetUser._id,
         gameId: { $in: gameIds }
       }).select("gameId rating"),
-      buildReactionState(reviewIds, req.userId)
+      buildReactionState(reviewIds, viewerId)
     ]);
 
     const gameById = new Map(games.map((game) => [String(game._id), game]));
