@@ -47,3 +47,35 @@ export const postCommentLimiter = rateLimit({
   legacyHeaders: false,
   message: { message: "Too many comments posted, try again in a minute." }
 });
+
+export const reviewWriteLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 12,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message: "Too many review changes. Please wait a few minutes before trying again."
+  }
+});
+
+export const reviewReactionLimiter = rateLimit({
+  windowMs: 2 * 60 * 1000, // 2 minutes
+  max: 40,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message: "Too many review reactions. Please slow down for a moment."
+  }
+});
+
+// Rate Limit for all E-Mail related actions
+
+export const supportBugReportLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message: "Too many bug reports. Please wait a bit before submitting another ticket."
+  }
+});

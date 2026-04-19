@@ -1,6 +1,8 @@
 import express from "express";
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
 import { z } from "zod";
+import { env } from "../config/validateEnv.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
 import { User } from "../models/user.js";
 import { FriendRequest } from "../models/friendRequest.js";
@@ -73,6 +75,79 @@ function normalizeFriendUser(user) {
 
 function allowsDirectFriendRequests(user) {
   return user?.settings?.privacy?.allowDirectFriendRequests !== false;
+}
+
+function normalizeProfileSettings(settings = {}) {
+  const raw = settings?.toObject ? settings.toObject() : settings || {};
+
+  return {
+    social: {
+      showFriendsList: raw?.social?.showFriendsList !== false
+    },
+    privacy: {
+      publicProfile: raw?.privacy?.publicProfile !== false
+    }
+  };
+}
+
+function getOptionalViewerId(req) {
+  const authHeader = String(req.headers?.authorization || "").trim();
+  if (!authHeader) return null;
+
+  const [scheme, token] = authHeader.split(" ");
+
+  if (scheme !== "Bearer" || !token) {
+    return null;
+  }
+
+  try {
+    const payload = jwt.verify(token, env.JWT_SECRET);
+
+    if (!payload?.userId) {
+      return null;
+    }
+
+    const viewerId = String(payload.userId);
+
+    if (!mongoose.Types.ObjectId.isValid(viewerId)) {
+      return null;
+    }
+
+    return viewerId;
+  } catch {
+    return null;
+  }
+}
+
+function canViewProfile(viewer, targetUser) {
+  if (!targetUser) return false;
+
+  const settings = normalizeProfileSettings(targetUser.settings);
+
+  if (!viewer) {
+    return settings.privacy.publicProfile !== false;
+  }
+
+  if (sameId(viewer._id, targetUser._id)) return true;
+  if (hasFriend(viewer, targetUser._id)) return true;
+
+  return settings.privacy.publicProfile !== false;
+}
+
+function canViewFriendsList(viewer, targetUser) {
+  if (!targetUser) return false;
+
+  const settings = normalizeProfileSettings(targetUser.settings);
+
+  if (viewer && sameId(viewer._id, targetUser._id)) {
+    return true;
+  }
+
+  if (settings.social.showFriendsList === false) {
+    return false;
+  }
+
+  return canViewProfile(viewer, targetUser);
 }
 
 // GET /api/friends/status/:username
@@ -152,18 +227,33 @@ router.get("/status/:username", requireAuth, async (req, res) => {
 });
 
 // GET /api/friends/list/:username
-router.get("/list/:username", requireAuth, async (req, res) => {
+router.get("/list/:username", async (req, res) => {
   try {
+    res.set("Cache-Control", "no-store");
+
     const usernameResult = parseUsername(req.params.username);
     if (!usernameResult.ok) {
       return res.status(400).json({ message: usernameResult.message });
     }
 
-    const profileUser = await User.findOne({ username: usernameResult.normalizedValue })
-      .populate("friends", "username displayUsername createdAt lastLoginAt");
+    const viewerId = getOptionalViewerId(req);
+
+    const [viewer, profileUser] = await Promise.all([
+      viewerId
+        ? User.findById(viewerId).select("_id username displayUsername friends")
+        : null,
+
+      User.findOne({ username: usernameResult.normalizedValue })
+        .select("_id username displayUsername settings friends")
+        .populate("friends", "username displayUsername createdAt lastLoginAt")
+    ]);
 
     if (!profileUser) {
       return res.status(404).json({ message: "Profile user not found" });
+    }
+
+    if (!canViewFriendsList(viewer, profileUser)) {
+      return res.status(403).json({ message: "This friends list is private" });
     }
 
     const friends = (profileUser.friends || [])

@@ -25,7 +25,8 @@ const DEFAULT_SETTINGS = Object.freeze({
     showForumActivity: true,
     showFavoriteGames: true,
     showActivityHistory: true,
-    allowProfileComments: true
+    allowProfileComments: true,
+    showProfileComments: true
   },
   privacy: {
     publicProfile: true,

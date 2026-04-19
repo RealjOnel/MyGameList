@@ -1,4 +1,4 @@
-PLATZHALTER HTML FÜR NAVBAR UND FOOTER
+PLACEHOLDER FOR EVERY HTML PAGE (YOU MIGHT NEED TO CHANGE PATHS)
 
 ```
 <!DOCTYPE html>
@@ -16,82 +16,112 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
         }
     })();
     </script>
-    <title>MyGameList | Home</title>
+    <title>MyGameList | Staff</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../css/navbar.css">
 </head>
 <body>
 
-<nav class="navbar">
-    <div class="logo">
-        <a href="index.html">MY<span class="accent">GAMELIST</span></a>
-    </div>
-
-    <div class="nav-search-slot" id="navSearchSlot"></div>
-
-    <div class="nav-links">
-        <a href="./OtherPages/features.html" class="nav-item">Features</a>
-    
-        <div class="nav-item dropdown">
-            <a href="./OtherPages/explore.html">Games</a>
-            <ul class="dropdown-menu">
-                <li><a href="#">Trending Games</a></li>
-                <li><a href="#">Upcoming Games</a></li>
-                <li><a href="#">New Releases</a></li>
-            </ul>
+<nav class="navbar navbar--unified">
+    <div class="navbar-shell">
+        <div class="logo">
+            <a href="/index.html">MY<span class="accent">GAMELIST</span></a>
         </div>
 
-        <div class="nav-item dropdown">
-            <a href="./OtherPages/statistics.html">Statistics</a>
-            <ul class="dropdown-menu">
-                <li><a href="./OtherPages/methodology.html">Our Methodology</a></li>
-                <li><a href="#">Top Games</a></li>
-                <li><a href="#">Hidden Gems</a></li>
-                <li><a href="#">Overhyped Titles</a></li>
-            </ul>
-        </div>
+        <div class="nav-search-slot" id="navSearchSlot"></div>
 
-        <div class="nav-item dropdown">
-            <a href="./OtherPages/help.html">Help</a>
-            <ul class="dropdown-menu">
-                <li><a href="./OtherPages/about.html">About</a></li>
-                <li><a href="./OtherPages/faq.html">FAQ</a></li>
-                <li><a href="./OtherPages/support.html">Support</a></li>
-                <li><a href="./OtherPages/staff.html">Staff</a></li>
-            </ul>
-        </div>
+        <div class="navbar-main">
+            <div class="nav-dock" id="navDock">
+                <a href="/index.html" class="nav-dock__node nav-dock__node--link" data-route="index.html">
+                    <span class="nav-dock__icon"><i class="fa-solid fa-house"></i></span>
+                    <span class="nav-dock__text">Home</span>
+                </a>
 
-        <button id="loginBtn" class="btn-login" onclick="window.location.href='./LoginPageAndLogic/login.html'">LOGIN</button>
+                <div class="nav-dock__node nav-dock__node--dropdown" data-route="explore.html">
+                    <button class="nav-dock__button" type="button" data-dropdown-toggle aria-expanded="false">
+                        <span class="nav-dock__icon"><i class="fa-solid fa-gamepad"></i></span>
+                        <span class="nav-dock__text">Games</span>
+                    </button>
 
-      <div class="nav-user-wrap" id="navUserWrap"> 
-        <div id="friendBell" class="notif-bell">
-            <button id="friendBellBtn" class="notif-bell-btn" type="button" aria-label="Friend Notifications">
-                <i class="fa-regular fa-bell"></i>
-                <span id="friendBellBadge" class="notif-bell-badge" hidden>0</span>
+                    <div class="nav-dock__menu">
+                        <a href="/OtherPages/explore.html">Explore</a>
+                        <a href="#">Trending Games</a>
+                        <a href="/OtherPages/upcoming.html">Upcoming Games</a>
+                        <a href="#">New Releases</a>
+                    </div>
+                </div>
+
+                <a href="/OtherPages/features.html" class="nav-dock__node nav-dock__node--link" data-route="features.html">
+                    <span class="nav-dock__icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+                    <span class="nav-dock__text">Features</span>
+                </a>
+
+                <div class="nav-dock__node nav-dock__node--dropdown" data-route="statistics.html">
+                    <button class="nav-dock__button" type="button" data-dropdown-toggle aria-expanded="false">
+                        <span class="nav-dock__icon"><i class="fa-solid fa-chart-simple"></i></span>
+                        <span class="nav-dock__text">Statistics</span>
+                    </button>
+
+                    <div class="nav-dock__menu">
+                        <a href="/OtherPages/statistics.html">Overview</a>
+                        <a href="/OtherPages/methodology.html">Our Methodology</a>
+                        <a href="#">Top Games</a>
+                        <a href="#">Hidden Gems</a>
+                        <a href="#">Overhyped Titles</a>
+                    </div>
+                </div>
+
+                <div class="nav-dock__node nav-dock__node--dropdown" data-route="help.html">
+                    <button class="nav-dock__button" type="button" data-dropdown-toggle aria-expanded="false">
+                        <span class="nav-dock__icon"><i class="fa-solid fa-circle-question"></i></span>
+                        <span class="nav-dock__text">Help</span>
+                    </button>
+
+                    <div class="nav-dock__menu">
+                        <a href="/OtherPages/help.html">Overview</a>
+                        <a href="/OtherPages/about.html">About</a>
+                        <a href="/OtherPages/faq.html">FAQ</a>
+                        <a href="/OtherPages/support.html">Support</a>
+                        <a href="/OtherPages/staff.html">Staff</a>
+                    </div>
+                </div>
+
+                <span class="nav-dock__indicator" aria-hidden="true"></span>
+            </div>
+
+            <button id="loginBtn" class="btn-login nav-chip nav-chip--login" onclick="window.location.href='../LoginPageAndLogic/login.html'">
+                LOGIN
             </button>
 
-            <div id="friendBellDropdown" class="notif-dropdown" aria-hidden="true">
-                <div class="notif-dropdown-head">Friend Requests</div>
-                <div id="friendBellList" class="notif-dropdown-list">
-                    <div class="notif-empty">No new notifications.</div>
+            <div class="nav-user-wrap" id="navUserWrap">
+                <div id="friendBell" class="notif-bell">
+                    <button id="friendBellBtn" class="notif-bell-btn nav-chip nav-chip--icon" type="button" aria-label="Friend Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        <span id="friendBellBadge" class="notif-bell-badge" hidden>0</span>
+                    </button>
+
+                    <div id="friendBellDropdown" class="notif-dropdown" aria-hidden="true">
+                        <div class="notif-dropdown-head">Friend Requests</div>
+                        <div id="friendBellList" class="notif-dropdown-list">
+                            <div class="notif-empty">No new notifications.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="userMenu" class="user-menu">
+                    <img id="userIcon" src="/assets/User/Default_User_Icon.png" alt="User" class="user-icon">
+
+                    <div id="userDropdown" class="user-dropdown" aria-hidden="true">
+                        <a class="dropdown-item" href="/profile/profile.html">Profile</a>
+                        <button class="dropdown-item" type="button" data-open-settings>Settings</button>
+                        <div class="dropdown-divider"></div>
+                        <button id="logoutBtn" class="dropdown-item danger" type="button">Logout</button>
+                    </div>
                 </div>
             </div>
         </div>
-
-            <div id="userMenu" class="user-menu">
-                <img id="userIcon" src="./assets/User/Default_User_Icon.png" alt="User" class="user-icon">
-
-                <div id="userDropdown" class="user-dropdown" aria-hidden="true">
-                    <a class="dropdown-item" href="./profile/profile.html">Profile</a>
-                    <button class="dropdown-item" type="button" data-open-settings>Settings</button>
-
-                    <div class="dropdown-divider"></div>
-
-                    <button id="logoutBtn" class="dropdown-item danger" type="button">Logout</button>
-                </div>
-            </div>
-        </div> 
     </div>
 </nav>
 
@@ -105,29 +135,30 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
         <div class="footer-links">
             <div class="link-group">
                 <h4>Platform</h4>
-                <a href="../OtherPages/explore.html">Games</a>
+                <a href="/OtherPages/explore.html">Games</a>
                 <a href="#">Top Games</a>
-                <a href="../OtherPages/statistics.html">Statistics</a>
+                <a href="/OtherPages/statistics.html">Statistics</a>
             </div>
             <div class="link-group">
                 <h4>Community</h4>
                 <a href="#">Discord</a>
                 <a href="#">Forum</a>
-                <a href="./guidelines.html">Guidelines</a>
+                <a href="/OtherPages/guidelines.html">Guidelines</a>
             </div>
             <div class="link-group">
                 <h4>Legal</h4>
-                <a href="../OtherPages/terms_of_service.html">Terms of Service</a>
-                <a href="../OtherPages/legal_notice.html">Legal Notice</a>                
-                <a href="../OtherPages/privacy_policy.html">Privacy Policy</a>
+
+                <a href="/OtherPages/terms_of_service.html">Terms of Service</a>
+                <a href="/OtherPages/legal_notice.html">Legal Notice</a>
+                <a href="/OtherPages/privacy_policy.html">Privacy Policy</a>
                 <a href="#">Cookie Policy</a>
             </div>
             <div class="link-group">
                 <h4>Help</h4>
-                <a href="../OtherPages/about.html">About</a>
-                <a href="../OtherPages/faq.html">FAQ</a>
-                <a href="../OtherPages/support.html">Support</a>
-                <a href="../OtherPages/staff.html">Staff</a>
+                <a href="/OtherPages/about.html">About</a>
+                <a href="/OtherPages/faq.html">FAQ</a>
+                <a href="/OtherPages/support.html">Support</a>
+                <a href="/OtherPages/staff.html">Staff</a>
             </div>
         </div>
     </div>
@@ -136,36 +167,13 @@ PLATZHALTER HTML FÜR NAVBAR UND FOOTER
     </div>
 </footer>
 
-    <script src="../js/global/confirmBox.js"></script>
-    <script type="module" src="../js/global/nav-search.js"></script>
-    <script src="../js/global/reveal.js"></script>
-    <script src="../js/global/active.js"></script>
-    <script type="module" src="../js/global/storeuser.js"></script>
-    <script type="module" src="../js/global/friendNotifications.js"></script>
-    <script type="module" src="./SettingsLoader/settingsLoader.js"></script>
-
-    <div class="mgl-modal-backdrop" id="mglConfirmModal" hidden>
-        <div class="mgl-modal" role="dialog" aria-modal="true" aria-labelledby="mglConfirmTitle">
-            <div class="mgl-modal-head">
-            <h3 id="mglConfirmTitle">Confirm Action</h3>
-            </div>
-
-            <div class="mgl-modal-body">
-                <p id="mglConfirmText">Are you sure?</p>
-            </div>
-
-            <div class="mgl-modal-actions">
-            <button type="button" class="mgl-modal-btn mgl-modal-btn-cancel" id="mglConfirmCancel">
-                Cancel
-            </button>
-            <button type="button" class="mgl-modal-btn mgl-modal-btn-confirm" id="mglConfirmOk">
-                Confirm
-            </button>
-            </div>
-        </div>
-    </div>
-
-    <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+<script type="module" src="../js/global/nav-search.js"></script>
+<script src="../js/global/reveal.js"></script>
+<script src="../js/global/active.js"></script>
+<script src="../js/global/navbar.js"></script>
+<script type="module" src="../js/global/storeuser.js"></script>
+<script type="module" src="../js/global/friendNotifications.js"></script>
+<script type="module" src="../SettingsLoader/settingsLoader.js"></script>
 
 </body>
 </html>```

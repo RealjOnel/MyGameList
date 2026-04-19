@@ -1,4 +1,5 @@
-import { fetchWithAuth } from "../js/global/authClient.js";
+import { API_BASE_URL } from "../backend/config.js";
+import { fetchWithAuth, getAccessToken, clearAccessToken } from "../js/global/authClient.js";
 import { showToast } from "../js/global/toast.js";
 
 function qs(sel) { return document.querySelector(sel); }
@@ -27,7 +28,8 @@ const DEFAULT_SETTINGS = Object.freeze({
     showForumActivity: true,
     showFavoriteGames: true,
     showActivityHistory: true,
-    allowProfileComments: true
+    allowProfileComments: true,
+    showProfileComments: true
   },
   privacy: {
     publicProfile: true,
@@ -76,11 +78,39 @@ function redirectToLogin() {
   window.location.href = LOGIN_URL;
 }
 
+function showLoginRequiredToast(message = "Please log in to use this feature.") {
+  showToast({
+    title: "Login required",
+    message,
+    type: "info"
+  });
+}
+
+function buildApiUrl(path) {
+  return /^https?:\/\//i.test(path) ? path : `${API_BASE_URL}${path}`;
+}
+
+function buildFinalPath(path, method) {
+  if (method !== "GET") return path;
+  return `${path}${path.includes("?") ? "&" : "?"}_=${Date.now()}`;
+}
+
+async function readJsonResponse(res) {
+  const text = await res.text();
+
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    return {};
+  }
+}
+
+/*
+  Public/optional-auth API:
+  - uses token if available, but falls back to cookie-based session for unauthenticated users
+*/
 async function api(path, { method = "GET", body } = {}) {
-  const finalPath =
-    method === "GET"
-      ? `${path}${path.includes("?") ? "&" : "?"}_=${Date.now()}`
-      : path;
+  const finalPath = buildFinalPath(path, method);
 
   const headers = {};
   if (body) {
@@ -89,23 +119,69 @@ async function api(path, { method = "GET", body } = {}) {
 
   let res;
 
-  try {
+  if (getAccessToken()) {
     res = await fetchWithAuth(finalPath, {
       method,
       headers,
       body: body ? JSON.stringify(body) : undefined
     });
-  } catch (err) {
-    if (err.message === "Session expired") {
-      throw new Error("SESSION_EXPIRED");
+
+    if (res.status === 401) {
+      clearAccessToken();
+
+      res = await fetch(buildApiUrl(finalPath), {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : undefined,
+        credentials: "include",
+        cache: "no-store"
+      });
     }
-    throw err;
+  } else {
+    res = await fetch(buildApiUrl(finalPath), {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+      credentials: "include",
+      cache: "no-store"
+    });
   }
 
-  const text = await res.text();
-  const data = text ? JSON.parse(text) : {};
+  const data = await readJsonResponse(res);
+
+  if (!res.ok) {
+    throw new Error(data?.message || `Request failed (${res.status})`);
+  }
+
+  return data;
+}
+
+/*
+  Strict auth API:
+  - only for logged-in users, will throw if no valid token is present
+*/
+async function authApi(path, { method = "GET", body } = {}) {
+  if (!getAccessToken()) {
+    throw new Error("AUTH_REQUIRED");
+  }
+
+  const finalPath = buildFinalPath(path, method);
+
+  const headers = {};
+  if (body) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  const res = await fetchWithAuth(finalPath, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined
+  });
+
+  const data = await readJsonResponse(res);
 
   if (res.status === 401) {
+    clearAccessToken();
     throw new Error("SESSION_EXPIRED");
   }
 
@@ -114,6 +190,24 @@ async function api(path, { method = "GET", body } = {}) {
   }
 
   return data;
+}
+
+async function loadCurrentUserOptional() {
+  if (!getAccessToken()) {
+    return null;
+  }
+
+  try {
+    return await authApi("/api/users/me");
+  } catch (err) {
+    if (err.message === "SESSION_EXPIRED" || err.message === "AUTH_REQUIRED") {
+      clearAccessToken();
+      return null;
+    }
+
+    console.error("Could not load current user:", err);
+    return null;
+  }
 }
 
 function coverUrl(coverImageId) {
@@ -258,8 +352,34 @@ function applyProfileVisibility(settings, visibility = {}) {
   if (friendsSection) friendsSection.hidden = !social.showFriendsList;
   if (favoritesSection) favoritesSection.hidden = !social.showFavoriteGames;
   if (recentActivitySection) recentActivitySection.hidden = !social.showActivityHistory;
-  if (commentsSection) commentsSection.hidden = !social.allowProfileComments;
+  if (commentsSection) commentsSection.hidden = social.showProfileComments === false;
   if (reviewsSection) reviewsSection.hidden = !social.showReviews;
+}
+
+function applyCommentComposerVisibility(settings, isOwner) {
+  const social = settings?.social || {};
+
+  const commentHeading = document.querySelector(".profile_comments h3");
+  const commentWrapper = document.querySelector(".profile_comments .comment_wrapper");
+  const commentMeta = document.querySelector(".profile_comments .comment_meta");
+
+  const commentsAllowed = social.allowProfileComments !== false;
+
+  if (commentWrapper) {
+    commentWrapper.hidden = !commentsAllowed || isOwner;
+  }
+
+  if (commentMeta) {
+    commentMeta.hidden = !commentsAllowed || isOwner;
+  }
+
+  if (commentHeading) {
+    if (!commentsAllowed || isOwner) {
+      commentHeading.textContent = "Profile Comments";
+    } else {
+      commentHeading.textContent = `Leave a Comment`;
+    }
+  }
 }
 
 function renderRecentActivity(items) {
@@ -339,6 +459,229 @@ function renderFriendsList(friends = []) {
   }
 }
 
+function recommendationLabel(value) {
+  return ({
+    recommended: "Recommended",
+    mixed: "Mixed Feelings",
+    not: "Not Recommended"
+  })[value] || "Unknown";
+}
+
+function recommendationClass(value) {
+  return ({
+    recommended: "recommended",
+    mixed: "mixed",
+    not: "not"
+  })[value] || "";
+}
+
+function truncateText(value = "", max = 220) {
+  const text = String(value || "").trim();
+  if (text.length <= max) return text;
+  return `${text.slice(0, max).trim()}...`;
+}
+
+function renderProfileReviewsCard(review) {
+  const game = review?.game || {};
+  const rating = review?.rating ?? "—";
+  const date = formatDate(review?.createdAt);
+  const preview = truncateText(review?.plainText || "", 220);
+
+  return `
+    <button class="review_item" type="button" data-review-id="${review.id}">
+      <div class="review_card">
+        <div class="review_iconclass">
+          <img
+            src="${coverUrl(game.coverImageId)}"
+            class="review_icon"
+            alt="${game.name || "Game cover"}"
+          >
+        </div>
+
+        <div class="review_contentclass">
+          <div class="review_top">
+            <h3>${game.name || "Unknown Game"}</h3>
+            <p>${preview || "No preview available."}</p>
+          </div>
+
+          <div class="review_bottom">
+            <div class="review_text">
+              <p class="review_rating">${recommendationLabel(review.recommendation)} • ${rating}/10</p>
+              <p>${date}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </button>
+  `;
+}
+
+function getProfileReviewModalEls() {
+  return {
+    modal: document.getElementById("profileReviewModal"),
+    closeBtn: document.getElementById("profileReviewModalClose"),
+    openGameBtn: document.getElementById("profileReviewModalOpenGame"),
+    title: document.getElementById("profileReviewModalTitle"),
+    cover: document.getElementById("profileReviewModalCover"),
+    game: document.getElementById("profileReviewModalGame"),
+    author: document.getElementById("profileReviewModalAuthor"),
+    info: document.getElementById("profileReviewModalInfo"),
+    recommendation: document.getElementById("profileReviewModalRecommendation"),
+    content: document.getElementById("profileReviewModalContent")
+  };
+}
+
+function openProfileReviewModal() {
+  const { modal } = getProfileReviewModalEls();
+  if (!modal) return;
+  modal.hidden = false;
+  document.body.style.overflow = "hidden";
+}
+
+function closeProfileReviewModal() {
+  const { modal } = getProfileReviewModalEls();
+  if (!modal) return;
+  modal.hidden = true;
+  document.body.style.overflow = "";
+}
+
+function fillProfileReviewModal(review) {
+  const els = getProfileReviewModalEls();
+  if (!els.modal) return;
+
+  const game = review?.game || {};
+  const authorName = review?.author?.username || "Unknown User";
+  const rating = review?.rating ?? "—";
+  const date = formatDate(review?.createdAt);
+
+  els.title.textContent = "Review";
+  els.cover.src = coverUrl(game.coverImageId);
+  els.cover.alt = game.name || "Game cover";
+  els.game.textContent = game.name || "Unknown Game";
+  els.author.textContent = `By ${authorName}`;
+  els.info.textContent = `${date} • ${rating}/10`;
+  els.recommendation.textContent = recommendationLabel(review?.recommendation);
+  els.recommendation.className = `profile-review-modal-recommendation ${recommendationClass(review?.recommendation)}`;
+  els.content.innerHTML = review?.html || "<p>No review content available.</p>";
+
+  els.openGameBtn.onclick = () => {
+    if (!game.igdbId) return;
+    window.location.href = `../gamepage/game.html?id=${encodeURIComponent(game.igdbId)}`;
+  };
+}
+
+function bindProfileReviewModal() {
+  const { modal, closeBtn } = getProfileReviewModalEls();
+  if (!modal || modal.dataset.bound === "true") return;
+
+  modal.dataset.bound = "true";
+
+  closeBtn?.addEventListener("click", closeProfileReviewModal);
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      closeProfileReviewModal();
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !modal.hidden) {
+      closeProfileReviewModal();
+    }
+  });
+}
+
+async function openReviewDetails(reviewId) {
+  if (!reviewId) return;
+
+  try {
+    const data = await api(`/api/reviews/${encodeURIComponent(reviewId)}`);
+    fillProfileReviewModal(data?.review);
+    openProfileReviewModal();
+  } catch (err) {
+    console.error(err);
+
+    showToast({
+      title: "Review failed to load",
+      message: err.message || "Could not load the full review.",
+      type: "error"
+    });
+  }
+}
+
+async function loadProfileReviews(username) {
+  const list = document.getElementById("profileReviewsList");
+  const showMoreBtn = document.getElementById("profileReviewsShowMore");
+  if (!list || !showMoreBtn || !username) return;
+
+  bindProfileReviewModal();
+
+  let page = 1;
+  const limit = 2;
+  let loading = false;
+  let hasMore = false;
+
+  async function loadPage({ append = false } = {}) {
+    if (loading) return;
+    loading = true;
+
+    if (!append) {
+      list.innerHTML = `<div class="profile_review_empty">Loading reviews...</div>`;
+    }
+
+    try {
+      const data = await api(`/api/reviews/profile/${encodeURIComponent(username)}?page=${page}&limit=${limit}`);
+      const reviews = Array.isArray(data?.reviews) ? data.reviews : [];
+      hasMore = Boolean(data?.pagination?.hasMore);
+
+      if (!append) {
+        if (!reviews.length) {
+          list.innerHTML = `<div class="profile_review_empty">No reviews yet.</div>`;
+        } else {
+          list.innerHTML = reviews.map(renderProfileReviewsCard).join("");
+        }
+      } else {
+        list.insertAdjacentHTML("beforeend", reviews.map(renderProfileReviewsCard).join(""));
+      }
+
+      list.querySelectorAll(".review_item[data-review-id]").forEach((btn) => {
+        if (btn.dataset.bound === "true") return;
+        btn.dataset.bound = "true";
+
+        btn.addEventListener("click", () => {
+          openReviewDetails(btn.dataset.reviewId).catch(console.error);
+        });
+      });
+
+      showMoreBtn.hidden = !hasMore;
+    } catch (err) {
+      console.error(err);
+
+      if (!append) {
+        list.innerHTML = `<div class="profile_review_empty">Failed to load reviews.</div>`;
+      }
+
+      showToast({
+        title: "Reviews failed to load",
+        message: err.message || "Could not load profile reviews.",
+        type: "error"
+      });
+
+      showMoreBtn.hidden = true;
+    } finally {
+      loading = false;
+    }
+  }
+
+  showMoreBtn.onclick = async () => {
+    if (!hasMore || loading) return;
+    page += 1;
+    await loadPage({ append: true });
+  };
+
+  await loadPage();
+}
+
 function applyFriendButtonState(button, status) {
   if (!button) return;
 
@@ -351,6 +694,10 @@ function applyFriendButtonState(button, status) {
       button.hidden = true;
       button.disabled = true;
       button.textContent = "Your Profile";
+      break;
+
+    case "login_required":
+      button.textContent = "Login to Add Friend";
       break;
 
     case "none":
@@ -393,17 +740,42 @@ async function setupFriendSection({ me, profile }) {
     friendsTitle.textContent = `${profile.username}'s Friends:`;
   }
 
-  if (!button) return;
+  async function loadFriendsOnly() {
+    try {
+      const friendsData = await api(`/api/friends/list/${encodeURIComponent(profile.username)}`);
+      renderFriendsList(friendsData?.friends || []);
+    } catch (err) {
+      console.error(err);
+      renderFriendsList([]);
+    }
+  }
+
+  if (!button) {
+    await loadFriendsOnly();
+    return;
+  }
 
   let currentStatus = "loading";
   let currentRequestId = null;
   let actionBusy = false;
 
+  if (!me) {
+    applyFriendButtonState(button, "login_required");
+
+    button.addEventListener("click", () => {
+      showLoginRequiredToast("Please log in to send friend requests.");
+      redirectToLogin();
+    });
+
+    await loadFriendsOnly();
+    return;
+  }
+
   async function refreshFriendData() {
     applyFriendButtonState(button, "loading");
 
     const [statusData, friendsData] = await Promise.all([
-      api(`/api/friends/status/${encodeURIComponent(profile.username)}`),
+      authApi(`/api/friends/status/${encodeURIComponent(profile.username)}`),
       api(`/api/friends/list/${encodeURIComponent(profile.username)}`)
     ]);
 
@@ -425,12 +797,18 @@ async function setupFriendSection({ me, profile }) {
     if (currentStatus === "self") return;
     if (currentStatus === "disabled") return;
 
+    if (!getAccessToken()) {
+      showLoginRequiredToast("Please log in to use friend actions.");
+      redirectToLogin();
+      return;
+    }
+
     actionBusy = true;
     applyFriendButtonState(button, "loading");
 
     try {
       if (currentStatus === "none") {
-        await api(`/api/friends/request/${encodeURIComponent(profile.username)}`, {
+        await authApi(`/api/friends/request/${encodeURIComponent(profile.username)}`, {
           method: "POST"
         });
 
@@ -442,7 +820,7 @@ async function setupFriendSection({ me, profile }) {
       } else if (currentStatus === "incoming_request") {
         if (!currentRequestId) throw new Error("Missing request id");
 
-        await api(`/api/friends/request/${encodeURIComponent(currentRequestId)}/accept`, {
+        await authApi(`/api/friends/request/${encodeURIComponent(currentRequestId)}/accept`, {
           method: "POST"
         });
 
@@ -465,7 +843,7 @@ async function setupFriendSection({ me, profile }) {
           return;
         }
 
-        await api(`/api/friends/request/${encodeURIComponent(profile.username)}`, {
+        await authApi(`/api/friends/request/${encodeURIComponent(profile.username)}`, {
           method: "DELETE"
         });
 
@@ -488,7 +866,7 @@ async function setupFriendSection({ me, profile }) {
           return;
         }
 
-        await api(`/api/friends/remove/${encodeURIComponent(profile.username)}`, {
+        await authApi(`/api/friends/remove/${encodeURIComponent(profile.username)}`, {
           method: "DELETE"
         });
 
@@ -503,7 +881,8 @@ async function setupFriendSection({ me, profile }) {
     } catch (err) {
       console.error(err);
 
-      if (err.message === "SESSION_EXPIRED") {
+      if (err.message === "SESSION_EXPIRED" || err.message === "AUTH_REQUIRED") {
+        showLoginRequiredToast("Please log in again to use friend actions.");
         redirectToLogin();
         return;
       }
@@ -524,48 +903,27 @@ async function setupFriendSection({ me, profile }) {
 }
 
 async function loadProfile() {
-  let me;
-
-  try {
-    me = await api("/api/users/me");
-  } catch (err) {
-    if (err.message === "SESSION_EXPIRED") {
-      redirectToLogin();
-      return;
-    }
-    throw err;
-  }
-
   const params = new URLSearchParams(window.location.search);
   const requestedUsername = params.get("username");
-  const targetUsername = requestedUsername || me.username;
 
-  let profile;
-  try {
-    profile = await api(`/api/users/profile/${encodeURIComponent(targetUsername)}`);
-  } catch (err) {
-    if (err.message === "SESSION_EXPIRED") {
-      redirectToLogin();
-      return;
-    }
+  const me = await loadCurrentUserOptional();
 
-    if (requestedUsername) {
-      showToast({
-        title: "Profile unavailable",
-        message: err.message || "Could not open that profile.",
-        type: "error"
-      });
-      window.location.href = `./profile.html?username=${encodeURIComponent(me.username)}`;
-      return;
-    }
+  if (!requestedUsername && !me?.username) {
+    const usernameEl = qs(".profile_username");
+    if (usernameEl) usernameEl.textContent = "Profile";
 
-    throw err;
+    showToast({
+      title: "Profile unavailable",
+      message: "Please open a public user profile or log in to view your own profile.",
+      type: "info"
+    });
+
+    return;
   }
 
-  console.log("ME:", me);
-  console.log("REQUESTED USERNAME:", requestedUsername);
-  console.log("TARGET USERNAME:", targetUsername);
-  console.log("PROFILE:", profile);
+  const targetUsername = requestedUsername || me.username;
+
+  const profile = await api(`/api/users/profile/${encodeURIComponent(targetUsername)}`);
 
   const resolvedProfileUsername = profile?.username || requestedUsername || me?.username;
 
@@ -576,6 +934,7 @@ async function loadProfile() {
       requestedUsername,
       targetUsername
     });
+
     throw new Error("Profile username missing");
   }
 
@@ -584,19 +943,29 @@ async function loadProfile() {
     window.history.replaceState({}, "", newUrl);
   }
 
-  const navProfileLinks = document.querySelectorAll('a[href="profile.html"]');
-  navProfileLinks.forEach(link => {
-    link.href = `./profile.html?username=${encodeURIComponent(me.username)}`;
-  });
+  if (me?.username) {
+    const navProfileLinks = document.querySelectorAll('#userDropdown a[href*="profile.html"]');
+
+    navProfileLinks.forEach(link => {
+      link.href = `./profile.html?username=${encodeURIComponent(me.username)}`;
+    });
+  }
+
+  const isOwner =
+    Boolean(me?.username) &&
+    resolvedProfileUsername.toLowerCase() === me.username.toLowerCase();
 
   const profileSettings = normalizeSettings(profile.settings);
-  const profileVisibility = profile.visibility || {
-    isOwner: resolvedProfileUsername === me.username,
+
+  const profileVisibility = {
+    isOwner,
     isFriend: false,
-    publicProfile: true
+    publicProfile: true,
+    ...(profile.visibility || {})
   };
 
-  qs(".profile_username").textContent = resolvedProfileUsername;
+  const usernameEl = qs(".profile_username");
+  if (usernameEl) usernameEl.textContent = resolvedProfileUsername;
 
   const descTitle = document.getElementById("playerDescriptionTitle");
   if (descTitle) {
@@ -614,14 +983,32 @@ async function loadProfile() {
   renderProfileSocialLinks(profileSettings);
   renderProfileBio(profileSettings);
   applyProfileVisibility(profileSettings, profileVisibility);
+  applyCommentComposerVisibility(profileSettings, isOwner);
 
-  const entriesData = await api(`/api/library/profile/${encodeURIComponent(resolvedProfileUsername)}`);
-  const entries = Array.isArray(entriesData) ? entriesData : [];
+  let entries = [];
+
+  try {
+    const entriesData = await api(`/api/library/profile/${encodeURIComponent(resolvedProfileUsername)}`);
+    entries = Array.isArray(entriesData) ? entriesData : [];
+  } catch (err) {
+    console.error("Profile library failed to load:", err);
+    entries = [];
+
+    showToast({
+      title: "Library failed to load",
+      message: err.message || "Could not load this user's public games.",
+      type: "error"
+    });
+  }
 
   window.currentProfileUsername = resolvedProfileUsername;
-  window.currentViewerUsername = me.username;
+  window.currentViewerUsername = me?.username || null;
+  window.currentViewerIsLoggedIn = Boolean(me?.username);
+
+  await loadProfileReviews(resolvedProfileUsername);
 
   const favWrap = document.getElementById("profileFavorites");
+
   if (favWrap) {
     favWrap.innerHTML = "";
 
@@ -673,25 +1060,12 @@ async function loadProfile() {
     window.updateProfileChart(counts);
   }
 
-  const commentHeading = document.querySelector(".profile_comments h3");
-  if (commentHeading) {
-    commentHeading.textContent =
-      resolvedProfileUsername === me.username
-        ? "Leave a Comment"
-        : `Leave a Comment for ${profile.username}`;
-  }
-
   await setupFriendSection({ me, profile });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   loadProfile().catch(err => {
     console.error(err);
-
-    if (err.message === "SESSION_EXPIRED") {
-      redirectToLogin();
-      return;
-    }
 
     showToast({
       title: "Profile failed to load",
@@ -704,29 +1078,5 @@ document.addEventListener("DOMContentLoaded", () => {
 window.addEventListener("mgl:settings-saved", () => {
   loadProfile().catch(err => {
     console.error(err);
-
-    if (err.message === "SESSION_EXPIRED") {
-      redirectToLogin();
-    }
-  });
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  const likeBtn = document.querySelector(".review_likesbtn");
-  const likeIcon = document.querySelector(".review_likesicon");
-
-  if (!likeBtn || !likeIcon) return;
-
-  let liked = false;
-
-  likeBtn.addEventListener("click", () => {
-    liked = !liked;
-
-    likeIcon.src = liked
-      ? "../assets/User/thumbupliked.jpg"
-      : "../assets/User/thumbup.png";
-
-    likeBtn.classList.add("liked");
-    setTimeout(() => likeBtn.classList.remove("liked"), 150);
   });
 });

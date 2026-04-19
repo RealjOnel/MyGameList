@@ -1,4 +1,6 @@
-
+/* ==========================================================================
+   REVIEW MODAL 
+   ========================================================================== */
 
 /* ===================== OVERLAY ===================== */
 .review-overlay {
@@ -17,268 +19,434 @@
 .review-backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(15, 23, 42, 0.72);
+    background:
+        radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.14), transparent 35%),
+        radial-gradient(circle at 80% 15%, rgba(139, 92, 246, 0.14), transparent 32%),
+        radial-gradient(circle at 50% 100%, rgba(15, 23, 42, 0.42), transparent 50%),
+        rgba(2, 6, 23, 0.82);
+    backdrop-filter: blur(8px);
 }
 
 /* ===================== MODAL ===================== */
 .review-modal {
     position: relative;
     z-index: 1;
-    width: min(1200px, 96vw);
-    max-height: 100vh;
-    border-radius: 20px;
-    background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(248,250,252,0.94));
+    width: min(1120px, 96vw);
+    max-height: min(92vh, 980px);
+    border-radius: 24px;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
     overflow: hidden;
-    animation: fadeIn 0.2s ease;
-    border: var(--primary) 1.5px solid;
+    animation: fadeIn 0.22s ease;
+
+    border: 1px solid rgba(96, 165, 250, 0.16);
+    background:
+        linear-gradient(180deg, rgba(9, 18, 43, 0.97), rgba(8, 15, 36, 0.985)),
+        linear-gradient(135deg, rgba(59,130,246,0.08), rgba(139,92,246,0.05));
+    box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.42),
+        0 0 0 1px rgba(255,255,255,0.02) inset,
+        0 0 32px rgba(59, 130, 246, 0.12),
+        0 0 44px rgba(139, 92, 246, 0.08);
+}
+
+.review-modal::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background:
+        radial-gradient(circle at 14% 12%, rgba(59,130,246,0.14), transparent 30%),
+        radial-gradient(circle at 85% 14%, rgba(139,92,246,0.12), transparent 28%);
+    opacity: 0.9;
+}
+
+.review-modal::after {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    pointer-events: none;
+    border-radius: 23px;
+    border: 1px solid rgba(255,255,255,0.035);
 }
 
 /* ===================== HEADER ===================== */
 .review-header {
+    position: relative;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 24px;
-    background: var(--bg-body);
+    gap: 16px;
+    padding: 22px 26px 16px;
+    background: transparent;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.10);
 }
 
 .review-header h2 {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--primary);
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: #eaf1ff;
 }
 
 .review-close {
-    font-size: 20px;
-    border: none;
-    background: var(--bg-secondary);
-    cursor: default;
-    transition: transform 0.15s ease, color 0.15s ease;
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.20);
+    background: rgba(21, 32, 56, 0.96);
+    color: #dbe6fb;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
 }
 
 .review-close:hover {
-    transform: scale(1.15);
-    color: var(--accent);
-    cursor: pointer;
+    transform: translateY(-1px);
+    color: #ffffff;
+    border-color: rgba(96, 165, 250, 0.34);
+    background: rgba(30, 41, 59, 0.98);
+    box-shadow: 0 10px 22px rgba(0,0,0,0.24);
 }
 
 /* ===================== DESCRIPTION ===================== */
 .review-description {
-    display: flex;
-    justify-content: center;
-    gap: 200px;
-    background-color: var(--bg-body);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    padding: 16px 26px 0;
+    background: transparent;
 }
 
 .review-item {
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 14px 16px;
     border-radius: 16px;
-    border: 1px solid rgba(15,23,42,0.08);
-    background: var(--bg-secondary);
-    padding: 14px;
+    border: 1px solid rgba(96, 165, 250, 0.14);
+    background: rgba(17, 27, 56, 0.92);
+    color: #dbe6fb;
+    font-weight: 800;
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.03),
+        0 10px 24px rgba(0,0,0,0.16);
 }
 
 /* ===================== CONTENT ===================== */
 .review-content {
-    background-color: var(--bg-body);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 18px 26px 0;
+    background: transparent;
+    min-height: 0;
+    flex: 1;
 }
 
 .content-top {
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
 }
 
 .content-dropdown {
     margin-left: auto;
-    margin-right: 40px;
+    margin-right: 0;
 }
 
 /* ===================== TOOLBAR ===================== */
 .review-toolbar {
     display: flex;
-    gap: 6px;
-    margin-left: 30px;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-left: 0;
 }
 
 .review-toolbar button {
-    padding: 6px 10px;
+    min-width: 42px;
+    height: 42px;
+    padding: 0 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    background: rgba(21, 32, 56, 0.96);
+    color: #dbe6fb;
+    font-weight: 800;
     cursor: pointer;
-    border-radius: 6px;
-    border: 1px solid rgba(203, 213, 225, 0.8);
-    background: var(--bg-secondary);
-    font-weight: 600;
-    transition: all 0.2s ease;
-}
-
-.review-toolbar button.active {
-    background: linear-gradient(120deg, #3b82f6, #8b5cf6) !important; 
-    color: var(--bg-body);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
 
 .review-toolbar button:hover {
-    background: linear-gradient(120deg, #60a5fa, #a78bfa);
-    color: var(--bg-body);
+    transform: translateY(-1px);
+    background: rgba(28, 41, 75, 0.98);
+    border-color: rgba(96, 165, 250, 0.28);
+    color: #ffffff;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.18);
 }
-/*======================Reset=========================*/
+
+.review-toolbar button.active {
+    background: linear-gradient(120deg, #2563eb, #7c3aed) !important;
+    border-color: rgba(147, 197, 253, 0.32);
+    color: #f8fbff !important;
+    box-shadow:
+        0 10px 24px rgba(37, 99, 235, 0.24),
+        0 0 18px rgba(124, 58, 237, 0.18);
+}
+
+/* ===================== RESET + DROPDOWN ===================== */
 .content-dropdown-wrapper {
     display: flex;
     align-items: center;
-    gap: 6px; /* Abstand zwischen Reset und Dropdown */
+    gap: 10px;
     margin-left: auto;
-    margin-right: 40px;
+    margin-right: 0;
+    flex-wrap: wrap;
 }
 
 .reset-btn {
-    display: flex;
+    height: 42px;
+    min-width: 42px;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    background: var(--bg-secondary);
-    padding: 6px 10px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 12px;
+    background: rgba(21, 32, 56, 0.96);
+    color: #dbe6fb;
+    padding: 0 12px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease;
 }
 
 .reset-btn:hover {
-    background: #e5e7eb; /* heller beim Hover */
+    transform: translateY(-1px);
+    background: rgba(28, 41, 75, 0.98);
+    border-color: rgba(96, 165, 250, 0.28);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.18);
 }
 
 .reset-btn i {
     font-size: 14px;
-    color: var(--primary);
+    color: inherit;
 }
 
-/* ===================== DROPDOWN ===================== */
 .review-dropdown {
     position: relative;
-    width: 180px;
+    width: 220px;
+    z-index: 20;
 }
 
 .review-dropdown-btn {
     width: 100%;
-    padding: 8px 12px;
-    border-radius: 10px;
-    border: 1px solid #cbd5e1;
-    background: var(--bg-secondary);
-    font-weight: 600;
+    height: 42px;
+    padding: 0 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    background: rgba(21, 32, 56, 0.96);
+    color: #eaf1ff;
+    font-weight: 800;
     cursor: pointer;
     text-align: left;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.review-dropdown-btn:hover {
+    transform: translateY(-1px);
+    background: rgba(28, 41, 75, 0.98);
+    border-color: rgba(96, 165, 250, 0.28);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.18);
 }
 
 .review-dropdown-menu {
     position: absolute;
-    top: 110%;
+    top: calc(100% + 10px);
     left: 0;
     width: 100%;
-    background: var(--bg-secondary);
-    border: 1px solid #cbd5e1;
-    border-radius: 10px;
-    padding: 6px 0;
+    padding: 8px;
     display: none;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
+    border-radius: 16px;
+    border: 1px solid rgba(96, 165, 250, 0.16);
+    background: rgba(9, 18, 43, 0.98);
+    box-shadow:
+        0 22px 50px rgba(0,0,0,0.34),
+        0 0 24px rgba(59,130,246,0.08);
+    backdrop-filter: blur(16px);
 }
 
 .review-dropdown-item {
-    padding: 10px 14px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    color: #dbe6fb;
     cursor: pointer;
-    font-weight: 600;
+    font-weight: 800;
+    transition: transform 0.14s ease, background 0.14s ease, color 0.14s ease;
 }
 
 .review-dropdown-item:hover {
-    background: var(--bg-hover);
+    background: rgba(59,130,246,0.12);
+    color: #ffffff;
+    transform: translateX(3px);
 }
 
-/* ===================== COLORS ===================== */
-.recommended { color: var(--accent); }
-.mixed { color: var(--planned); }
-.not { color: var(--dropped); }
+/* ===================== RECOMMENDATION COLORS ===================== */
+.recommended { color: #3b82f6; }
+.mixed { color: #9ca3af; }
+.not { color: #ef4444; }
 
-
-/* Dropdown Auswahl Effekte */
 .review-dropdown-btn.recommended {
-    border: 2px solid #3b82f6; /* Blau */
-    box-shadow: 0 0 8px #3b82f6;
+    border-color: rgba(59, 130, 246, 0.34);
+    box-shadow: 0 0 0 1px rgba(59,130,246,0.14), 0 0 18px rgba(59,130,246,0.18);
+    color: #60a5fa;
 }
 
 .review-dropdown-btn.mixed {
-    border: 2px solid #6b7280; /* Grau */
-    box-shadow: 0 0 8px #6b7280;
+    border-color: rgba(156, 163, 175, 0.34);
+    box-shadow: 0 0 0 1px rgba(156,163,175,0.10), 0 0 18px rgba(156,163,175,0.14);
+    color: #d1d5db;
 }
 
 .review-dropdown-btn.not {
-    border: 2px solid #ef4444; /* Rot */
-    box-shadow: 0 0 8px #ef4444;
+    border-color: rgba(239, 68, 68, 0.34);
+    box-shadow: 0 0 0 1px rgba(239,68,68,0.12), 0 0 18px rgba(239,68,68,0.16);
+    color: #f87171;
 }
+
 /* ===================== EDITOR ===================== */
 .editor {
-    flex: 1; 
-    height: min(500px, 96vw);
-    border: 1px solid rgba(203, 213, 225, 0.6);
-    border-radius: 12px;
-    padding: 12px;
-    overflow-y: auto;  
-    overflow-x: hidden;  
+    flex: 1;
+    min-height: 360px;
+    max-height: 54vh;
+    border-radius: 18px;
+    border: 1px solid rgba(96, 165, 250, 0.14);
+    padding: 18px 18px 22px;
+    overflow-y: auto;
+    overflow-x: hidden;
     font-size: 1rem;
-    line-height: 1.5;
-    color: var(--primary);
-    background: var(--bg-secondary);
+    line-height: 1.65;
+    color: #eaf1ff;
+    background:
+        linear-gradient(180deg, rgba(12, 22, 48, 0.98), rgba(10, 18, 40, 0.99));
     outline: none;
-    transition: border 0.2s ease, box-shadow 0.2s ease;
-    margin-top: 15px !important; 
-    margin: 30px;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    margin: 0;
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.025),
+        inset 0 0 0 1px rgba(255,255,255,0.015),
+        0 14px 30px rgba(0,0,0,0.18);
     scrollbar-width: thin;
-    scrollbar-color: var(--accent) var(--button); 
-    white-space: pre-wrap;       /* Zeilenumbruch auch bei langen Texten */
-    word-wrap: break-word;       /* lange Wörter umbrechen */
-    word-break: break-word;   
+    scrollbar-color: #3b82f6 rgba(255,255,255,0.06);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    word-break: break-word;
 }
 
 .editor:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    border-color: rgba(96, 165, 250, 0.32);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.025),
+        0 0 0 1px rgba(59,130,246,0.16),
+        0 0 0 4px rgba(59,130,246,0.10),
+        0 18px 34px rgba(0,0,0,0.22);
 }
 
 .editor.recommended {
-    border: 2px solid #3b82f6; /* Blau */
-    box-shadow: 0 0 8px #3b82f6;
+    border-color: rgba(59,130,246,0.32);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.025),
+        0 0 0 1px rgba(59,130,246,0.14),
+        0 0 20px rgba(59,130,246,0.18),
+        0 14px 30px rgba(0,0,0,0.18);
 }
 
 .editor.mixed {
-    border: 2px solid #6b7280; /* Grau */
-    box-shadow: 0 0 8px #6b7280;
+    border-color: rgba(156,163,175,0.26);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.025),
+        0 0 0 1px rgba(156,163,175,0.10),
+        0 0 18px rgba(156,163,175,0.14),
+        0 14px 30px rgba(0,0,0,0.18);
 }
 
 .editor.not {
-    border: 2px solid #ef4444; /* Rot */
-    box-shadow: 0 0 8px #ef4444;
+    border-color: rgba(239,68,68,0.30);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.025),
+        0 0 0 1px rgba(239,68,68,0.12),
+        0 0 20px rgba(239,68,68,0.16),
+        0 14px 30px rgba(0,0,0,0.18);
 }
+
+.editor:empty::before {
+    content: attr(data-placeholder);
+    color: #8090ad;
+    pointer-events: none;
+}
+
 /* ===================== FOOTER ===================== */
 .review-footer {
-    padding: 16px 24px;
     display: flex;
+    align-items: center;
     justify-content: flex-end;
-    background: var(--bg-body);
+    gap: 12px;
+    padding: 18px 26px 24px;
+    background: transparent;
+    border-top: 1px solid rgba(148, 163, 184, 0.10);
+}
+
+.review-char-counter {
+    margin-right: auto;
+    min-width: 92px;
+    text-align: left;
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #94a3b8;
+}
+
+.review-char-counter.limit-near {
+    color: #f59e0b;
+}
+
+.review-char-counter.limit-hit {
+    color: #ef4444;
+}
+
+.review-submit,
+.review-delete {
+    min-width: 128px;
+    height: 46px;
+    padding: 0 20px;
+    border-radius: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease, background 0.15s ease, border-color 0.15s ease;
 }
 
 .review-submit {
-    padding: 10px 24px;
-    border-radius: 12px;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    background: linear-gradient(120deg, #3b82f6, #8b5cf6);
-    color: var(--bg-body);
-    transition: transform 0.15s ease, filter 0.15s ease;
+    border: 1px solid rgba(96, 165, 250, 0.24);
+    background: linear-gradient(125deg, #1d4ed8 0%, #3730a3 48%, #4c1d95 100%);
+    color: #f8fbff;
+    box-shadow:
+        0 10px 24px rgba(15, 23, 42, 0.20),
+        0 0 18px rgba(59,130,246,0.16);
 }
 
 .review-submit:hover {
-    transform: scale(1.05);
-    filter: brightness(1.1);
+    transform: translateY(-1px);
+    filter: brightness(1.06);
+    box-shadow:
+        0 14px 30px rgba(15, 23, 42, 0.26),
+        0 0 22px rgba(59,130,246,0.20);
 }
 
 /* ===================== SCROLLBAR ===================== */
@@ -292,78 +460,146 @@
 }
 
 .editor::-webkit-scrollbar-track {
-    background: rgba(203, 213, 225, 0.2);
+    background: rgba(255,255,255,0.06);
     border-radius: 999px;
 }
 
 /* ===================== ANIMATION ===================== */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.985);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 /* ===================== MOBILE ===================== */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
     .review-modal {
-        width: 95vw;
-        max-height: 95vh;
-        border-radius: 16px;
-        padding: 12px;
-    }
-
-    .review-header h2 {
-        font-size: 1.1rem;
+        width: min(96vw, 96vw);
+        max-height: 94vh;
     }
 
     .review-description {
+        grid-template-columns: 1fr;
+    }
+
+    .content-top {
+        align-items: stretch;
         flex-direction: column;
-        gap: 16px;
-    }
-
-    .review-item {
-        width: 100%;
-        padding: 10px;
-    }
-
-    .review-toolbar {
-        flex-wrap: wrap;
-        margin-left: 0;
     }
 
     .content-dropdown-wrapper {
-        margin: 10px 0;
-        flex-direction: column;
-        align-items: stretch;
+        width: 100%;
+        margin-left: 0;
+        justify-content: flex-start;
     }
 
-    .review-dropdown-btn {
-        font-size: 0.9rem;
+    .review-dropdown {
+        width: 100%;
+        max-width: none;
     }
 
     .editor {
-        margin: 15px 0;
-        height: 300px;
-        font-size: 0.95rem;
-        padding: 10px;
-    }
-
-    .review-footer {
-        flex-direction: column;
-        gap: 10px;
-        align-items: stretch;
-    }
-
-    .review-submit {
-        width: 100%;
-        padding: 12px 0;
-    }
-
-    .review-close {
-        font-size: 18px;
+        min-height: 300px;
+        max-height: 42vh;
     }
 }
 
-.main-footer{
+@media (max-width: 768px) {
+    .review-overlay {
+        padding: 14px;
+    }
+
+    .review-modal {
+        border-radius: 20px;
+    }
+
+    .review-header {
+        padding: 18px 18px 14px;
+    }
+
+    .review-header h2 {
+        font-size: 1.12rem;
+        line-height: 1.25;
+    }
+
+    .review-description {
+        padding: 14px 18px 0;
+        gap: 10px;
+    }
+
+    .review-item {
+        justify-content: flex-start;
+        text-align: left;
+        min-height: 50px;
+        padding: 12px 14px;
+    }
+
+    .review-content {
+        padding: 14px 18px 0;
+    }
+
+    .review-toolbar {
+        width: 100%;
+    }
+
+    .review-toolbar button {
+        flex: 0 0 auto;
+    }
+
+    .content-dropdown-wrapper {
+        width: 100%;
+        flex-direction: row;
+        align-items: stretch;
+    }
+
+    .reset-btn {
+        flex: 0 0 42px;
+    }
+
+    .review-dropdown {
+        flex: 1;
+        width: auto;
+    }
+
+    .editor {
+        min-height: 240px;
+        max-height: 34vh;
+        font-size: 0.96rem;
+        padding: 14px 14px 18px;
+    }
+
+    .review-footer {
+        padding: 16px 18px 18px;
+        flex-wrap: wrap;
+    }
+
+    .review-char-counter {
+        width: 100%;
+        order: 3;
+        margin-right: 0;
+        text-align: left;
+    }
+
+    .review-submit,
+    .review-delete {
+        flex: 1 1 140px;
+        min-width: 0;
+    }
+
+    .review-close {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+}
+
+/* ===================== FOOTER SAFETY ===================== */
+.main-footer {
     padding: 4rem 8% 2rem;
 }
 
@@ -371,7 +607,7 @@
     padding: 4rem 8% 2rem;
 }
 
-.footer-bottom{
+.footer-bottom {
     border-top: 1px solid #f1f5f9;
     padding-top: 2rem;
     text-align: center;

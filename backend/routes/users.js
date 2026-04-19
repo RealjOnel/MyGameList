@@ -28,6 +28,7 @@ const DEFAULT_SETTINGS = Object.freeze({
     showFavoriteGames: true,
     showActivityHistory: true,
     allowProfileComments: true,
+    showProfileComments: true,
   },
   privacy: {
     publicProfile: true,
@@ -104,6 +105,7 @@ const settingsPatchSchema = z.object({
     showFavoriteGames: z.boolean().optional(),
     showActivityHistory: z.boolean().optional(),
     allowProfileComments: z.boolean().optional(),
+    showProfileComments: z.boolean().optional(),
   }).partial().optional(),
 
   privacy: z.object({
@@ -330,13 +332,22 @@ function hasFriend(user, targetUserId) {
 }
 
 function canViewProfile(viewer, targetUser) {
-  if (!viewer || !targetUser) return false;
-
-  if (sameId(viewer._id, targetUser._id)) return true;
-  if (hasFriend(viewer, targetUser._id)) return true;
+  if (!targetUser) return false;
 
   const settings = normalizeSettings(targetUser.settings);
-  return settings.privacy.publicProfile !== false;
+  const isPublic = settings.privacy.publicProfile !== false;
+
+  // Guests may view public profiles
+  if (!viewer) return isPublic;
+
+  // Logged-in owner may always view own profile
+  if (sameId(viewer._id, targetUser._id)) return true;
+
+  // Friends may view friend-only/private profiles
+  if (hasFriend(viewer, targetUser._id)) return true;
+
+  // Everyone else may only view public profiles
+  return isPublic;
 }
 
 function getPublicUsername(user) {
@@ -458,36 +469,44 @@ router.get("/search", async (req, res) => {
 });
 
 // GET /api/users/profile/:username
-router.get("/profile/:username", requireAuth, async (req, res) => {
+router.get("/profile/:username", async (req, res) => {
   try {
     res.set("Cache-Control", "no-store");
 
     const usernameResult = parseUsername(req.params.username);
+
     if (!usernameResult.ok) {
-      return res.status(400).json({ message: usernameResult.message });
+      return res.status(400).json({
+        message: usernameResult.message
+      });
     }
 
-    const viewer = await User.findById(req.userId).select("_id username displayUsername friends");
-    if (!viewer) {
-      return res.status(404).json({ message: "Viewer not found" });
-    }
-
-    const user = await User.findOne({ username: usernameResult.normalizedValue })
-      .select("username displayUsername createdAt lastLoginAt settings friends");
+    const user = await User.findOne({
+      username: usernameResult.normalizedValue
+    }).select("username displayUsername createdAt lastLoginAt settings friends");
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({
+        message: "User not found"
+      });
     }
 
     const settings = normalizeSettings(user.settings);
-    const isOwner = sameId(viewer._id, user._id);
-    const isFriend = hasFriend(viewer, user._id);
+
+    // This route is public now.
+    // Without optional auth middleware, guests are treated as viewer = null.
+    const viewer = null;
+
+    const isOwner = false;
+    const isFriend = false;
 
     if (!canViewProfile(viewer, user)) {
-      return res.status(403).json({ message: "This profile is private" });
+      return res.status(403).json({
+        message: "This profile is private"
+      });
     }
 
-    res.json({
+    return res.json({
       id: user._id,
       username: getPublicUsername(user),
       createdAt: user.createdAt ?? user._id.getTimestamp(),
@@ -501,7 +520,10 @@ router.get("/profile/:username", requireAuth, async (req, res) => {
     });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ message: "Failed to load profile user" });
+
+    return res.status(500).json({
+      message: "Failed to load profile user"
+    });
   }
 });
 

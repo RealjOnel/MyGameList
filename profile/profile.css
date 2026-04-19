@@ -878,6 +878,7 @@
     color: var(--primary);
     line-height: 1.6;
     text-align: left;
+    padding-top: 10px;
 
     display: -webkit-box;
     -webkit-box-orient: vertical;
@@ -898,6 +899,7 @@
     flex: 1;
     text-align: left;
 }
+
 .review_likes{
     flex: 1;
     display: flex;              
@@ -1062,4 +1064,113 @@
     margin-top: auto; /* date at the bottom */
     font-size: 12px;
     color: var(--text-secondary, #666);
+}
+
+.form_content_class {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.profile_review_empty {
+    padding: 16px;
+    border-radius: 14px;
+    background: var(--button);
+    border: 1px dashed var(--color-border);
+    color: var(--text-muted);
+    font-weight: 600;
+    text-align: center;
+}
+
+.profile-review-modal {
+    width: min(900px, 92vw);
+    max-height: 88vh;
+    overflow: hidden;
+}
+
+.profile-review-modal-body {
+    overflow-y: auto;
+}
+
+.profile-review-modal-top {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    margin-bottom: 18px;
+}
+
+.profile-review-modal-coverwrap {
+    flex: 0 0 140px;
+    width: 140px;
+    height: 190px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--button);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+.profile-review-modal-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.profile-review-modal-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.profile-review-modal-meta h4 {
+    margin: 0 0 8px;
+    font-size: 1.2rem;
+    color: var(--primary);
+}
+
+.profile-review-modal-meta p {
+    margin: 4px 0;
+    color: var(--text-main);
+    line-height: 1.45;
+    margin-top: 15px;
+}
+
+.profile-review-modal-recommendation {
+    display: inline-block;
+    margin-top: 8px !important;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.profile-review-modal-recommendation.recommended {
+    background: rgba(59, 130, 246, 0.14);
+    color: #3b82f6;
+}
+
+.profile-review-modal-recommendation.mixed {
+    background: rgba(107, 114, 128, 0.14);
+    color: #6b7280;
+}
+
+.profile-review-modal-recommendation.not {
+    background: rgba(239, 68, 68, 0.14);
+    color: #ef4444;
+}
+
+.profile-review-modal-content {
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(203, 213, 225, 0.8);
+    color: var(--primary);
+    line-height: 1.7;
+    word-break: break-word;
+}
+
+.profile-review-modal-content p {
+    margin: 0 0 12px;
+}
+
+.profile-review-modal-content p:last-child {
+    margin-bottom: 0;
 }

@@ -1,6 +1,9 @@
 import express from "express";
 import axios from "axios";
+import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
 import { z } from "zod";
+import { env } from "../config/validateEnv.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
 import { getTwitchToken } from "../services/twitchToken.js";
 import { Game } from "../models/game.js";
@@ -113,6 +116,68 @@ async function fetchGameFromIGDB(igdbId) {
     metacriticRating: Number.isFinite(g.aggregated_rating) ? g.aggregated_rating : null,
     lastSyncedAt: new Date(),
   };
+}
+
+function sameId(a, b) {
+  return String(a) === String(b);
+}
+
+function hasFriend(user, targetUserId) {
+  return Array.isArray(user?.friends) && user.friends.some((id) => sameId(id, targetUserId));
+}
+
+function getOptionalViewerId(req) {
+  const authHeader = String(req.headers?.authorization || "").trim();
+  if (!authHeader) return null;
+
+  const [scheme, token] = authHeader.split(" ");
+
+  if (scheme !== "Bearer" || !token) {
+    return null;
+  }
+
+  try {
+    const payload = jwt.verify(token, env.JWT_SECRET);
+
+    if (!payload?.userId) {
+      return null;
+    }
+
+    const viewerId = String(payload.userId);
+
+    if (!mongoose.Types.ObjectId.isValid(viewerId)) {
+      return null;
+    }
+
+    return viewerId;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeUserSettings(settings = {}) {
+  const raw = settings?.toObject ? settings.toObject() : settings || {};
+
+  return {
+    privacy: {
+      publicProfile: raw?.privacy?.publicProfile !== false
+    }
+  };
+}
+
+function canViewProfileLibrary(viewer, targetUser) {
+  if (!targetUser) return false;
+
+  const settings = normalizeUserSettings(targetUser.settings);
+
+  if (!viewer) {
+    return settings.privacy.publicProfile !== false;
+  }
+
+  if (sameId(viewer._id, targetUser._id)) return true;
+  if (hasFriend(viewer, targetUser._id)) return true;
+
+  return settings.privacy.publicProfile !== false;
 }
 
 /**
@@ -277,18 +342,31 @@ router.get("/me", requireAuth, async (req, res) => {
 });
 
 // GET /api/library/profile/:username
-router.get("/profile/:username", requireAuth, async (req, res) => {
+router.get("/profile/:username", async (req, res) => {
   try {
+    res.set("Cache-Control", "no-store");
+
     const usernameResult = parseUsername(req.params.username);
     if (!usernameResult.ok) {
       return res.status(400).json({ message: usernameResult.message });
     }
 
-    const user = await User.findOne({ username: usernameResult.normalizedValue })
-      .select("_id username displayUsername");
+    const viewerId = getOptionalViewerId(req);
+
+    const [viewer, user] = await Promise.all([
+      viewerId
+        ? User.findById(viewerId).select("_id username displayUsername friends")
+        : null,
+      User.findOne({ username: usernameResult.normalizedValue })
+        .select("_id username displayUsername settings friends")
+    ]);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!canViewProfileLibrary(viewer, user)) {
+      return res.status(403).json({ message: "This profile is private" });
     }
 
     const items = await UserGameEntry.find({ userId: user._id })

@@ -57,16 +57,6 @@ function chip(text){
   return d;
 }
 
-function characterImgUrls(imageId){
-  if (!imageId) return null;
-  const base = "https://images.igdb.com/igdb/image/upload";
-  const size = "t_thumb";
-  return {
-    png: `${base}/${size}/${imageId}.png`,
-    jpg: `${base}/${size}/${imageId}.jpg`
-  };
-}
-
 async function loadGame(){
   const id = new URLSearchParams(location.search).get("id");
   if (!id) return;
@@ -77,6 +67,10 @@ async function loadGame(){
 
   qs("gameTitle").textContent = g.name || "Unknown";
   document.title = `${g.name} | MGL`;
+
+  window.dispatchEvent(new CustomEvent("mgl:game-loaded", {
+    detail: { game: g }
+  }));
 
   const coverId = g?.cover?.image_id;
   qs("gameCover").src = coverId
@@ -90,6 +84,7 @@ async function loadGame(){
     if (lab) lab.textContent = text;
     else btnAdd.textContent = text;
   }
+
   const statusDD = qs("statusDD");
   const ratingDD = qs("ratingDD");
   const btnReview = qs("btnReview");
@@ -148,7 +143,9 @@ async function loadGame(){
   }
 
   document.addEventListener("click", closeAllDropdowns);
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeAllDropdowns(); });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeAllDropdowns();
+  });
 
   async function fetchEntry(){
     if (!getAccessToken()) return null;
@@ -370,14 +367,10 @@ async function loadGame(){
     });
   }
 
-  btnReview.addEventListener("click", () => {
-    console.log("Review feature later.");
-  });
-
   await refreshControls();
   if (userControls) userControls.classList.add("is-ready");
 
-  // Studio
+  // ===== Game info =====
   const studio =
     g?.involved_companies?.find(c => c?.developer)?.company?.name ||
     g?.involved_companies?.find(c => c?.publisher)?.company?.name ||
@@ -488,6 +481,7 @@ async function loadGame(){
 
   const rds = Array.isArray(g.release_dates) ? g.release_dates : [];
   const grouped = new Map();
+
   for (const r of rds){
     const p = r?.platform?.name;
     if (!p) continue;
@@ -506,59 +500,10 @@ async function loadGame(){
         .map(x => x?.date)
         .filter(Boolean)
         .sort((a,b)=>a-b);
+
       const first = dates[0];
       return `<div class="rel-row"><span>${esc(p)}</span><b>${esc(fmtDate(first))}</b></div>`;
     }).join("");
-  }
-
-  const chars = Array.isArray(g.characters) ? g.characters : [];
-  const grid = document.getElementById("charactersGrid");
-  const count = document.getElementById("charactersCount");
-
-  if (count) count.textContent = `${chars.length} found`;
-
-  if (grid){
-    if (!chars.length){
-      grid.innerHTML = `<div class="muted">No characters found.</div>`;
-    } else {
-      grid.innerHTML = chars.map(c => {
-        const name = c?.name || "Unknown";
-        const urls = characterImgUrls(c?.mug_shot?.image_id);
-        const initial = name.trim().slice(0,1).toUpperCase() || "?";
-
-        const media = urls
-          ? `<div class="char-media">
-              <img class="char-img" src="${urls.png}" data-fallback="${urls.jpg}" alt="${esc(name)}" loading="lazy">
-            </div>`
-          : `<div class="char-media">
-              <div class="char-fallback" aria-hidden="true">${esc(initial)}</div>
-            </div>`;
-
-        return `
-          <div class="char-card">
-            ${media}
-            <div class="char-name">${esc(name)}</div>
-          </div>
-        `;
-      }).join("");
-
-      grid.querySelectorAll("img[data-fallback]").forEach(img => {
-        img.addEventListener("error", () => {
-          const fb = img.dataset.fallback;
-          if (fb){
-            img.dataset.fallback = "";
-            img.src = fb;
-            return;
-          }
-          const media = img.closest(".char-media");
-          if (media){
-            const name = img.alt || "?";
-            const initial = name.trim().slice(0,1).toUpperCase() || "?";
-            media.innerHTML = `<div class="char-fallback" aria-hidden="true">${esc(initial)}</div>`;
-          }
-        });
-      });
-    }
   }
 
   // ===== Tabs =====
@@ -847,7 +792,6 @@ async function loadGame(){
     if (!slug || !value) return "";
 
     const map = {
-      // PEGI
       "pegi:3": "../assets/age-ratings/pegi-3.png",
       "pegi:7": "../assets/age-ratings/pegi-7.png",
       "pegi:12": "../assets/age-ratings/pegi-12.png",
@@ -855,14 +799,12 @@ async function loadGame(){
       "pegi:18": "../assets/age-ratings/pegi-18.png",
       "pegi:pg": "../assets/age-ratings/pegi-pg.png",
 
-      // USK
       "usk:0": "../assets/age-ratings/usk-0.png",
       "usk:6": "../assets/age-ratings/usk-6.png",
       "usk:12": "../assets/age-ratings/usk-12.png",
       "usk:16": "../assets/age-ratings/usk-16.png",
       "usk:18": "../assets/age-ratings/usk-18.png",
 
-      // ESRB
       "esrb:ec": "../assets/age-ratings/esrb-ec.png",
       "esrb:e": "../assets/age-ratings/esrb-e.png",
       "esrb:e10+": "../assets/age-ratings/esrb-e10.png",
@@ -872,20 +814,17 @@ async function loadGame(){
       "esrb:rp": "../assets/age-ratings/esrb-rp.png",
       "esrb:rplikelymature17+": "../assets/age-ratings/esrb-rp-likely-mature.png",
 
-      // CERO
       "cero:a": "../assets/age-ratings/cero-a.png",
       "cero:b": "../assets/age-ratings/cero-b.png",
       "cero:c": "../assets/age-ratings/cero-c.png",
       "cero:d": "../assets/age-ratings/cero-d.png",
       "cero:z": "../assets/age-ratings/cero-z.png",
 
-      // GRAC
       "grac:all": "../assets/age-ratings/grac-all.png",
       "grac:12": "../assets/age-ratings/grac-12.png",
       "grac:15": "../assets/age-ratings/grac-15.png",
       "grac:18": "../assets/age-ratings/grac-18.png",
 
-      // CLASS_IND
       "classind:l": "../assets/age-ratings/classind-l.png",
       "classind:10": "../assets/age-ratings/classind-10.png",
       "classind:12": "../assets/age-ratings/classind-12.png",
@@ -893,7 +832,6 @@ async function loadGame(){
       "classind:16": "../assets/age-ratings/classind-16.png",
       "classind:18": "../assets/age-ratings/classind-18.png",
 
-      // ACB
       "acb:g": "../assets/age-ratings/acb-g.png",
       "acb:pg": "../assets/age-ratings/acb-pg.png",
       "acb:m": "../assets/age-ratings/acb-m.png",
@@ -972,22 +910,25 @@ async function loadGame(){
     if (!about) return;
 
     const { devs, pubs } = devPubLists(game?.involved_companies);
-
     const modes = (game?.game_modes || []).map(x => x?.name);
     const themes = (game?.themes || []).map(x => x?.name);
     const pers = (game?.player_perspectives || []).map(x => x?.name);
     const kws = (game?.keywords || []).map(x => x?.name).slice(0, 18);
 
-    const franchise = game?.franchise?.name;
-    const collection = game?.collection?.name;
-
     const websites = Array.isArray(game?.websites) ? game.websites : [];
     const ratings = collectAgeRatings(game?.age_ratings);
+
     const websiteHtml = websites.length
       ? websites.slice(0, 10).map(w => {
           const url = w?.url;
           if (!url) return "";
-          const host = (() => { try { return new URL(url).hostname.replace("www.",""); } catch { return url; } })();
+          const host = (() => {
+            try {
+              return new URL(url).hostname.replace("www.","");
+            } catch {
+              return url;
+            }
+          })();
           return `<a class="site-link" href="${esc(url)}" target="_blank" rel="noreferrer">${esc(host)}</a>`;
         }).join("")
       : `<span class="muted">No websites.</span>`;
@@ -1052,14 +993,6 @@ async function loadGame(){
           </div>
         </div>
 
-        <div class="sub-card">
-          <h4>Franchise / Collection</h4>
-          <div class="sub-body">
-            ${franchise ? `<div><b>Franchise:</b> ${esc(franchise)}</div>` : `<div class="muted">Franchise: —</div>`}
-            ${collection ? `<div><b>Collection:</b> ${esc(collection)}</div>` : `<div class="muted">Collection: —</div>`}
-          </div>
-        </div>
-
         <div class="sub-card sub-card-wide">
           <h4>Websites</h4>
           <div class="sub-links">${websiteHtml}</div>
@@ -1081,37 +1014,6 @@ async function loadGame(){
         <h4>Forums</h4>
         <p class="muted">Later Forums will be available here.</p>
       </div>
-    `;
-  }
-
-  function renderCharactersTab(game){
-    const el = qs("panel-characters");
-    if (!el) return;
-
-    const chars = Array.isArray(game?.characters) ? game.characters : [];
-    if (!chars.length){
-      el.innerHTML = `<div class="sub-empty"><h4>Characters</h4><p class="muted">No character data available.</p></div>`;
-      return;
-    }
-
-    const items = chars.slice(0, 30).map(ch => {
-      const name = ch?.name || "Unknown";
-      const mug = ch?.mug_shot?.image_id;
-      const img = mug ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${mug}.jpg` : "../assets/placeholder-cover.png";
-      return `
-        <div class="char-card">
-          <div class="char-pic"><img src="${img}" alt=""></div>
-          <div class="char-name">${esc(name)}</div>
-        </div>
-      `;
-    }).join("");
-
-    el.innerHTML = `
-      <div class="sub-head">
-        <h4>Characters</h4>
-        <div class="muted">${chars.length} found</div>
-      </div>
-      <div class="char-grid">${items}</div>
     `;
   }
 
@@ -1186,7 +1088,6 @@ async function loadGame(){
     const panels = {
       about: qs("panel-about"),
       community: qs("panel-community"),
-      characters: qs("panel-characters"),
       related: qs("panel-related"),
     };
 
@@ -1196,7 +1097,10 @@ async function loadGame(){
         t.classList.toggle("active", on);
         t.setAttribute("aria-selected", on ? "true" : "false");
       });
-      Object.entries(panels).forEach(([k, p]) => p && p.classList.toggle("active", k === key));
+
+      Object.entries(panels).forEach(([k, p]) => {
+        if (p) p.classList.toggle("active", k === key);
+      });
     }
 
     tabs.forEach(t => {
@@ -1210,13 +1114,11 @@ async function loadGame(){
 
   renderAboutTab(g);
   renderCommunityTab();
-  renderCharactersTab(g);
   renderRelatedTab(g);
   initTabs();
 }
-document.addEventListener("DOMContentLoaded", () => {
 
-  // ===== Load Game =====
+document.addEventListener("DOMContentLoaded", () => {
   loadGame().catch(err => {
     console.error(err);
     const title = document.getElementById("gameTitle");
