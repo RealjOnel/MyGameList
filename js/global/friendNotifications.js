@@ -1,7 +1,5 @@
 import { showToast } from "./toast.js";
-import { fetchWithAuth, clearAccessToken } from "./authClient.js";
-
-const LOGIN_URL = "../LoginPageAndLogic/login.html";
+import { fetchWithAuth, clearAccessToken, getAccessToken } from "./authClient.js";
 
 function escapeHtml(str = "") {
   return String(str).replace(/[&<>"']/g, (m) => ({
@@ -11,10 +9,6 @@ function escapeHtml(str = "") {
     '"': "&quot;",
     "'": "&#039;",
   }[m]));
-}
-
-function redirectToLogin() {
-  window.location.href = LOGIN_URL;
 }
 
 function formatDateTime(iso) {
@@ -28,7 +22,42 @@ function formatDateTime(iso) {
   });
 }
 
+function getEls() {
+  return {
+    bellWrap: document.getElementById("friendBell"),
+    bellBtn: document.getElementById("friendBellBtn"),
+    badge: document.getElementById("friendBellBadge"),
+    dropdown: document.getElementById("friendBellDropdown"),
+    list: document.getElementById("friendBellList"),
+  };
+}
+
+function hideBell() {
+  const { bellWrap, dropdown, badge } = getEls();
+
+  if (bellWrap) bellWrap.hidden = true;
+
+  if (dropdown) {
+    dropdown.classList.remove("open");
+    dropdown.setAttribute("aria-hidden", "true");
+  }
+
+  if (badge) {
+    badge.hidden = true;
+    badge.textContent = "0";
+  }
+}
+
+function showBell() {
+  const { bellWrap } = getEls();
+  if (bellWrap) bellWrap.hidden = false;
+}
+
 async function api(path, { method = "GET", body } = {}) {
+  if (!getAccessToken()) {
+    throw new Error("NOT_LOGGED_IN");
+  }
+
   const finalPath =
     method === "GET"
       ? `${path}${path.includes("?") ? "&" : "?"}_=${Date.now()}`
@@ -58,16 +87,6 @@ async function api(path, { method = "GET", body } = {}) {
   return data;
 }
 
-function getEls() {
-  return {
-    bellWrap: document.getElementById("friendBell"),
-    bellBtn: document.getElementById("friendBellBtn"),
-    badge: document.getElementById("friendBellBadge"),
-    dropdown: document.getElementById("friendBellDropdown"),
-    list: document.getElementById("friendBellList"),
-  };
-}
-
 function renderEmpty(list, text = "No new notifications.") {
   if (!list) return;
   list.innerHTML = `<div class="notif-empty">${escapeHtml(text)}</div>`;
@@ -92,7 +111,7 @@ function renderNotifications(notifications = []) {
 
       <div class="notif-body">
         <div class="notif-text">
-          <a class="notif-user" href="./profile.html?username=${encodeURIComponent(item.fromUser?.username || "")}">
+          <a class="notif-user" href="/profile/profile.html?username=${encodeURIComponent(item.fromUser?.username || "")}">
             ${escapeHtml(item.fromUser?.username || "Unknown User")}
           </a>
           sent you a friend request.
@@ -132,46 +151,56 @@ function updateBadge(count) {
 }
 
 async function loadNotificationCount() {
-  const { bellWrap } = getEls();
+  if (!getAccessToken()) {
+    hideBell();
+    return;
+  }
 
-  if (bellWrap) bellWrap.hidden = false;
+  showBell();
 
   try {
     const data = await api("/api/friends/notifications/count");
     updateBadge(data.count || 0);
   } catch (err) {
-    console.error(err);
-
-    if (err.message === "SESSION_EXPIRED") {
-      if (bellWrap) bellWrap.hidden = true;
-      redirectToLogin();
+    if (err.message === "NOT_LOGGED_IN" || err.message === "SESSION_EXPIRED") {
+      hideBell();
       return;
     }
 
-    if (bellWrap) bellWrap.hidden = true;
+    console.error(err);
+    hideBell();
   }
 }
 
 async function loadNotifications() {
+  if (!getAccessToken()) {
+    hideBell();
+    return;
+  }
+
   try {
     const data = await api("/api/friends/notifications");
     const notifications = data.notifications || [];
     renderNotifications(notifications);
     updateBadge(notifications.length);
   } catch (err) {
-    console.error(err);
-
-    if (err.message === "SESSION_EXPIRED") {
-      redirectToLogin();
+    if (err.message === "NOT_LOGGED_IN" || err.message === "SESSION_EXPIRED") {
+      hideBell();
       return;
     }
 
+    console.error(err);
     renderEmpty(getEls().list, "Failed to load notifications.");
   }
 }
 
 async function handleNotificationAction(action, requestId) {
   if (!requestId) return;
+
+  if (!getAccessToken()) {
+    hideBell();
+    return;
+  }
 
   try {
     if (action === "accept") {
@@ -203,12 +232,12 @@ async function handleNotificationAction(action, requestId) {
 
     window.dispatchEvent(new CustomEvent("mgl:friend-requests-updated"));
   } catch (err) {
-    console.error(err);
-
-    if (err.message === "SESSION_EXPIRED") {
-      redirectToLogin();
+    if (err.message === "NOT_LOGGED_IN" || err.message === "SESSION_EXPIRED") {
+      hideBell();
       return;
     }
+
+    console.error(err);
 
     showToast({
       title: "Notification action failed",
@@ -238,6 +267,11 @@ function initBellToggle() {
   bellBtn.addEventListener("click", async (e) => {
     e.stopPropagation();
 
+    if (!getAccessToken()) {
+      hideBell();
+      return;
+    }
+
     const willOpen = !dropdown.classList.contains("open");
 
     document.querySelectorAll(".notif-dropdown.open").forEach((el) => {
@@ -266,6 +300,7 @@ function initBellToggle() {
     if (e.key === "Escape") {
       const { dropdown } = getEls();
       if (!dropdown) return;
+
       dropdown.classList.remove("open");
       dropdown.setAttribute("aria-hidden", "true");
     }
@@ -274,9 +309,20 @@ function initBellToggle() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   initBellToggle();
+
+  if (!getAccessToken()) {
+    hideBell();
+    return;
+  }
+
   await loadNotificationCount();
 
   setInterval(() => {
+    if (!getAccessToken()) {
+      hideBell();
+      return;
+    }
+
     loadNotificationCount().catch(console.error);
   }, 30000);
 });
