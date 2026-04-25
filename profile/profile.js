@@ -958,10 +958,10 @@ async function loadProfile() {
   const profileSettings = normalizeSettings(profile.settings);
 
   const profileVisibility = {
-    isOwner,
-    isFriend: false,
-    publicProfile: true,
-    ...(profile.visibility || {})
+    ...(profile.visibility || {}),
+    isFriend: profile?.visibility?.isFriend ?? false,
+    publicProfile: profile?.visibility?.publicProfile ?? true,
+    isOwner
   };
 
   const usernameEl = qs(".profile_username");
