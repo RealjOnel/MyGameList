@@ -609,6 +609,7 @@ async function openReviewDetails(reviewId) {
   }
 }
 
+// Loads profile reviews with pagination and binds click events to open the review modal
 async function loadProfileReviews(username) {
   const list = document.getElementById("profileReviewsList");
   const showMoreBtn = document.getElementById("profileReviewsShowMore");
@@ -621,6 +622,7 @@ async function loadProfileReviews(username) {
   let loading = false;
   let hasMore = false;
 
+  // Load reviews with pagination, appending to the list if append=true
   async function loadPage({ append = false } = {}) {
     if (loading) return;
     loading = true;
@@ -682,6 +684,7 @@ async function loadProfileReviews(username) {
   await loadPage();
 }
 
+// Applies the appropriate text, state, and visibility to the friend action button based on the current relationship status
 function applyFriendButtonState(button, status) {
   if (!button) return;
 
@@ -732,6 +735,7 @@ function applyFriendButtonState(button, status) {
   }
 }
 
+// Handles the friend section of the profile, including loading the friends list and managing friend requests based on the current relationship status
 async function setupFriendSection({ me, profile }) {
   const button = document.getElementById("friendActionBtn");
   const friendsTitle = document.querySelector(".profile_friendlist h3");
@@ -902,6 +906,7 @@ async function setupFriendSection({ me, profile }) {
   await refreshFriendData();
 }
 
+// Main function to load and render the profile page, including user info, social links, bio, recent activity, reviews, and friend section
 async function loadProfile() {
   const params = new URLSearchParams(window.location.search);
   const requestedUsername = params.get("username");
@@ -923,7 +928,20 @@ async function loadProfile() {
 
   const targetUsername = requestedUsername || me.username;
 
-  const profile = await api(`/api/users/profile/${encodeURIComponent(targetUsername)}`);
+  hidePrivateProfileState();
+
+  let profile;
+
+  try {
+    profile = await api(`/api/users/profile/${encodeURIComponent(targetUsername)}`);
+  } catch (err) {
+    if (isPrivateProfileError(err)) {
+      showPrivateProfileState();
+      return;
+    }
+
+    throw err;
+  }
 
   const resolvedProfileUsername = profile?.username || requestedUsername || me?.username;
 
@@ -984,6 +1002,30 @@ async function loadProfile() {
   renderProfileBio(profileSettings);
   applyProfileVisibility(profileSettings, profileVisibility);
   applyCommentComposerVisibility(profileSettings, isOwner);
+
+  // If the profile is not public and the viewer is not the owner or a friend, show the private profile state
+  function isPrivateProfileError(err) {
+    const msg = String(err?.message || "").toLowerCase();
+    return msg.includes("this profile is private");
+  }
+
+  function showPrivateProfileState() {
+    const layout = document.querySelector(".profile-layout");
+    const privateState = document.getElementById("profilePrivateState");
+
+    if (layout) layout.hidden = true;
+    if (privateState) privateState.hidden = false;
+
+    document.title = "Private Profile | MyGameList";
+  }
+
+  function hidePrivateProfileState() {
+    const layout = document.querySelector(".profile-layout");
+    const privateState = document.getElementById("profilePrivateState");
+
+    if (layout) layout.hidden = false;
+    if (privateState) privateState.hidden = true;
+  }
 
   let entries = [];
 
