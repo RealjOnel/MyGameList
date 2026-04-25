@@ -1,5 +1,8 @@
 import express from "express";
+import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
 import { z } from "zod";
+import { env } from "../config/validateEnv.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
 import { User } from "../models/user.js";
 
@@ -337,21 +340,45 @@ function canViewProfile(viewer, targetUser) {
   const settings = normalizeSettings(targetUser.settings);
   const isPublic = settings.privacy.publicProfile !== false;
 
-  // Guests may view public profiles
   if (!viewer) return isPublic;
-
-  // Logged-in owner may always view own profile
   if (sameId(viewer._id, targetUser._id)) return true;
-
-  // Friends may view friend-only/private profiles
   if (hasFriend(viewer, targetUser._id)) return true;
 
-  // Everyone else may only view public profiles
   return isPublic;
 }
 
 function getPublicUsername(user) {
   return user?.displayUsername || user?.username || "";
+}
+
+function getOptionalViewerId(req) {
+  const authHeader = String(req.headers?.authorization || "").trim();
+  if (!authHeader) return null;
+
+  const [scheme, token] = authHeader.split(" ");
+
+  if (scheme !== "Bearer" || !token) {
+    return null;
+  }
+
+  try {
+    const payload = jwt.verify(token, env.JWT_SECRET);
+    const rawUserId = payload?.id || payload?.userId;
+
+    if (!rawUserId) {
+      return null;
+    }
+
+    const viewerId = String(rawUserId);
+
+    if (!mongoose.Types.ObjectId.isValid(viewerId)) {
+      return null;
+    }
+
+    return viewerId;
+  } catch {
+    return null;
+  }
 }
 
 // GET /api/users/me
@@ -481,9 +508,16 @@ router.get("/profile/:username", async (req, res) => {
       });
     }
 
-    const user = await User.findOne({
-      username: usernameResult.normalizedValue
-    }).select("username displayUsername createdAt lastLoginAt settings friends");
+    const viewerId = getOptionalViewerId(req);
+
+    const [viewer, user] = await Promise.all([
+      viewerId
+        ? User.findById(viewerId).select("_id username displayUsername friends")
+        : null,
+      User.findOne({
+        username: usernameResult.normalizedValue
+      }).select("username displayUsername createdAt lastLoginAt settings friends")
+    ]);
 
     if (!user) {
       return res.status(404).json({
@@ -492,13 +526,8 @@ router.get("/profile/:username", async (req, res) => {
     }
 
     const settings = normalizeSettings(user.settings);
-
-    // This route is public now.
-    // Without optional auth middleware, guests are treated as viewer = null.
-    const viewer = null;
-
-    const isOwner = false;
-    const isFriend = false;
+    const isOwner = viewer ? sameId(viewer._id, user._id) : false;
+    const isFriend = viewer ? hasFriend(viewer, user._id) : false;
 
     if (!canViewProfile(viewer, user)) {
       return res.status(403).json({
