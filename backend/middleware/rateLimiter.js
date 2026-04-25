@@ -50,7 +50,7 @@ export const postCommentLimiter = rateLimit({
 
 export const reviewWriteLimiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 minutes
-  max: 2,
+  max: 5,
   standardHeaders: true,
   legacyHeaders: false,
   message: {

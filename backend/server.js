@@ -87,6 +87,7 @@ app.use("/api/friends", friendsRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/support", supportRoutes);
 
+// Global error handler
 app.use((err, req, res, next) => {
   console.error("Global error handler caught:", {
     method: req.method,
@@ -111,6 +112,7 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Start the server
 const PORT = env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server runs on http://localhost:${PORT}`);
