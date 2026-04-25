@@ -539,7 +539,7 @@ router.get("/search", async (req, res) => {
       username: { $regex: safe, $options: "i" },
       "settings.privacy.showProfileInSearch": { $ne: false }
     })
-      .select("username displayUsername")
+      .select("username displayUsername avatarUrl")
       .sort({ username: 1 })
       .limit(8);
 
@@ -547,7 +547,7 @@ router.get("/search", async (req, res) => {
       users: users.map((user) => ({
         id: user._id,
         username: getPublicUsername(user),
-        avatarUrl: null
+        avatarUrl: user.avatarUrl || null
       }))
     });
   } catch (e) {
