@@ -84,6 +84,10 @@ function profileUrl(username = "") {
   return `../profile/profile.html?username=${encodeURIComponent(username)}`;
 }
 
+function getReviewAvatarUrl(review) {
+  return review?.author?.avatarUrl || "../assets/User/Default_User_Icon.png";
+}
+
 function getRecommendationButtonClass(value) {
   if (value === "recommended") return "state-recommended";
   if (value === "mixed") return "state-mixed";
@@ -162,6 +166,7 @@ function buildReviewCard(review, { own = false } = {}) {
   const plainLength = Number(review?.plainText?.length || 0);
   const rating = review?.rating ?? "—";
   const html = review?.html || "";
+  const avatar = getReviewAvatarUrl(review);
 
   return `
     <div class="review-box ${escapeHtml(recommendation)} ${own ? "review-box--own" : ""}" data-review-id="${escapeHtml(review.id)}">
@@ -176,7 +181,7 @@ function buildReviewCard(review, { own = false } = {}) {
       <div class="review-head">
         <div class="review-left">
           <div class="profile-picture">
-            <img src="../assets/User/Default_User_Icon.png" alt="${escapeHtml(authorName)}">
+            <img src="${escapeHtml(avatar)}" alt="${escapeHtml(authorName)}">
           </div>
 
           <a class="review-user" href="${profileUrl(authorName)}">
