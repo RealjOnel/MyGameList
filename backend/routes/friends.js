@@ -103,11 +103,13 @@ function getOptionalViewerId(req) {
   try {
     const payload = jwt.verify(token, env.JWT_SECRET);
 
-    if (!payload?.userId) {
+    const rawUserId = payload?.id || payload?.userId;
+
+    if (!rawUserId) {
       return null;
     }
 
-    const viewerId = String(payload.userId);
+    const viewerId = String(rawUserId);
 
     if (!mongoose.Types.ObjectId.isValid(viewerId)) {
       return null;

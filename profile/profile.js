@@ -105,6 +105,49 @@ async function readJsonResponse(res) {
   }
 }
 
+function isPrivateProfileError(err) {
+  const msg = String(err?.message || "").toLowerCase();
+  return msg.includes("this profile is private");
+}
+
+function showPrivateProfileState() {
+  const layout = document.querySelector(".profile-layout");
+  const privateState = document.getElementById("profilePrivateState");
+
+  if (layout) layout.hidden = true;
+  if (privateState) privateState.hidden = false;
+
+  document.title = "Private Profile | MyGameList";
+}
+
+function hidePrivateProfileState() {
+  const layout = document.querySelector(".profile-layout");
+  const privateState = document.getElementById("profilePrivateState");
+
+  if (layout) layout.hidden = false;
+  if (privateState) privateState.hidden = true;
+}
+
+async function buildOwnProfileFallback(me) {
+  if (!me?.username) {
+    throw new Error("Profile unavailable");
+  }
+
+  const settingsData = await authApi("/api/users/settings");
+
+  return {
+    username: me.username,
+    createdAt: me.createdAt ?? null,
+    lastLoginAt: me.lastLoginAt ?? null,
+    settings: settingsData?.settings || {},
+    visibility: {
+      isOwner: true,
+      isFriend: false,
+      publicProfile: true
+    }
+  };
+}
+
 /*
   Public/optional-auth API:
   - uses token if available, but falls back to cookie-based session for unauthenticated users
@@ -377,7 +420,7 @@ function applyCommentComposerVisibility(settings, isOwner) {
     if (!commentsAllowed || isOwner) {
       commentHeading.textContent = "Profile Comments";
     } else {
-      commentHeading.textContent = `Leave a Comment`;
+      commentHeading.textContent = "Leave a Comment";
     }
   }
 }
@@ -927,6 +970,9 @@ async function loadProfile() {
   }
 
   const targetUsername = requestedUsername || me.username;
+  const isOwnProfileRequest =
+    Boolean(me?.username) &&
+    (!requestedUsername || requestedUsername.trim().toLowerCase() === me.username.trim().toLowerCase());
 
   hidePrivateProfileState();
 
@@ -936,11 +982,15 @@ async function loadProfile() {
     profile = await api(`/api/users/profile/${encodeURIComponent(targetUsername)}`);
   } catch (err) {
     if (isPrivateProfileError(err)) {
-      showPrivateProfileState();
-      return;
+      if (isOwnProfileRequest) {
+        profile = await buildOwnProfileFallback(me);
+      } else {
+        showPrivateProfileState();
+        return;
+      }
+    } else {
+      throw err;
     }
-
-    throw err;
   }
 
   const resolvedProfileUsername = profile?.username || requestedUsername || me?.username;
@@ -987,7 +1037,7 @@ async function loadProfile() {
 
   const descTitle = document.getElementById("playerDescriptionTitle");
   if (descTitle) {
-    descTitle.textContent = `Description:`;
+    descTitle.textContent = "Description:";
   }
 
   document.title = `${resolvedProfileUsername} | MyGameList`;
@@ -1002,30 +1052,6 @@ async function loadProfile() {
   renderProfileBio(profileSettings);
   applyProfileVisibility(profileSettings, profileVisibility);
   applyCommentComposerVisibility(profileSettings, isOwner);
-
-  // If the profile is not public and the viewer is not the owner or a friend, show the private profile state
-  function isPrivateProfileError(err) {
-    const msg = String(err?.message || "").toLowerCase();
-    return msg.includes("this profile is private");
-  }
-
-  function showPrivateProfileState() {
-    const layout = document.querySelector(".profile-layout");
-    const privateState = document.getElementById("profilePrivateState");
-
-    if (layout) layout.hidden = true;
-    if (privateState) privateState.hidden = false;
-
-    document.title = "Private Profile | MyGameList";
-  }
-
-  function hidePrivateProfileState() {
-    const layout = document.querySelector(".profile-layout");
-    const privateState = document.getElementById("profilePrivateState");
-
-    if (layout) layout.hidden = false;
-    if (privateState) privateState.hidden = true;
-  }
 
   let entries = [];
 
