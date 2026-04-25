@@ -59,6 +59,9 @@ const userSchema = new mongoose.Schema(
     email: { type: String, unique: true },
     passwordHash: { type: String, required: true },
 
+    avatarUrl: { type: String, default: null },
+    bannerUrl: { type: String, default: null },
+
     friends: [
       {
         type: mongoose.Schema.Types.ObjectId,

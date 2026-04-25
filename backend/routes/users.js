@@ -5,6 +5,8 @@ import { z } from "zod";
 import { env } from "../config/validateEnv.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
 import { User } from "../models/user.js";
+import multer from "multer";
+import { cloudinary } from "../services/cloudinary.js";
 
 const router = express.Router();
 
@@ -128,6 +130,60 @@ const settingsPatchSchema = z.object({
     liveSearchSuggestions: z.boolean().optional(),
   }).partial().optional(),
 }).strict();
+
+const ALLOWED_IMAGE_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp"
+]);
+
+const MAX_PROFILE_MEDIA_BYTES = 6 * 1024 * 1024; // 6 MB
+
+const uploadProfileMedia = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: MAX_PROFILE_MEDIA_BYTES
+  },
+  fileFilter(req, file, cb) {
+    if (!ALLOWED_IMAGE_MIME_TYPES.has(file.mimetype)) {
+      return cb(new Error("Only JPG, PNG or WEBP images are allowed"));
+    }
+
+    cb(null, true);
+  }
+});
+
+function parseMediaType(value) {
+  const raw = String(value || "").trim().toLowerCase();
+
+  if (!["avatar", "banner"].includes(raw)) {
+    return {
+      ok: false,
+      message: "Invalid media type"
+    };
+  }
+
+  return {
+    ok: true,
+    value: raw
+  };
+}
+
+function uploadBufferToCloudinary(buffer, options = {}) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      options,
+      (error, result) => {
+        if (error || !result) {
+          return reject(error || new Error("Cloudinary upload failed"));
+        }
+        resolve(result);
+      }
+    );
+
+    stream.end(buffer);
+  });
+}
 
 function normalizeUsername(rawValue = "") {
   return String(rawValue || "").trim().toLowerCase();
@@ -386,14 +442,16 @@ router.get("/me", requireAuth, async (req, res) => {
   try {
     res.set("Cache-Control", "no-store");
 
-    const user = await User.findById(req.userId).select("username displayUsername createdAt lastLoginAt");
+    const user = await User.findById(req.userId).select("username displayUsername createdAt lastLoginAt avatarUrl bannerUrl");
     if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json({
       id: user._id,
       username: getPublicUsername(user),
       createdAt: user.createdAt ?? user._id.getTimestamp(),
-      lastLoginAt: user.lastLoginAt ?? null
+      lastLoginAt: user.lastLoginAt ?? null,
+      avatarUrl: user.avatarUrl ?? null,
+      bannerUrl: user.bannerUrl ?? null
     });
   } catch (e) {
     console.error(e);
@@ -406,13 +464,16 @@ router.get("/settings", requireAuth, async (req, res) => {
   try {
     res.set("Cache-Control", "no-store");
 
-    const user = await User.findById(req.userId).select("settings");
+    const user = await User.findById(req.userId).select("settings avatarUrl bannerUrl username displayUsername");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     res.json({
       settings: normalizeSettings(user.settings),
+      avatarUrl: user.avatarUrl ?? null,
+      bannerUrl: user.bannerUrl ?? null,
+      username: getPublicUsername(user)
     });
   } catch (e) {
     console.error(e);
@@ -495,6 +556,105 @@ router.get("/search", async (req, res) => {
   }
 });
 
+// POST /api/users/profile-media/:type
+router.post(
+  "/profile-media/:type",
+  requireAuth,
+  (req, res, next) => {
+    uploadProfileMedia.single("image")(req, res, (err) => {
+      if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({
+          message: "Image must be 6MB or smaller"
+        });
+      }
+
+      if (err) {
+        return res.status(400).json({
+          message: err.message || "Invalid image upload"
+        });
+      }
+
+      next();
+    });
+  },
+  async (req, res) => {
+    try {
+      const typeResult = parseMediaType(req.params.type);
+      if (!typeResult.ok) {
+        return res.status(400).json({ message: typeResult.message });
+      }
+
+      if (!req.file?.buffer) {
+        return res.status(400).json({ message: "No image uploaded" });
+      }
+
+      const user = await User.findById(req.userId).select("avatarUrl bannerUrl updatedAt");
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const type = typeResult.value;
+
+      const uploadOptions =
+        type === "avatar"
+          ? {
+              folder: "mygamelist/avatars",
+              public_id: `${req.userId}_avatar`,
+              overwrite: true,
+              invalidate: true,
+              resource_type: "image",
+              transformation: [
+                {
+                  width: 512,
+                  height: 512,
+                  crop: "fill",
+                  gravity: "auto",
+                  fetch_format: "auto",
+                  quality: "auto"
+                }
+              ]
+            }
+          : {
+              folder: "mygamelist/banners",
+              public_id: `${req.userId}_banner`,
+              overwrite: true,
+              invalidate: true,
+              resource_type: "image",
+              transformation: [
+                {
+                  width: 1600,
+                  height: 400,
+                  crop: "fill",
+                  gravity: "auto",
+                  fetch_format: "auto",
+                  quality: "auto"
+                }
+              ]
+            };
+
+      const result = await uploadBufferToCloudinary(req.file.buffer, uploadOptions);
+
+      if (type === "avatar") {
+        user.avatarUrl = result.secure_url;
+      } else {
+        user.bannerUrl = result.secure_url;
+      }
+
+      user.updatedAt = new Date();
+      await user.save();
+
+      return res.json({
+        message: `${type === "avatar" ? "Avatar" : "Banner"} updated successfully`,
+        avatarUrl: user.avatarUrl ?? null,
+        bannerUrl: user.bannerUrl ?? null
+      });
+    } catch (e) {
+      console.error(e);
+      return res.status(500).json({ message: "Failed to upload profile media" });
+    }
+  }
+);
+
 // GET /api/users/profile/:username
 router.get("/profile/:username", async (req, res) => {
   try {
@@ -516,7 +676,7 @@ router.get("/profile/:username", async (req, res) => {
         : null,
       User.findOne({
         username: usernameResult.normalizedValue
-      }).select("username displayUsername createdAt lastLoginAt settings friends")
+      }).select("username displayUsername createdAt lastLoginAt settings friends avatarUrl bannerUrl")
     ]);
 
     if (!user) {
@@ -540,6 +700,8 @@ router.get("/profile/:username", async (req, res) => {
       username: getPublicUsername(user),
       createdAt: user.createdAt ?? user._id.getTimestamp(),
       lastLoginAt: user.lastLoginAt ?? null,
+      avatarUrl: user.avatarUrl ?? null,
+      bannerUrl: user.bannerUrl ?? null,
       settings,
       visibility: {
         isOwner,
