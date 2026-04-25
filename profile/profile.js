@@ -6,6 +6,9 @@ function qs(sel) { return document.querySelector(sel); }
 
 const LOGIN_URL = "../LoginPageAndLogic/login.html";
 
+const DEFAULT_AVATAR_URL = "/assets/User/Default_User_Icon.png";
+const DEFAULT_BANNER_URL = "/assets/User/banner.png";
+
 const DEFAULT_SETTINGS = Object.freeze({
   profile: {
     bio: "",
@@ -139,6 +142,8 @@ async function buildOwnProfileFallback(me) {
     username: me.username,
     createdAt: me.createdAt ?? null,
     lastLoginAt: me.lastLoginAt ?? null,
+    avatarUrl: me.avatarUrl ?? settingsData?.avatarUrl ?? null,
+    bannerUrl: me.bannerUrl ?? settingsData?.bannerUrl ?? null,
     settings: settingsData?.settings || {},
     visibility: {
       isOwner: true,
@@ -260,7 +265,11 @@ function coverUrl(coverImageId) {
 }
 
 function avatarUrl(avatar) {
-  return avatar || "../assets/User/Default_User_Icon.png";
+  return avatar || DEFAULT_AVATAR_URL;
+}
+
+function bannerUrl(banner) {
+  return banner || DEFAULT_BANNER_URL;
 }
 
 function formatDate(iso) {
@@ -370,6 +379,19 @@ function renderProfileBio(settings) {
     line.className = "bio_line";
     line.textContent = `${row.label}: ${row.value}`;
     wrap.appendChild(line);
+  }
+}
+
+function applyProfileMedia(profile = {}) {
+  const avatarEl = document.getElementById("profile_log");
+  const bannerEl = document.querySelector(".profile_banner_image");
+
+  if (avatarEl) {
+    avatarEl.src = avatarUrl(profile.avatarUrl);
+  }
+
+  if (bannerEl) {
+    bannerEl.src = bannerUrl(profile.bannerUrl);
   }
 }
 
@@ -1050,6 +1072,7 @@ async function loadProfile() {
 
   renderProfileSocialLinks(profileSettings);
   renderProfileBio(profileSettings);
+  applyProfileMedia(profile);
   applyProfileVisibility(profileSettings, profileVisibility);
   applyCommentComposerVisibility(profileSettings, isOwner);
 
@@ -1147,4 +1170,22 @@ window.addEventListener("mgl:settings-saved", () => {
   loadProfile().catch(err => {
     console.error(err);
   });
+});
+
+window.addEventListener("mgl:profile-media-updated", (e) => {
+  const detail = e.detail || {};
+
+  if (detail.avatarUrl !== undefined) {
+    const avatarEl = document.getElementById("profile_log");
+    if (avatarEl) {
+      avatarEl.src = avatarUrl(detail.avatarUrl);
+    }
+  }
+
+  if (detail.bannerUrl !== undefined) {
+    const bannerEl = document.querySelector(".profile_banner_image");
+    if (bannerEl) {
+      bannerEl.src = bannerUrl(detail.bannerUrl);
+    }
+  }
 });

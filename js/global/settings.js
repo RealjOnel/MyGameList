@@ -3,6 +3,9 @@ import { fetchWithAuth, clearAccessToken } from "./authClient.js";
 
 let isInitialized = false;
 
+const DEFAULT_AVATAR_URL = "/assets/User/Default_User_Icon.png";
+const DEFAULT_BANNER_URL = "/assets/User/banner.png";
+
 const DEFAULT_SETTINGS = Object.freeze({
   profile: {
     bio: "",
@@ -75,6 +78,14 @@ function redirectToLogin() {
   window.location.href = "../LoginPageAndLogic/login.html";
 }
 
+function safeParseJson(text) {
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    return {};
+  }
+}
+
 async function api(path, { method = "GET", body } = {}) {
   const finalPath =
     method === "GET"
@@ -91,7 +102,7 @@ async function api(path, { method = "GET", body } = {}) {
   });
 
   const text = await res.text();
-  const data = text ? JSON.parse(text) : {};
+  const data = safeParseJson(text);
 
   if (res.status === 401) {
     clearAccessToken();
@@ -100,6 +111,30 @@ async function api(path, { method = "GET", body } = {}) {
 
   if (!res.ok) {
     throw new Error(data?.message || `Request failed (${res.status})`);
+  }
+
+  return data;
+}
+
+async function uploadProfileMedia(type, file) {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const res = await fetchWithAuth(`/api/users/profile-media/${encodeURIComponent(type)}`, {
+    method: "POST",
+    body: formData
+  });
+
+  const text = await res.text();
+  const data = safeParseJson(text);
+
+  if (res.status === 401) {
+    clearAccessToken();
+    throw new Error("SESSION_EXPIRED");
+  }
+
+  if (!res.ok) {
+    throw new Error(data?.message || `Upload failed (${res.status})`);
   }
 
   return data;
@@ -154,6 +189,24 @@ function collectSettingsFromForm() {
   return settings;
 }
 
+function setImagePreview(imgEl, url, fallbackUrl) {
+  if (!imgEl) return;
+  imgEl.src = url || fallbackUrl;
+}
+
+function populateProfileMeta(data = {}) {
+  const avatarPreview = document.getElementById("settingsAvatarPreview");
+  const bannerPreview = document.getElementById("settingsBannerPreview");
+  const usernameInput = document.getElementById("settingsUsernameInput");
+
+  setImagePreview(avatarPreview, data?.avatarUrl, DEFAULT_AVATAR_URL);
+  setImagePreview(bannerPreview, data?.bannerUrl, DEFAULT_BANNER_URL);
+
+  if (usernameInput) {
+    usernameInput.value = data?.username || "";
+  }
+}
+
 function populateSettingsForm(settings) {
   const merged = normalizeSettings(settings);
 
@@ -180,7 +233,8 @@ function updateBioCounter() {
 async function loadSettingsIntoForm() {
   const data = await api("/api/users/settings");
   populateSettingsForm(data?.settings);
-  return data?.settings;
+  populateProfileMeta(data);
+  return data;
 }
 
 async function saveSettingsFromForm() {
@@ -199,6 +253,7 @@ async function saveSettingsFromForm() {
     });
 
     populateSettingsForm(data?.settings);
+    populateProfileMeta(data);
 
     window.dispatchEvent(
       new CustomEvent("mgl:settings-saved", {
@@ -285,6 +340,93 @@ function setupTabs() {
   });
 }
 
+function getUploadEls(type) {
+  if (type === "avatar") {
+    return {
+      input: document.getElementById("settingsAvatarInput"),
+      label: document.getElementById("settingsAvatarUploadLabel"),
+      preview: document.getElementById("settingsAvatarPreview"),
+      idleText: "Change Picture",
+      fallback: DEFAULT_AVATAR_URL
+    };
+  }
+
+  return {
+    input: document.getElementById("settingsBannerInput"),
+    label: document.getElementById("settingsBannerUploadLabel"),
+    preview: document.getElementById("settingsBannerPreview"),
+    idleText: "Change Banner",
+    fallback: DEFAULT_BANNER_URL
+  };
+}
+
+function setUploadBusy(type, busy) {
+  const els = getUploadEls(type);
+  if (!els.input || !els.label) return;
+
+  els.input.disabled = busy;
+  els.label.textContent = busy ? "Uploading..." : els.idleText;
+}
+
+function updateGlobalAvatar(url) {
+  const userIcon = document.getElementById("userIcon");
+  if (userIcon) {
+    userIcon.src = url || DEFAULT_AVATAR_URL;
+  }
+
+  const profileAvatar = document.getElementById("profile_log");
+  if (profileAvatar) {
+    profileAvatar.src = url || DEFAULT_AVATAR_URL;
+  }
+}
+
+function updateGlobalBanner(url) {
+  const profileBanner = document.querySelector(".profile_banner_image");
+  if (profileBanner) {
+    profileBanner.src = url || DEFAULT_BANNER_URL;
+  }
+}
+
+async function handleProfileMediaUpload(type, file) {
+  if (!file) return;
+
+  setUploadBusy(type, true);
+
+  try {
+    const data = await uploadProfileMedia(type, file);
+    populateProfileMeta(data);
+
+    if (type === "avatar") {
+      updateGlobalAvatar(data?.avatarUrl);
+    } else {
+      updateGlobalBanner(data?.bannerUrl);
+    }
+
+    window.dispatchEvent(
+      new CustomEvent("mgl:profile-media-updated", {
+        detail: {
+          avatarUrl: data?.avatarUrl ?? undefined,
+          bannerUrl: data?.bannerUrl ?? undefined
+        }
+      })
+    );
+
+    showToast({
+      title: type === "avatar" ? "Avatar updated" : "Banner updated",
+      message: type === "avatar"
+        ? "Your profile picture has been updated."
+        : "Your profile banner has been updated.",
+      type: "success"
+    });
+  } finally {
+    const els = getUploadEls(type);
+    if (els.input) {
+      els.input.value = "";
+    }
+    setUploadBusy(type, false);
+  }
+}
+
 export function initSettingsModal() {
   if (isInitialized) return;
 
@@ -308,6 +450,33 @@ export function initSettingsModal() {
     const closeTrigger = e.target.closest("[data-close-settings]");
     if (closeTrigger) {
       closeSettings();
+    }
+  });
+
+  document.addEventListener("change", async (e) => {
+    const input = e.target.closest('input[type="file"][data-profile-media]');
+    if (!input) return;
+
+    const type = input.dataset.profileMedia;
+    const file = input.files?.[0];
+
+    if (!type || !file) return;
+
+    try {
+      await handleProfileMediaUpload(type, file);
+    } catch (err) {
+      console.error(err);
+
+      if (err.message === "SESSION_EXPIRED") {
+        redirectToLogin();
+        return;
+      }
+
+      showToast({
+        title: "Upload failed",
+        message: err.message || "Could not upload the selected image.",
+        type: "error"
+      });
     }
   });
 
