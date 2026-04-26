@@ -816,6 +816,15 @@ button {
   cursor: pointer;
 }
 
+.user-icon--pending {
+  opacity: 0;
+  transition: opacity 0.16s ease;
+}
+
+.user-icon--ready {
+  opacity: 1;
+}
+
 .user-dropdown {
   position: absolute;
   top: calc(100% + 10px);
@@ -2366,13 +2375,4 @@ html[data-reduced-motion="true"] .theme-bg.is-wiping .wipe-hide{
 .profile_social_link{
     background: linear-gradient(145deg, #182743, #111a2f) !important;
     color: #9ec1ff;
-}
-
-.user-icon--pending {
-  opacity: 0;
-  transition: opacity 0.16s ease;
-}
-
-.user-icon--ready {
-  opacity: 1;
 }

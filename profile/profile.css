@@ -33,6 +33,15 @@
     box-shadow: 0 10px 25px rgba(59,130,246,0.25);
 }
 
+.profile-media--pending {
+    opacity: 0;
+}
+
+.profile-media--ready {
+    opacity: 1;
+    transition: opacity 0.18s ease;
+}
+
 .profile_icon_loggedin {
     height: 200px;
     width: auto;

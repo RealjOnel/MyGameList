@@ -131,6 +131,78 @@ function hidePrivateProfileState() {
   if (privateState) privateState.hidden = true;
 }
 
+function normalizeMediaUrl(value, fallback) {
+  const url = String(value || "").trim();
+  return url || fallback;
+}
+
+function avatarUrl(avatar) {
+  return normalizeMediaUrl(avatar, DEFAULT_AVATAR_URL);
+}
+
+function bannerUrl(banner) {
+  return normalizeMediaUrl(banner, DEFAULT_BANNER_URL);
+}
+
+function getProfileMediaCacheKey(username = "") {
+  return `mgl_profile_media:${String(username || "").trim().toLowerCase()}`;
+}
+
+function readCachedProfileMedia(username) {
+  if (!username) return null;
+
+  try {
+    const raw = localStorage.getItem(getProfileMediaCacheKey(username));
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    return {
+      avatarUrl: parsed?.avatarUrl || "",
+      bannerUrl: parsed?.bannerUrl || ""
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedProfileMedia(username, media = {}) {
+  if (!username) return;
+
+  try {
+    localStorage.setItem(
+      getProfileMediaCacheKey(username),
+      JSON.stringify({
+        avatarUrl: media?.avatarUrl || "",
+        bannerUrl: media?.bannerUrl || ""
+      })
+    );
+  } catch (err) {
+    console.error("Failed to cache profile media:", err);
+  }
+}
+
+function applyProfileMedia(profile = {}) {
+  const avatarEl = document.getElementById("profile_log");
+  const bannerEl =
+    document.getElementById("profileBannerImage") ||
+    document.querySelector(".profile_banner_image");
+
+  const nextAvatarUrl = avatarUrl(profile?.avatarUrl);
+  const nextBannerUrl = bannerUrl(profile?.bannerUrl);
+
+  if (avatarEl) {
+    avatarEl.src = nextAvatarUrl;
+    avatarEl.classList.remove("profile-media--pending");
+    avatarEl.classList.add("profile-media--ready");
+  }
+
+  if (bannerEl) {
+    bannerEl.src = nextBannerUrl;
+    bannerEl.classList.remove("profile-media--pending");
+    bannerEl.classList.add("profile-media--ready");
+  }
+}
+
 async function buildOwnProfileFallback(me) {
   if (!me?.username) {
     throw new Error("Profile unavailable");
@@ -142,8 +214,8 @@ async function buildOwnProfileFallback(me) {
     username: me.username,
     createdAt: me.createdAt ?? null,
     lastLoginAt: me.lastLoginAt ?? null,
-    avatarUrl: me.avatarUrl ?? settingsData?.avatarUrl ?? null,
-    bannerUrl: me.bannerUrl ?? settingsData?.bannerUrl ?? null,
+    avatarUrl: me.avatarUrl ?? settingsData?.avatarUrl ?? "",
+    bannerUrl: me.bannerUrl ?? settingsData?.bannerUrl ?? "",
     settings: settingsData?.settings || {},
     visibility: {
       isOwner: true,
@@ -264,14 +336,6 @@ function coverUrl(coverImageId) {
     : "../../assets/placeholder-cover.png";
 }
 
-function avatarUrl(avatar) {
-  return avatar || DEFAULT_AVATAR_URL;
-}
-
-function bannerUrl(banner) {
-  return banner || DEFAULT_BANNER_URL;
-}
-
 function formatDate(iso) {
   if (!iso) return "—";
   return new Date(iso).toLocaleDateString("en-GB");
@@ -382,19 +446,6 @@ function renderProfileBio(settings) {
   }
 }
 
-function applyProfileMedia(profile = {}) {
-  const avatarEl = document.getElementById("profile_log");
-  const bannerEl = document.querySelector(".profile_banner_image");
-
-  if (avatarEl) {
-    avatarEl.src = avatarUrl(profile.avatarUrl);
-  }
-
-  if (bannerEl) {
-    bannerEl.src = bannerUrl(profile.bannerUrl);
-  }
-}
-
 function applyProfileVisibility(settings, visibility = {}) {
   const social = settings?.social || {};
   const isOwner = visibility?.isOwner === true;
@@ -424,14 +475,14 @@ function applyProfileVisibility(settings, visibility = {}) {
 function applyCommentComposerVisibility(settings, isOwner) {
   const social = settings?.social || {};
 
-  const commentHeading = document.querySelector(".profile_comments h3");
-  const commentWrapper = document.querySelector(".profile_comments .comment_wrapper");
-  const commentMeta = document.querySelector(".profile_comments .comment_meta");
+  const commentHeading = document.getElementById("profileCommentsTitle");
+  const commentComposer = document.getElementById("profileCommentComposer");
+  const commentMeta = document.getElementById("profileCommentMeta");
 
   const commentsAllowed = social.allowProfileComments !== false;
 
-  if (commentWrapper) {
-    commentWrapper.hidden = !commentsAllowed || isOwner;
+  if (commentComposer) {
+    commentComposer.hidden = !commentsAllowed || isOwner;
   }
 
   if (commentMeta) {
@@ -674,7 +725,6 @@ async function openReviewDetails(reviewId) {
   }
 }
 
-// Loads profile reviews with pagination and binds click events to open the review modal
 async function loadProfileReviews(username) {
   const list = document.getElementById("profileReviewsList");
   const showMoreBtn = document.getElementById("profileReviewsShowMore");
@@ -687,7 +737,6 @@ async function loadProfileReviews(username) {
   let loading = false;
   let hasMore = false;
 
-  // Load reviews with pagination, appending to the list if append=true
   async function loadPage({ append = false } = {}) {
     if (loading) return;
     loading = true;
@@ -749,7 +798,6 @@ async function loadProfileReviews(username) {
   await loadPage();
 }
 
-// Applies the appropriate text, state, and visibility to the friend action button based on the current relationship status
 function applyFriendButtonState(button, status) {
   if (!button) return;
 
@@ -800,7 +848,6 @@ function applyFriendButtonState(button, status) {
   }
 }
 
-// Handles the friend section of the profile, including loading the friends list and managing friend requests based on the current relationship status
 async function setupFriendSection({ me, profile }) {
   const button = document.getElementById("friendActionBtn");
   const friendsTitle = document.querySelector(".profile_friendlist h3");
@@ -971,7 +1018,6 @@ async function setupFriendSection({ me, profile }) {
   await refreshFriendData();
 }
 
-// Main function to load and render the profile page, including user info, social links, bio, recent activity, reviews, and friend section
 async function loadProfile() {
   const params = new URLSearchParams(window.location.search);
   const requestedUsername = params.get("username");
@@ -997,6 +1043,11 @@ async function loadProfile() {
     (!requestedUsername || requestedUsername.trim().toLowerCase() === me.username.trim().toLowerCase());
 
   hidePrivateProfileState();
+
+  const cachedMedia = readCachedProfileMedia(targetUsername);
+  if (cachedMedia) {
+    applyProfileMedia(cachedMedia);
+  }
 
   let profile;
 
@@ -1070,9 +1121,16 @@ async function loadProfile() {
   const lastEl = document.getElementById("lastOnline");
   if (lastEl) lastEl.textContent = `Last Online: ${formatDate(profile.lastLoginAt)}`;
 
+  const nextMedia = {
+    avatarUrl: profile?.avatarUrl || "",
+    bannerUrl: profile?.bannerUrl || ""
+  };
+
+  applyProfileMedia(nextMedia);
+  writeCachedProfileMedia(resolvedProfileUsername, nextMedia);
+
   renderProfileSocialLinks(profileSettings);
   renderProfileBio(profileSettings);
-  applyProfileMedia(profile);
   applyProfileVisibility(profileSettings, profileVisibility);
   applyCommentComposerVisibility(profileSettings, isOwner);
 
@@ -1174,18 +1232,18 @@ window.addEventListener("mgl:settings-saved", () => {
 
 window.addEventListener("mgl:profile-media-updated", (e) => {
   const detail = e.detail || {};
+  const currentUsername =
+    window.currentProfileUsername ||
+    new URLSearchParams(window.location.search).get("username");
 
-  if (detail.avatarUrl !== undefined) {
-    const avatarEl = document.getElementById("profile_log");
-    if (avatarEl) {
-      avatarEl.src = avatarUrl(detail.avatarUrl);
-    }
-  }
+  const nextMedia = {
+    avatarUrl: detail.avatarUrl || "",
+    bannerUrl: detail.bannerUrl || ""
+  };
 
-  if (detail.bannerUrl !== undefined) {
-    const bannerEl = document.querySelector(".profile_banner_image");
-    if (bannerEl) {
-      bannerEl.src = bannerUrl(detail.bannerUrl);
-    }
+  applyProfileMedia(nextMedia);
+
+  if (currentUsername) {
+    writeCachedProfileMedia(currentUsername, nextMedia);
   }
 });
