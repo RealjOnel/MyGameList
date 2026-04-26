@@ -111,7 +111,7 @@ PLACEHOLDER FOR EVERY HTML PAGE (YOU MIGHT NEED TO CHANGE PATHS)
                 </div>
 
                 <div id="userMenu" class="user-menu">
-                    <img id="userIcon" src="/assets/User/Default_User_Icon.png" alt="User" class="user-icon">
+                    <img id="userIcon" src="/assets/User/Default_User_Icon.png" alt="User" class="user-icon user-icon--pending">
 
                     <div id="userDropdown" class="user-dropdown" aria-hidden="true">
                         <a class="dropdown-item" href="/profile/profile.html">Profile</a>
