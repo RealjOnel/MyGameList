@@ -1,7 +1,12 @@
 import express from "express";
+import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
 import { z } from "zod";
+import { env } from "../config/validateEnv.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
 import { User } from "../models/user.js";
+import multer from "multer";
+import { cloudinary } from "../services/cloudinary.js";
 
 const router = express.Router();
 
@@ -125,6 +130,60 @@ const settingsPatchSchema = z.object({
     liveSearchSuggestions: z.boolean().optional(),
   }).partial().optional(),
 }).strict();
+
+const ALLOWED_IMAGE_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp"
+]);
+
+const MAX_PROFILE_MEDIA_BYTES = 6 * 1024 * 1024; // 6 MB
+
+const uploadProfileMedia = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: MAX_PROFILE_MEDIA_BYTES
+  },
+  fileFilter(req, file, cb) {
+    if (!ALLOWED_IMAGE_MIME_TYPES.has(file.mimetype)) {
+      return cb(new Error("Only JPG, PNG or WEBP images are allowed"));
+    }
+
+    cb(null, true);
+  }
+});
+
+function parseMediaType(value) {
+  const raw = String(value || "").trim().toLowerCase();
+
+  if (!["avatar", "banner"].includes(raw)) {
+    return {
+      ok: false,
+      message: "Invalid media type"
+    };
+  }
+
+  return {
+    ok: true,
+    value: raw
+  };
+}
+
+function uploadBufferToCloudinary(buffer, options = {}) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      options,
+      (error, result) => {
+        if (error || !result) {
+          return reject(error || new Error("Cloudinary upload failed"));
+        }
+        resolve(result);
+      }
+    );
+
+    stream.end(buffer);
+  });
+}
 
 function normalizeUsername(rawValue = "") {
   return String(rawValue || "").trim().toLowerCase();
@@ -337,16 +396,10 @@ function canViewProfile(viewer, targetUser) {
   const settings = normalizeSettings(targetUser.settings);
   const isPublic = settings.privacy.publicProfile !== false;
 
-  // Guests may view public profiles
   if (!viewer) return isPublic;
-
-  // Logged-in owner may always view own profile
   if (sameId(viewer._id, targetUser._id)) return true;
-
-  // Friends may view friend-only/private profiles
   if (hasFriend(viewer, targetUser._id)) return true;
 
-  // Everyone else may only view public profiles
   return isPublic;
 }
 
@@ -354,19 +407,51 @@ function getPublicUsername(user) {
   return user?.displayUsername || user?.username || "";
 }
 
+function getOptionalViewerId(req) {
+  const authHeader = String(req.headers?.authorization || "").trim();
+  if (!authHeader) return null;
+
+  const [scheme, token] = authHeader.split(" ");
+
+  if (scheme !== "Bearer" || !token) {
+    return null;
+  }
+
+  try {
+    const payload = jwt.verify(token, env.JWT_SECRET);
+    const rawUserId = payload?.id || payload?.userId;
+
+    if (!rawUserId) {
+      return null;
+    }
+
+    const viewerId = String(rawUserId);
+
+    if (!mongoose.Types.ObjectId.isValid(viewerId)) {
+      return null;
+    }
+
+    return viewerId;
+  } catch {
+    return null;
+  }
+}
+
 // GET /api/users/me
 router.get("/me", requireAuth, async (req, res) => {
   try {
     res.set("Cache-Control", "no-store");
 
-    const user = await User.findById(req.userId).select("username displayUsername createdAt lastLoginAt");
+    const user = await User.findById(req.userId).select("username displayUsername createdAt lastLoginAt avatarUrl bannerUrl");
     if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json({
       id: user._id,
       username: getPublicUsername(user),
       createdAt: user.createdAt ?? user._id.getTimestamp(),
-      lastLoginAt: user.lastLoginAt ?? null
+      lastLoginAt: user.lastLoginAt ?? null,
+      avatarUrl: user.avatarUrl ?? null,
+      bannerUrl: user.bannerUrl ?? null
     });
   } catch (e) {
     console.error(e);
@@ -379,13 +464,16 @@ router.get("/settings", requireAuth, async (req, res) => {
   try {
     res.set("Cache-Control", "no-store");
 
-    const user = await User.findById(req.userId).select("settings");
+    const user = await User.findById(req.userId).select("settings avatarUrl bannerUrl username displayUsername");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     res.json({
       settings: normalizeSettings(user.settings),
+      avatarUrl: user.avatarUrl ?? null,
+      bannerUrl: user.bannerUrl ?? null,
+      username: getPublicUsername(user)
     });
   } catch (e) {
     console.error(e);
@@ -451,7 +539,7 @@ router.get("/search", async (req, res) => {
       username: { $regex: safe, $options: "i" },
       "settings.privacy.showProfileInSearch": { $ne: false }
     })
-      .select("username displayUsername")
+      .select("username displayUsername avatarUrl")
       .sort({ username: 1 })
       .limit(8);
 
@@ -459,7 +547,7 @@ router.get("/search", async (req, res) => {
       users: users.map((user) => ({
         id: user._id,
         username: getPublicUsername(user),
-        avatarUrl: null
+        avatarUrl: user.avatarUrl || null
       }))
     });
   } catch (e) {
@@ -467,6 +555,105 @@ router.get("/search", async (req, res) => {
     res.status(500).json({ message: "Failed to search users" });
   }
 });
+
+// POST /api/users/profile-media/:type
+router.post(
+  "/profile-media/:type",
+  requireAuth,
+  (req, res, next) => {
+    uploadProfileMedia.single("image")(req, res, (err) => {
+      if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({
+          message: "Image must be 6MB or smaller"
+        });
+      }
+
+      if (err) {
+        return res.status(400).json({
+          message: err.message || "Invalid image upload"
+        });
+      }
+
+      next();
+    });
+  },
+  async (req, res) => {
+    try {
+      const typeResult = parseMediaType(req.params.type);
+      if (!typeResult.ok) {
+        return res.status(400).json({ message: typeResult.message });
+      }
+
+      if (!req.file?.buffer) {
+        return res.status(400).json({ message: "No image uploaded" });
+      }
+
+      const user = await User.findById(req.userId).select("avatarUrl bannerUrl updatedAt");
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const type = typeResult.value;
+
+      const uploadOptions =
+        type === "avatar"
+          ? {
+              folder: "mygamelist/avatars",
+              public_id: `${req.userId}_avatar`,
+              overwrite: true,
+              invalidate: true,
+              resource_type: "image",
+              transformation: [
+                {
+                  width: 512,
+                  height: 512,
+                  crop: "fill",
+                  gravity: "auto",
+                  fetch_format: "auto",
+                  quality: "auto"
+                }
+              ]
+            }
+          : {
+              folder: "mygamelist/banners",
+              public_id: `${req.userId}_banner`,
+              overwrite: true,
+              invalidate: true,
+              resource_type: "image",
+              transformation: [
+                {
+                  width: 1600,
+                  height: 400,
+                  crop: "fill",
+                  gravity: "auto",
+                  fetch_format: "auto",
+                  quality: "auto"
+                }
+              ]
+            };
+
+      const result = await uploadBufferToCloudinary(req.file.buffer, uploadOptions);
+
+      if (type === "avatar") {
+        user.avatarUrl = result.secure_url;
+      } else {
+        user.bannerUrl = result.secure_url;
+      }
+
+      user.updatedAt = new Date();
+      await user.save();
+
+      return res.json({
+        message: `${type === "avatar" ? "Avatar" : "Banner"} updated successfully`,
+        avatarUrl: user.avatarUrl ?? null,
+        bannerUrl: user.bannerUrl ?? null
+      });
+    } catch (e) {
+      console.error(e);
+      return res.status(500).json({ message: "Failed to upload profile media" });
+    }
+  }
+);
 
 // GET /api/users/profile/:username
 router.get("/profile/:username", async (req, res) => {
@@ -481,9 +668,16 @@ router.get("/profile/:username", async (req, res) => {
       });
     }
 
-    const user = await User.findOne({
-      username: usernameResult.normalizedValue
-    }).select("username displayUsername createdAt lastLoginAt settings friends");
+    const viewerId = getOptionalViewerId(req);
+
+    const [viewer, user] = await Promise.all([
+      viewerId
+        ? User.findById(viewerId).select("_id username displayUsername friends")
+        : null,
+      User.findOne({
+        username: usernameResult.normalizedValue
+      }).select("username displayUsername createdAt lastLoginAt settings friends avatarUrl bannerUrl")
+    ]);
 
     if (!user) {
       return res.status(404).json({
@@ -492,13 +686,8 @@ router.get("/profile/:username", async (req, res) => {
     }
 
     const settings = normalizeSettings(user.settings);
-
-    // This route is public now.
-    // Without optional auth middleware, guests are treated as viewer = null.
-    const viewer = null;
-
-    const isOwner = false;
-    const isFriend = false;
+    const isOwner = viewer ? sameId(viewer._id, user._id) : false;
+    const isFriend = viewer ? hasFriend(viewer, user._id) : false;
 
     if (!canViewProfile(viewer, user)) {
       return res.status(403).json({
@@ -511,6 +700,8 @@ router.get("/profile/:username", async (req, res) => {
       username: getPublicUsername(user),
       createdAt: user.createdAt ?? user._id.getTimestamp(),
       lastLoginAt: user.lastLoginAt ?? null,
+      avatarUrl: user.avatarUrl ?? null,
+      bannerUrl: user.bannerUrl ?? null,
       settings,
       visibility: {
         isOwner,

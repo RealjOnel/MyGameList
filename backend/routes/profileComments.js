@@ -101,7 +101,7 @@ router.get("/:username", async (req, res) => {
 
     const comments = await ProfileComment.find({ profileUserId: profileUser._id })
       .sort({ createdAt: -1 })
-      .populate("authorUserId", "username displayUsername")
+      .populate("authorUserId", "username displayUsername avatarUrl")
       .limit(100);
 
     const out = comments.map((comment) => ({
@@ -111,7 +111,7 @@ router.get("/:username", async (req, res) => {
       canDelete: false,
       author: {
         username: getPublicUsername(comment.authorUserId),
-        avatarUrl: null,
+        avatarUrl: comment.authorUserId?.avatarUrl ?? null,
       },
     }));
 
@@ -156,7 +156,7 @@ router.post("/:username", requireAuth, postCommentLimiter, async (req, res) => {
       });
     }
 
-    const authorUser = await User.findById(req.userId).select("_id username displayUsername");
+    const authorUser = await User.findById(req.userId).select("_id username displayUsername avatarUrl");
     if (!authorUser) {
       return res.status(404).json({ message: "Author user not found" });
     }
@@ -205,7 +205,7 @@ router.post("/:username", requireAuth, postCommentLimiter, async (req, res) => {
         canDelete: true,
         author: {
           username: getPublicUsername(authorUser),
-          avatarUrl: null,
+          avatarUrl: authorUser?.avatarUrl ?? null,
         },
       },
     });

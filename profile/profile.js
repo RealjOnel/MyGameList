@@ -6,6 +6,9 @@ function qs(sel) { return document.querySelector(sel); }
 
 const LOGIN_URL = "../LoginPageAndLogic/login.html";
 
+const DEFAULT_AVATAR_URL = "/assets/User/Default_User_Icon.png";
+const DEFAULT_BANNER_URL = "/assets/User/banner.png";
+
 const DEFAULT_SETTINGS = Object.freeze({
   profile: {
     bio: "",
@@ -103,6 +106,123 @@ async function readJsonResponse(res) {
   } catch {
     return {};
   }
+}
+
+function isPrivateProfileError(err) {
+  const msg = String(err?.message || "").toLowerCase();
+  return msg.includes("this profile is private");
+}
+
+function showPrivateProfileState() {
+  const layout = document.querySelector(".profile-layout");
+  const privateState = document.getElementById("profilePrivateState");
+
+  if (layout) layout.hidden = true;
+  if (privateState) privateState.hidden = false;
+
+  document.title = "Private Profile | MyGameList";
+}
+
+function hidePrivateProfileState() {
+  const layout = document.querySelector(".profile-layout");
+  const privateState = document.getElementById("profilePrivateState");
+
+  if (layout) layout.hidden = false;
+  if (privateState) privateState.hidden = true;
+}
+
+function normalizeMediaUrl(value, fallback) {
+  const url = String(value || "").trim();
+  return url || fallback;
+}
+
+function avatarUrl(avatar) {
+  return normalizeMediaUrl(avatar, DEFAULT_AVATAR_URL);
+}
+
+function bannerUrl(banner) {
+  return normalizeMediaUrl(banner, DEFAULT_BANNER_URL);
+}
+
+function getProfileMediaCacheKey(username = "") {
+  return `mgl_profile_media:${String(username || "").trim().toLowerCase()}`;
+}
+
+function readCachedProfileMedia(username) {
+  if (!username) return null;
+
+  try {
+    const raw = localStorage.getItem(getProfileMediaCacheKey(username));
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    return {
+      avatarUrl: parsed?.avatarUrl || "",
+      bannerUrl: parsed?.bannerUrl || ""
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedProfileMedia(username, media = {}) {
+  if (!username) return;
+
+  try {
+    localStorage.setItem(
+      getProfileMediaCacheKey(username),
+      JSON.stringify({
+        avatarUrl: media?.avatarUrl || "",
+        bannerUrl: media?.bannerUrl || ""
+      })
+    );
+  } catch (err) {
+    console.error("Failed to cache profile media:", err);
+  }
+}
+
+function applyProfileMedia(profile = {}) {
+  const avatarEl = document.getElementById("profile_log");
+  const bannerEl =
+    document.getElementById("profileBannerImage") ||
+    document.querySelector(".profile_banner_image");
+
+  const nextAvatarUrl = avatarUrl(profile?.avatarUrl);
+  const nextBannerUrl = bannerUrl(profile?.bannerUrl);
+
+  if (avatarEl) {
+    avatarEl.src = nextAvatarUrl;
+    avatarEl.classList.remove("profile-media--pending");
+    avatarEl.classList.add("profile-media--ready");
+  }
+
+  if (bannerEl) {
+    bannerEl.src = nextBannerUrl;
+    bannerEl.classList.remove("profile-media--pending");
+    bannerEl.classList.add("profile-media--ready");
+  }
+}
+
+async function buildOwnProfileFallback(me) {
+  if (!me?.username) {
+    throw new Error("Profile unavailable");
+  }
+
+  const settingsData = await authApi("/api/users/settings");
+
+  return {
+    username: me.username,
+    createdAt: me.createdAt ?? null,
+    lastLoginAt: me.lastLoginAt ?? null,
+    avatarUrl: me.avatarUrl ?? settingsData?.avatarUrl ?? "",
+    bannerUrl: me.bannerUrl ?? settingsData?.bannerUrl ?? "",
+    settings: settingsData?.settings || {},
+    visibility: {
+      isOwner: true,
+      isFriend: false,
+      publicProfile: true
+    }
+  };
 }
 
 /*
@@ -214,10 +334,6 @@ function coverUrl(coverImageId) {
   return coverImageId
     ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${coverImageId}.jpg`
     : "../../assets/placeholder-cover.png";
-}
-
-function avatarUrl(avatar) {
-  return avatar || "../assets/User/Default_User_Icon.png";
 }
 
 function formatDate(iso) {
@@ -359,14 +475,14 @@ function applyProfileVisibility(settings, visibility = {}) {
 function applyCommentComposerVisibility(settings, isOwner) {
   const social = settings?.social || {};
 
-  const commentHeading = document.querySelector(".profile_comments h3");
-  const commentWrapper = document.querySelector(".profile_comments .comment_wrapper");
-  const commentMeta = document.querySelector(".profile_comments .comment_meta");
+  const commentHeading = document.getElementById("profileCommentsTitle");
+  const commentComposer = document.getElementById("profileCommentComposer");
+  const commentMeta = document.getElementById("profileCommentMeta");
 
   const commentsAllowed = social.allowProfileComments !== false;
 
-  if (commentWrapper) {
-    commentWrapper.hidden = !commentsAllowed || isOwner;
+  if (commentComposer) {
+    commentComposer.hidden = !commentsAllowed || isOwner;
   }
 
   if (commentMeta) {
@@ -377,7 +493,7 @@ function applyCommentComposerVisibility(settings, isOwner) {
     if (!commentsAllowed || isOwner) {
       commentHeading.textContent = "Profile Comments";
     } else {
-      commentHeading.textContent = `Leave a Comment`;
+      commentHeading.textContent = "Leave a Comment";
     }
   }
 }
@@ -922,8 +1038,33 @@ async function loadProfile() {
   }
 
   const targetUsername = requestedUsername || me.username;
+  const isOwnProfileRequest =
+    Boolean(me?.username) &&
+    (!requestedUsername || requestedUsername.trim().toLowerCase() === me.username.trim().toLowerCase());
 
-  const profile = await api(`/api/users/profile/${encodeURIComponent(targetUsername)}`);
+  hidePrivateProfileState();
+
+  const cachedMedia = readCachedProfileMedia(targetUsername);
+  if (cachedMedia) {
+    applyProfileMedia(cachedMedia);
+  }
+
+  let profile;
+
+  try {
+    profile = await api(`/api/users/profile/${encodeURIComponent(targetUsername)}`);
+  } catch (err) {
+    if (isPrivateProfileError(err)) {
+      if (isOwnProfileRequest) {
+        profile = await buildOwnProfileFallback(me);
+      } else {
+        showPrivateProfileState();
+        return;
+      }
+    } else {
+      throw err;
+    }
+  }
 
   const resolvedProfileUsername = profile?.username || requestedUsername || me?.username;
 
@@ -958,10 +1099,10 @@ async function loadProfile() {
   const profileSettings = normalizeSettings(profile.settings);
 
   const profileVisibility = {
-    isOwner,
-    isFriend: false,
-    publicProfile: true,
-    ...(profile.visibility || {})
+    ...(profile.visibility || {}),
+    isFriend: profile?.visibility?.isFriend ?? false,
+    publicProfile: profile?.visibility?.publicProfile ?? true,
+    isOwner
   };
 
   const usernameEl = qs(".profile_username");
@@ -969,7 +1110,7 @@ async function loadProfile() {
 
   const descTitle = document.getElementById("playerDescriptionTitle");
   if (descTitle) {
-    descTitle.textContent = `Description:`;
+    descTitle.textContent = "Description:";
   }
 
   document.title = `${resolvedProfileUsername} | MyGameList`;
@@ -979,6 +1120,14 @@ async function loadProfile() {
 
   const lastEl = document.getElementById("lastOnline");
   if (lastEl) lastEl.textContent = `Last Online: ${formatDate(profile.lastLoginAt)}`;
+
+  const nextMedia = {
+    avatarUrl: profile?.avatarUrl || "",
+    bannerUrl: profile?.bannerUrl || ""
+  };
+
+  applyProfileMedia(nextMedia);
+  writeCachedProfileMedia(resolvedProfileUsername, nextMedia);
 
   renderProfileSocialLinks(profileSettings);
   renderProfileBio(profileSettings);
@@ -1079,4 +1228,22 @@ window.addEventListener("mgl:settings-saved", () => {
   loadProfile().catch(err => {
     console.error(err);
   });
+});
+
+window.addEventListener("mgl:profile-media-updated", (e) => {
+  const detail = e.detail || {};
+  const currentUsername =
+    window.currentProfileUsername ||
+    new URLSearchParams(window.location.search).get("username");
+
+  const nextMedia = {
+    avatarUrl: detail.avatarUrl || "",
+    bannerUrl: detail.bannerUrl || ""
+  };
+
+  applyProfileMedia(nextMedia);
+
+  if (currentUsername) {
+    writeCachedProfileMedia(currentUsername, nextMedia);
+  }
 });

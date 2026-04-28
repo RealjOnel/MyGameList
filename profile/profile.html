@@ -109,7 +109,7 @@
                 </div>
 
                 <div id="userMenu" class="user-menu">
-                    <img id="userIcon" src="/assets/User/Default_User_Icon.png" alt="User" class="user-icon">
+                    <img id="userIcon" src="/assets/User/Default_User_Icon.png" alt="User" class="user-icon user-icon--pending">
 
                     <div id="userDropdown" class="user-dropdown" aria-hidden="true">
                         <a class="dropdown-item" href="/profile/profile.html">Profile</a>
@@ -126,7 +126,7 @@
 <div class="profile-layout reveal">
     <div class="sidebar">
         <div class="profile_identity">
-            <img src="../assets/User/Default_User_Icon.png" alt="User Icon" id="profile_log" class="profile_icon ">
+            <img src="../assets/User/Default_User_Icon.png" alt="User Icon" id="profile_log" class="profile_icon profile-media--pending">
             <h2 class="profile_username">Username</h2>
         </div>
         <div class="profile_socials" id="profileSocialLinks"></div>
@@ -170,7 +170,7 @@
 
         <!-- banner -->
         <div class="profile_banner">
-            <img src="../assets/User/banner.png" alt="banner" class="profile_banner_image">
+            <img src="../assets/User/banner.png" alt="banner" id="profileBannerImage" class="profile_banner_image profile-media--pending">
         </div>
 
         <div class="profile_content">
@@ -283,6 +283,16 @@
             </div>
             
         </div>
+    </div>
+</div>
+
+<div id="profilePrivateState" class="profile-private-state" hidden>
+    <div class="profile-private-card">
+        <div class="profile-private-icon">
+            <i class="fa-solid fa-lock"></i>
+        </div>
+        <h1>This profile is private</h1>
+        <p>You do not have permission to view this profile.</p>
     </div>
 </div>
 

@@ -204,11 +204,13 @@ function getOptionalViewerId(req) {
   try {
     const payload = jwt.verify(token, env.JWT_SECRET);
 
-    if (!payload?.userId) {
+    const rawUserId = payload?.id || payload?.userId;
+
+    if (!rawUserId) {
       return null;
     }
 
-    const viewerId = String(payload.userId);
+    const viewerId = String(rawUserId);
 
     if (!mongoose.Types.ObjectId.isValid(viewerId)) {
       return null;
@@ -271,7 +273,7 @@ function serializeReview({
       ? {
           id: author._id,
           username: getPublicUsername(author),
-          avatarUrl: null
+          avatarUrl: author?.avatarUrl ?? null
         }
       : null,
     game: game
@@ -326,7 +328,7 @@ router.get("/game/:igdbId/me", requireAuth, async (req, res) => {
       });
     }
 
-    const me = await User.findById(req.userId).select("username displayUsername");
+    const me = await User.findById(req.userId).select("username displayUsername avatarUrl")
     const reactionStateMap = await buildReactionState([review._id], req.userId);
 
     return res.json({
@@ -449,7 +451,7 @@ router.get("/game/:igdbId", async (req, res) => {
     const reviewIds = reviews.map((review) => review._id);
 
     const [authors, entries, reactionStateMap] = await Promise.all([
-      User.find({ _id: { $in: userIds } }).select("username displayUsername"),
+      User.find({ _id: { $in: userIds } }).select("username displayUsername avatarUrl"),
       UserGameEntry.find({
         gameId: game._id,
         userId: { $in: userIds }
@@ -504,7 +506,7 @@ router.get("/profile/:username", async (req, res) => {
         ? User.findById(viewerId).select("_id username displayUsername friends")
         : null,
       User.findOne({ username: usernameResult.normalizedValue })
-        .select("_id username displayUsername settings friends")
+        .select("_id username displayUsername avatarUrl settings friends")
     ]);
 
     if (!targetUser) {
@@ -594,7 +596,7 @@ router.get("/:reviewId", async (req, res) => {
     }
 
     const [author, game, entry, reactionStateMap] = await Promise.all([
-      User.findById(review.userId).select("username displayUsername"),
+      User.findById(review.userId).select("username displayUsername avatarUrl"),
       Game.findById(review.gameId).select("igdbId name coverImageId"),
       UserGameEntry.findOne({
         userId: review.userId,

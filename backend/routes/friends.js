@@ -67,7 +67,7 @@ function normalizeFriendUser(user) {
   return {
     id: user._id,
     username: getPublicUsername(user),
-    avatarUrl: null,
+    avatarUrl: user?.avatarUrl ?? null,
     createdAt: user.createdAt ?? null,
     lastLoginAt: user.lastLoginAt ?? null,
   };
@@ -103,11 +103,13 @@ function getOptionalViewerId(req) {
   try {
     const payload = jwt.verify(token, env.JWT_SECRET);
 
-    if (!payload?.userId) {
+    const rawUserId = payload?.id || payload?.userId;
+
+    if (!rawUserId) {
       return null;
     }
 
-    const viewerId = String(payload.userId);
+    const viewerId = String(rawUserId);
 
     if (!mongoose.Types.ObjectId.isValid(viewerId)) {
       return null;
@@ -245,7 +247,7 @@ router.get("/list/:username", async (req, res) => {
 
       User.findOne({ username: usernameResult.normalizedValue })
         .select("_id username displayUsername settings friends")
-        .populate("friends", "username displayUsername createdAt lastLoginAt")
+        .populate("friends", "username displayUsername avatarUrl createdAt lastLoginAt")
     ]);
 
     if (!profileUser) {
@@ -541,7 +543,7 @@ router.get("/notifications", requireAuth, async (req, res) => {
       status: "pending",
     })
       .sort({ createdAt: -1 })
-      .populate("fromUserId", "username displayUsername")
+      .populate("fromUserId", "username displayUsername avatarUrl")
       .limit(25);
 
     const notifications = requests.map((reqDoc) => ({
@@ -551,7 +553,7 @@ router.get("/notifications", requireAuth, async (req, res) => {
       fromUser: {
         id: reqDoc.fromUserId?._id ?? null,
         username: getPublicUsername(reqDoc.fromUserId),
-        avatarUrl: null,
+        avatarUrl: reqDoc.fromUserId?.avatarUrl ?? null,
       },
     }));
 

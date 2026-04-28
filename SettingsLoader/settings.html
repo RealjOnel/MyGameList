@@ -56,24 +56,48 @@
                 <div class="settings-media-card">
                   <span class="settings-label">Profile Picture</span>
                   <span class="settings-help">Upload a new avatar for your public profile.</span>
+
                   <div class="settings-media-preview avatar-preview">
-                    <img src="../assets/User/Default_User_Icon.png" alt="Profile Preview">
+                    <img
+                      id="settingsAvatarPreview"
+                      src="/assets/User/Default_User_Icon.png"
+                      alt="Profile Preview"
+                    >
                   </div>
+
                   <label class="settings-file-btn">
-                    <input type="file" accept="image/*" hidden>
-                    Change Picture
+                    <input
+                      id="settingsAvatarInput"
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      data-profile-media="avatar"
+                      hidden
+                    >
+                    <span id="settingsAvatarUploadLabel">Change Picture</span>
                   </label>
                 </div>
 
                 <div class="settings-media-card">
                   <span class="settings-label">Profile Banner</span>
                   <span class="settings-help">Set the banner shown at the top of your profile.</span>
+
                   <div class="settings-media-preview banner-preview">
-                    <span>Banner Preview</span>
+                    <img
+                      id="settingsBannerPreview"
+                      src="/assets/User/banner.png"
+                      alt="Banner Preview"
+                    >
                   </div>
+
                   <label class="settings-file-btn">
-                    <input type="file" accept="image/*" hidden>
-                    Change Banner
+                    <input
+                      id="settingsBannerInput"
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      data-profile-media="banner"
+                      hidden
+                    >
+                    <span id="settingsBannerUploadLabel">Change Banner</span>
                   </label>
                 </div>
               </div>
@@ -81,11 +105,17 @@
               <label class="settings-row settings-row--stack">
                 <div>
                   <span class="settings-label">Username</span>
-                  <span class="settings-help">Your public name. Can only be changed once every 14 days.</span>
+                  <span class="settings-help">Your public name. Username change logic comes in the next step.</span>
                 </div>
                 <div class="settings-field-wrap">
-                  <input class="settings-input" type="text" value="jOnel">
-                  <span class="settings-note">Next change available in 9 days</span>
+                  <input
+                    class="settings-input"
+                    id="settingsUsernameInput"
+                    type="text"
+                    value=""
+                    readonly
+                  >
+                  <span class="settings-note" id="settingsUsernameNote">Username change available soon</span>
                 </div>
               </label>
 
@@ -423,4 +453,42 @@
       </div>
     </div>
   </section>
+
+  <div id="settingsCropOverlay" class="settings-crop-overlay" hidden>
+    <div class="settings-crop-backdrop"></div>
+
+    <section class="settings-crop-modal" role="dialog" aria-modal="true" aria-labelledby="settingsCropTitle">
+      <div class="settings-crop-head">
+        <div>
+          <h3 id="settingsCropTitle">Adjust Image</h3>
+          <p id="settingsCropSubtitle">Drag to reposition and use the slider to zoom.</p>
+        </div>
+
+        <button id="settingsCropClose" class="settings-crop-close" type="button" aria-label="Close crop editor">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="settings-crop-stage">
+        <div id="settingsCropFrame" class="settings-crop-frame settings-crop-frame--avatar">
+          <img id="settingsCropImage" class="settings-crop-image" alt="Crop preview">
+        </div>
+      </div>
+
+      <div class="settings-crop-controls">
+        <button id="settingsCropZoomOut" class="btn-secondary" type="button">-</button>
+
+        <input id="settingsCropZoomRange" class="settings-crop-range" type="range" min="100" max="400" step="1" value="100">
+
+        <button id="settingsCropZoomIn" class="btn-secondary" type="button">+</button>
+
+        <span id="settingsCropZoomValue" class="settings-crop-zoom-value">100%</span>
+      </div>
+
+      <div class="settings-crop-actions">
+        <button id="settingsCropCancel" class="btn-secondary" type="button">Cancel</button>
+        <button id="settingsCropConfirm" class="btn-primary" type="button">Confirm</button>
+      </div>
+    </section>
+  </div>
 </div>
