@@ -437,12 +437,64 @@ function getOptionalViewerId(req) {
   }
 }
 
+// Username change helpers
+
+const USERNAME_CHANGE_INTERVAL_DAYS = 14;
+const USERNAME_CHANGE_INTERVAL_MS = USERNAME_CHANGE_INTERVAL_DAYS * 24 * 60 * 60 * 1000;
+
+const usernameUpdateSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .min(3, "Username must be at least 3 characters long")
+    .max(20, "Username must be 20 characters or less")
+    .regex(/^[A-Za-z0-9_]+$/, "Username may only contain letters, numbers and underscores")
+}).strict();
+
+function parseUsernameUpdateBody(raw = {}) {
+  const parsed = usernameUpdateSchema.safeParse(raw);
+
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message || "Invalid username payload"
+    };
+  }
+
+  return {
+    ok: true,
+    value: parsed.data
+  };
+}
+
+function getUsernameChangeBaseDate(user) {
+  return user?.usernameChangedAt || user?.createdAt || user?._id?.getTimestamp?.() || new Date();
+}
+
+function getUsernameChangeInfo(user) {
+  const now = Date.now();
+  const lastChangedAt = new Date(getUsernameChangeBaseDate(user));
+  const nextChangeAt = new Date(lastChangedAt.getTime() + USERNAME_CHANGE_INTERVAL_MS);
+  const canChangeNow = now >= nextChangeAt.getTime();
+  const waitDaysRemaining = canChangeNow
+    ? 0
+    : Math.ceil((nextChangeAt.getTime() - now) / (24 * 60 * 60 * 1000));
+
+  return {
+    canChangeNow,
+    minDaysBetweenChanges: USERNAME_CHANGE_INTERVAL_DAYS,
+    lastChangedAt,
+    nextChangeAt,
+    waitDaysRemaining
+  };
+}
+
 // GET /api/users/me
 router.get("/me", requireAuth, async (req, res) => {
   try {
     res.set("Cache-Control", "no-store");
 
-    const user = await User.findById(req.userId).select("username displayUsername createdAt lastLoginAt avatarUrl bannerUrl");
+    const user = await User.findById(req.userId).select("username displayUsername createdAt lastLoginAt avatarUrl bannerUrl usernameChangedAt");
     if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json({
@@ -451,7 +503,8 @@ router.get("/me", requireAuth, async (req, res) => {
       createdAt: user.createdAt ?? user._id.getTimestamp(),
       lastLoginAt: user.lastLoginAt ?? null,
       avatarUrl: user.avatarUrl ?? null,
-      bannerUrl: user.bannerUrl ?? null
+      bannerUrl: user.bannerUrl ?? null,
+      usernameChange: getUsernameChangeInfo(user)
     });
   } catch (e) {
     console.error(e);
@@ -464,7 +517,7 @@ router.get("/settings", requireAuth, async (req, res) => {
   try {
     res.set("Cache-Control", "no-store");
 
-    const user = await User.findById(req.userId).select("settings avatarUrl bannerUrl username displayUsername");
+    const user = await User.findById(req.userId).select("settings avatarUrl bannerUrl username displayUsername usernameChangedAt createdAt");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -473,7 +526,8 @@ router.get("/settings", requireAuth, async (req, res) => {
       settings: normalizeSettings(user.settings),
       avatarUrl: user.avatarUrl ?? null,
       bannerUrl: user.bannerUrl ?? null,
-      username: getPublicUsername(user)
+      username: getPublicUsername(user),
+      usernameChange: getUsernameChangeInfo(user)
     });
   } catch (e) {
     console.error(e);
@@ -517,6 +571,77 @@ router.patch("/settings", requireAuth, async (req, res) => {
 function escapeRegex(str = "") {
   return String(str).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
+
+// PATCH /api/users/username
+router.patch("/username", requireAuth, async (req, res) => {
+  try {
+    res.set("Cache-Control", "no-store");
+
+    const bodyResult = parseUsernameUpdateBody(req.body);
+    if (!bodyResult.ok) {
+      return res.status(400).json({ message: bodyResult.message });
+    }
+
+    const desiredDisplayUsername = bodyResult.value.username.trim();
+    const desiredNormalizedUsername = normalizeUsername(desiredDisplayUsername);
+
+    const user = await User.findById(req.userId).select(
+      "username displayUsername createdAt updatedAt usernameChangedAt avatarUrl bannerUrl"
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (desiredNormalizedUsername === user.username) {
+      return res.json({
+        message: "Username unchanged",
+        username: getPublicUsername(user),
+        avatarUrl: user.avatarUrl ?? null,
+        bannerUrl: user.bannerUrl ?? null,
+        usernameChange: getUsernameChangeInfo(user)
+      });
+    }
+
+    const changeInfo = getUsernameChangeInfo(user);
+
+    if (!changeInfo.canChangeNow) {
+      return res.status(429).json({
+        message: `You can change your username again in ${changeInfo.waitDaysRemaining} day(s).`,
+        usernameChange: changeInfo
+      });
+    }
+
+    const existingUser = await User.findOne({ username: desiredNormalizedUsername }).select("_id");
+    if (existingUser && !sameId(existingUser._id, user._id)) {
+      return res.status(409).json({ message: "This username is already taken" });
+    }
+
+    const now = new Date();
+
+    user.username = desiredNormalizedUsername;
+    user.displayUsername = desiredDisplayUsername;
+    user.usernameChangedAt = now;
+    user.updatedAt = now;
+
+    await user.save();
+
+    return res.json({
+      message: "Username updated successfully",
+      username: getPublicUsername(user),
+      avatarUrl: user.avatarUrl ?? null,
+      bannerUrl: user.bannerUrl ?? null,
+      usernameChange: getUsernameChangeInfo(user)
+    });
+  } catch (e) {
+    if (String(e?.code) === "11000") {
+      return res.status(409).json({ message: "This username is already taken" });
+    }
+
+    console.error(e);
+    return res.status(500).json({ message: "Failed to update username" });
+  }
+});
 
 // GET /api/users/search?q=...
 router.get("/search", async (req, res) => {

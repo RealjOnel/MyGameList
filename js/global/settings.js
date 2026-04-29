@@ -60,6 +60,14 @@ const profileMetaState = {
   username: ""
 };
 
+const usernameChangeState = {
+  canChangeNow: true,
+  minDaysBetweenChanges: 14,
+  lastChangedAt: null,
+  nextChangeAt: null,
+  waitDaysRemaining: 0
+};
+
 const cropState = {
   type: null,
   objectUrl: null,
@@ -143,7 +151,10 @@ async function api(path, { method = "GET", body } = {}) {
   }
 
   if (!res.ok) {
-    throw new Error(data?.message || `Request failed (${res.status})`);
+    const err = new Error(data?.message || `Request failed (${res.status})`);
+    err.status = res.status;
+    err.data = data;
+    throw err;
   }
 
   return data;
@@ -232,6 +243,109 @@ function setImagePreview(imgEl, url, fallbackUrl) {
   imgEl.src = url || fallbackUrl;
 }
 
+// Change Username helper functions
+
+function syncUsernameChangeMeta(data = {}) {
+  const info = data?.usernameChange;
+  if (!info) return;
+
+  usernameChangeState.canChangeNow = info.canChangeNow !== false;
+  usernameChangeState.minDaysBetweenChanges = Number(info.minDaysBetweenChanges || 14);
+  usernameChangeState.lastChangedAt = info.lastChangedAt || null;
+  usernameChangeState.nextChangeAt = info.nextChangeAt || null;
+  usernameChangeState.waitDaysRemaining = Number(info.waitDaysRemaining || 0);
+}
+
+function formatUsernameChangeNote() {
+  const noteEl = document.getElementById("settingsUsernameNote");
+  const inputEl = document.getElementById("settingsUsernameInput");
+
+  if (!noteEl || !inputEl) return;
+
+  if (usernameChangeState.canChangeNow) {
+    noteEl.textContent = `You can change your username now. Next change will be available in ${usernameChangeState.minDaysBetweenChanges} days.`;
+    inputEl.readOnly = false;
+    inputEl.disabled = false;
+    return;
+  }
+
+  const nextDate = usernameChangeState.nextChangeAt
+    ? new Date(usernameChangeState.nextChangeAt).toLocaleDateString("en-GB")
+    : null;
+
+  noteEl.textContent = nextDate
+    ? `Next username change available on ${nextDate} (${usernameChangeState.waitDaysRemaining} day(s) left).`
+    : `Next username change available in ${usernameChangeState.waitDaysRemaining} day(s).`;
+
+  inputEl.readOnly = true;
+  inputEl.disabled = false;
+}
+
+function normalizeUsernameInputValue(value) {
+  return String(value || "").trim();
+}
+
+function syncOwnProfileUrl(oldUsername, newUsername) {
+  if (!newUsername) return;
+
+  const url = new URL(window.location.href);
+  const currentUsernameParam = url.searchParams.get("username");
+
+  if (url.pathname.includes("/profile/")) {
+    if (!currentUsernameParam || currentUsernameParam.trim().toLowerCase() === String(oldUsername || "").trim().toLowerCase()) {
+      url.searchParams.set("username", newUsername);
+      window.history.replaceState({}, "", url.toString());
+    }
+  }
+
+  document.querySelectorAll('#userDropdown a[href*="profile.html"]').forEach((link) => {
+    link.href = `/profile/profile.html?username=${encodeURIComponent(newUsername)}`;
+  });
+}
+
+async function trySaveUsernameChange() {
+  const usernameInput = document.getElementById("settingsUsernameInput");
+  if (!usernameInput) {
+    return { changed: false, error: null };
+  }
+
+  const nextUsername = normalizeUsernameInputValue(usernameInput.value);
+  const currentUsername = normalizeUsernameInputValue(profileMetaState.username);
+
+  if (!nextUsername || nextUsername === currentUsername) {
+    return { changed: false, error: null };
+  }
+
+  try {
+    const data = await api("/api/users/username", {
+      method: "PATCH",
+      body: { username: nextUsername }
+    });
+
+    const previousUsername = profileMetaState.username;
+
+    syncProfileMeta(data);
+    syncUsernameChangeMeta(data);
+    populateProfileMeta();
+    syncOwnProfileUrl(previousUsername, profileMetaState.username);
+
+    window.dispatchEvent(
+      new CustomEvent("mgl:username-updated", {
+        detail: {
+          oldUsername: previousUsername,
+          username: profileMetaState.username
+        }
+      })
+    );
+
+    return { changed: true, error: null };
+  } catch (err) {
+    syncUsernameChangeMeta(err?.data || {});
+    populateProfileMeta();
+    return { changed: false, error: err };
+  }
+}
+
 function syncProfileMeta(data = {}) {
   if (!data || typeof data !== "object") return;
 
@@ -299,6 +413,7 @@ function populateProfileMeta() {
   }
 
   refreshAllUploadUi();
+  formatUsernameChangeNote();
 }
 
 function populateSettingsForm(settings) {
@@ -327,6 +442,7 @@ function updateBioCounter() {
 async function loadSettingsIntoForm() {
   const data = await api("/api/users/settings");
   syncProfileMeta(data);
+  syncUsernameChangeMeta(data);
   populateSettingsForm(data?.settings);
   populateProfileMeta();
   return data;
@@ -369,6 +485,9 @@ async function saveSettingsFromForm() {
   const saveSettingsBtn = document.getElementById("settingsSaveBtn");
   const settings = collectSettingsFromForm();
 
+  const usernameInput = document.getElementById("settingsUsernameInput");
+  const pendingUsernameValue = normalizeUsernameInputValue(usernameInput?.value);
+
   if (saveSettingsBtn) {
     saveSettingsBtn.disabled = true;
     saveSettingsBtn.textContent = "Saving...";
@@ -381,14 +500,26 @@ async function saveSettingsFromForm() {
     });
 
     syncProfileMeta(data);
-    populateSettingsForm(data?.settings);
-    populateProfileMeta();
+    syncUsernameChangeMeta(data);
 
-    window.dispatchEvent(
-      new CustomEvent("mgl:settings-saved", {
-        detail: { settings: data?.settings }
-      })
-    );
+    populateSettingsForm(data?.settings);
+
+    if (usernameInput) {
+      usernameInput.value = pendingUsernameValue || profileMetaState.username || "";
+    }
+
+    formatUsernameChangeNote();
+    refreshAllUploadUi();
+
+    let usernameResult = { changed: false, error: null };
+
+    usernameResult = await trySaveUsernameChange();
+
+    if (usernameResult.error) {
+      if (usernameResult.error.message === "SESSION_EXPIRED") {
+        throw usernameResult.error;
+      }
+    }
 
     const mediaEventDetail = {};
 
@@ -416,6 +547,12 @@ async function saveSettingsFromForm() {
 
     populateProfileMeta();
 
+    window.dispatchEvent(
+      new CustomEvent("mgl:settings-saved", {
+        detail: { settings: data?.settings }
+      })
+    );
+
     if (Object.keys(mediaEventDetail).length) {
       window.dispatchEvent(
         new CustomEvent("mgl:profile-media-updated", {
@@ -424,13 +561,25 @@ async function saveSettingsFromForm() {
       );
     }
 
-    showToast({
-      title: "Settings saved",
-      message: Object.keys(mediaEventDetail).length
-        ? "Your settings and profile media have been updated."
-        : "Your settings have been updated successfully.",
-      type: "success"
-    });
+    if (usernameResult.error) {
+      showToast({
+        title: "Partially saved",
+        message: `Your settings were saved, but the username was not changed: ${usernameResult.error.message}`,
+        type: "warning"
+      });
+    } else {
+      const parts = [];
+
+      if (usernameResult.changed) parts.push("username");
+      if (Object.keys(mediaEventDetail).length) parts.push("profile media");
+      parts.push("settings");
+
+      showToast({
+        title: "Settings saved",
+        message: `Updated: ${parts.join(", ")}.`,
+        type: "success"
+      });
+    }
   } finally {
     if (saveSettingsBtn) {
       saveSettingsBtn.disabled = false;

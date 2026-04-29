@@ -105,7 +105,7 @@
               <label class="settings-row settings-row--stack">
                 <div>
                   <span class="settings-label">Username</span>
-                  <span class="settings-help">Your public name. Username change logic comes in the next step.</span>
+                  <span class="settings-help">Your public name. It can be changed once every 14 days.</span>
                 </div>
                 <div class="settings-field-wrap">
                   <input
@@ -113,9 +113,11 @@
                     id="settingsUsernameInput"
                     type="text"
                     value=""
-                    readonly
+                    maxlength="20"
+                    autocomplete="off"
+                    spellcheck="false"
                   >
-                  <span class="settings-note" id="settingsUsernameNote">Username change available soon</span>
+                  <span class="settings-note" id="settingsUsernameNote">You can change your username every 14 days.</span>
                 </div>
               </label>
 
