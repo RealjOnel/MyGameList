@@ -16,7 +16,8 @@ PLACEHOLDER FOR EVERY HTML PAGE (YOU MIGHT NEED TO CHANGE PATHS)
         }
     })();
     </script>
-    <title>MyGameList | Staff</title>
+    <title>MyGameList | TITLE</title>
+    <link rel="icon" href="/assets/logo/mgllogotabv2.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../style.css">
