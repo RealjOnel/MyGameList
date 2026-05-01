@@ -7,6 +7,9 @@ const DEFAULT_AVATAR_URL = "/assets/User/Default_User_Icon.png";
 const DEFAULT_BANNER_URL = "/assets/User/banner.png";
 const MAX_IMAGE_SIZE_BYTES = 8 * 1024 * 1024; // 8 MB
 
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+const weakPasswords = new Set(["123456", "password", "qwerty", "abc123"]);
+
 const DEFAULT_SETTINGS = Object.freeze({
   profile: {
     bio: "",
@@ -263,6 +266,152 @@ function getProfileHref(username = "") {
 
 function normalizeUsernameInputValue(value) {
   return String(value || "").trim();
+}
+
+// Password change helpers and validation
+
+function getPasswordEls() {
+  return {
+    current: document.getElementById("settingsCurrentPasswordInput"),
+    next: document.getElementById("settingsNewPasswordInput"),
+    confirm: document.getElementById("settingsConfirmPasswordInput")
+  };
+}
+
+function readPasswordValues() {
+  const els = getPasswordEls();
+
+  return {
+    currentPassword: String(els.current?.value || "").trim(),
+    newPassword: String(els.next?.value || "").trim(),
+    confirmPassword: String(els.confirm?.value || "").trim()
+  };
+}
+
+function clearPasswordFields() {
+  const els = getPasswordEls();
+
+  if (els.current) els.current.value = "";
+  if (els.next) els.next.value = "";
+  if (els.confirm) els.confirm.value = "";
+}
+
+function validatePasswordChangeValues(values) {
+  const currentPassword = String(values?.currentPassword || "").trim();
+  const newPassword = String(values?.newPassword || "").trim();
+  const confirmPassword = String(values?.confirmPassword || "").trim();
+
+  const anyFilled = Boolean(currentPassword || newPassword || confirmPassword);
+
+  if (!anyFilled) {
+    return {
+      ok: true,
+      shouldChange: false
+    };
+  }
+
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    return {
+      ok: false,
+      message: "Please fill in all password fields"
+    };
+  }
+
+  if (newPassword.length < 8) {
+    return {
+      ok: false,
+      message: "Password must be at least 8 characters long"
+    };
+  }
+
+  if (!/[A-Z]/.test(newPassword)) {
+    return {
+      ok: false,
+      message: "Password must include at least one uppercase letter"
+    };
+  }
+
+  if (!/[a-z]/.test(newPassword)) {
+    return {
+      ok: false,
+      message: "Password must include at least one lowercase letter"
+    };
+  }
+
+  if (!/\d/.test(newPassword)) {
+    return {
+      ok: false,
+      message: "Password must include at least one number"
+    };
+  }
+
+  if (weakPasswords.has(newPassword.toLowerCase())) {
+    return {
+      ok: false,
+      message: "This password is too common. Please choose a stronger one."
+    };
+  }
+
+  if (newPassword !== confirmPassword) {
+    return {
+      ok: false,
+      message: "New password and confirm password do not match"
+    };
+  }
+
+  if (currentPassword === newPassword) {
+    return {
+      ok: false,
+      message: "New password must be different from your current password"
+    };
+  }
+
+  return {
+    ok: true,
+    shouldChange: true,
+    body: {
+      currentPassword,
+      newPassword
+    }
+  };
+}
+
+async function trySavePasswordChange() {
+  const values = readPasswordValues();
+  const validation = validatePasswordChangeValues(values);
+
+  if (!validation.ok) {
+    return {
+      changed: false,
+      error: new Error(validation.message)
+    };
+  }
+
+  if (!validation.shouldChange) {
+    return {
+      changed: false,
+      error: null
+    };
+  }
+
+  try {
+    await api("/api/users/password", {
+      method: "PATCH",
+      body: validation.body
+    });
+
+    clearPasswordFields();
+
+    return {
+      changed: true,
+      error: null
+    };
+  } catch (err) {
+    return {
+      changed: false,
+      error: err
+    };
+  }
 }
 
 /* =========================
@@ -748,6 +897,7 @@ async function saveSettingsFromForm() {
     refreshAllUploadUi();
 
     let usernameResult = { changed: false, error: null };
+    let passwordResult = { changed: false, error: null };
 
     const wantsUsernameChange =
       pendingUsernameValue &&
@@ -768,6 +918,14 @@ async function saveSettingsFromForm() {
         if (usernameInput) {
           usernameInput.value = profileMetaState.username || "";
         }
+      }
+    }
+
+    passwordResult = await trySavePasswordChange();
+
+    if (passwordResult.error) {
+      if (passwordResult.error.message === "SESSION_EXPIRED") {
+        throw passwordResult.error;
       }
     }
 
@@ -811,16 +969,27 @@ async function saveSettingsFromForm() {
       );
     }
 
+    const partialProblems = [];
+
     if (usernameResult.error) {
+      partialProblems.push(`the username was not changed: ${usernameResult.error.message}`);
+    }
+
+    if (passwordResult.error) {
+      partialProblems.push(`the password was not changed: ${passwordResult.error.message}`);
+    }
+
+    if (partialProblems.length) {
       showToast({
         title: "Partially saved",
-        message: `Your settings were saved, but the username was not changed: ${usernameResult.error.message}`,
+        message: `Your settings were saved, but ${partialProblems.join(" Also, ")}.`,
         type: "warning"
       });
     } else {
       const parts = [];
 
       if (usernameResult.changed) parts.push("username");
+      if (passwordResult.changed) parts.push("password");
       if (Object.keys(mediaEventDetail).length) parts.push("profile media");
       parts.push("settings");
 
@@ -1272,6 +1441,7 @@ async function openSettings() {
   closeCropper();
   closeSettingsFriendsModal();
   clearAllPendingMedia();
+  clearPasswordFields();
 
   settingsOverlay.hidden = false;
   settingsOverlay.setAttribute("aria-hidden", "false");
@@ -1304,6 +1474,7 @@ function closeSettings() {
   closeSettingsFriendsModal();
   closeCropper();
   clearAllPendingMedia();
+  clearPasswordFields();
 
   settingsOverlay.hidden = true;
   settingsOverlay.setAttribute("aria-hidden", "true");

@@ -317,12 +317,15 @@
               <label class="settings-row settings-row--stack">
                 <div>
                   <span class="settings-label">Change Password</span>
-                  <span class="settings-help">Choose a strong password you do not recycle elsewhere. It is recommended to follow our password guidelines.</span>
+                  <span class="settings-help">Choose a strong password you do not recycle elsewhere.</span>
                 </div>
+
                 <div class="settings-password-grid">
-                  <input class="settings-input" type="password" placeholder="Current password">
-                  <input class="settings-input" type="password" placeholder="New password">
-                  <input class="settings-input" type="password" placeholder="Confirm new password">
+                  <input id="settingsCurrentPasswordInput" class="settings-input" type="password" placeholder="Current password" autocomplete="current-password">
+
+                  <input id="settingsNewPasswordInput" class="settings-input" type="password" placeholder="New password" autocomplete="new-password">
+
+                  <input id="settingsConfirmPasswordInput" class="settings-input" type="password" placeholder="Confirm new password" autocomplete="new-password">
                 </div>
               </label>
 

@@ -7,6 +7,7 @@ import { requireAuth } from "../middleware/authMiddleware.js";
 import { User } from "../models/user.js";
 import multer from "multer";
 import { cloudinary } from "../services/cloudinary.js";
+import bcrypt from "bcrypt";
 
 const router = express.Router();
 
@@ -489,6 +490,99 @@ function getUsernameChangeInfo(user) {
   };
 }
 
+
+// Password validation helpers
+const weakPasswords = new Set(["123456", "password", "qwerty", "abc123"]);
+
+const passwordChangeSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required").max(200),
+  newPassword: z.string().min(1, "New password is required").max(200)
+}).strict();
+
+function validateNewPasswordValue(rawValue = "") {
+  const value = String(rawValue || "").trim();
+
+  if (!value) {
+    return {
+      ok: false,
+      message: "New password is required"
+    };
+  }
+
+  if (value.length < 8) {
+    return {
+      ok: false,
+      message: "Password must be at least 8 characters long"
+    };
+  }
+
+  if (!/[A-Z]/.test(value)) {
+    return {
+      ok: false,
+      message: "Password must include at least one uppercase letter"
+    };
+  }
+
+  if (!/[a-z]/.test(value)) {
+    return {
+      ok: false,
+      message: "Password must include at least one lowercase letter"
+    };
+  }
+
+  if (!/\d/.test(value)) {
+    return {
+      ok: false,
+      message: "Password must include at least one number"
+    };
+  }
+
+  if (weakPasswords.has(value.toLowerCase())) {
+    return {
+      ok: false,
+      message: "This password is too common. Please choose a stronger one."
+    };
+  }
+
+  return {
+    ok: true,
+    value
+  };
+}
+
+function parsePasswordChangeBody(raw = {}) {
+  const parsed = passwordChangeSchema.safeParse(raw);
+
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message || "Invalid password payload"
+    };
+  }
+
+  const currentPassword = String(parsed.data.currentPassword || "").trim();
+  const newPasswordValidation = validateNewPasswordValue(parsed.data.newPassword);
+
+  if (!currentPassword) {
+    return {
+      ok: false,
+      message: "Current password is required"
+    };
+  }
+
+  if (!newPasswordValidation.ok) {
+    return newPasswordValidation;
+  }
+
+  return {
+    ok: true,
+    value: {
+      currentPassword,
+      newPassword: newPasswordValidation.value
+    }
+  };
+}
+
 // GET /api/users/me
 router.get("/me", requireAuth, async (req, res) => {
   try {
@@ -640,6 +734,47 @@ router.patch("/username", requireAuth, async (req, res) => {
 
     console.error(e);
     return res.status(500).json({ message: "Failed to update username" });
+  }
+});
+
+// PATCH /api/users/password
+router.patch("/password", requireAuth, async (req, res) => {
+  try {
+    res.set("Cache-Control", "no-store");
+
+    const bodyResult = parsePasswordChangeBody(req.body);
+    if (!bodyResult.ok) {
+      return res.status(400).json({ message: bodyResult.message });
+    }
+
+    const { currentPassword, newPassword } = bodyResult.value;
+
+    const user = await User.findById(req.userId).select("passwordHash updatedAt");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const currentPasswordMatches = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!currentPasswordMatches) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    const isSamePassword = await bcrypt.compare(newPassword, user.passwordHash);
+    if (isSamePassword) {
+      return res.status(400).json({ message: "New password must be different from your current password" });
+    }
+
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    user.updatedAt = new Date();
+
+    await user.save();
+
+    return res.json({
+      message: "Password updated successfully"
+    });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: "Failed to update password" });
   }
 });
 
