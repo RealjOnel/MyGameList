@@ -51,6 +51,20 @@ const DEFAULT_SETTINGS = Object.freeze({
   }
 });
 
+const profileFriendsState = {
+  items: []
+};
+
+function escapeHtml(str = "") {
+  return String(str).replace(/[&<>"']/g, (m) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  }[m]));
+}
+
 function cloneDefaults() {
   return JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
 }
@@ -546,18 +560,116 @@ function renderRecentActivity(items) {
   }
 }
 
-function renderFriendsList(friends = []) {
-  const wrap = document.getElementById("profileFriendsList");
-  if (!wrap) return;
+function getProfileFriendsModalEls() {
+  return {
+    backdrop: document.getElementById("profileFriendsModalBackdrop"),
+    closeBtn: document.getElementById("profileFriendsModalClose"),
+    list: document.getElementById("profileFriendsModalList"),
+    title: document.getElementById("profileFriendsModalTitle"),
+    subtitle: document.getElementById("profileFriendsModalSubtitle")
+  };
+}
 
-  wrap.innerHTML = "";
+function openProfileFriendsModal() {
+  const { backdrop } = getProfileFriendsModalEls();
+  if (!backdrop) return;
+
+  backdrop.hidden = false;
+  document.body.style.overflow = "hidden";
+}
+
+function closeProfileFriendsModal() {
+  const { backdrop } = getProfileFriendsModalEls();
+  if (!backdrop) return;
+
+  backdrop.hidden = true;
+  document.body.style.overflow = "";
+}
+
+function renderProfileFriendsModal(friends = [], profileUsername = "") {
+  const { list, title, subtitle } = getProfileFriendsModalEls();
+  if (!list) return;
+
+  if (title) {
+    title.textContent = "All Friends";
+  }
+
+  if (subtitle) {
+    subtitle.textContent = profileUsername
+      ? `${profileUsername}'s full friends list`
+      : "All friends on this profile.";
+  }
 
   if (!friends.length) {
+    list.innerHTML = `<div class="profile-friends-modal-empty">No friends yet.</div>`;
+    return;
+  }
+
+  list.innerHTML = friends.map((friend) => {
+    const username = String(friend?.username || "Unknown User");
+    const avatar = avatarUrl(friend?.avatarUrl);
+
+    return `
+      <a
+        class="profile-friends-modal-card"
+        href="./profile.html?username=${encodeURIComponent(username)}"
+      >
+        <img src="${escapeHtml(avatar)}" alt="${escapeHtml(username)}">
+        <span class="profile-friends-modal-name">${escapeHtml(username)}</span>
+      </a>
+    `;
+  }).join("");
+}
+
+function bindProfileFriendsModal() {
+  const { backdrop, closeBtn } = getProfileFriendsModalEls();
+  if (!backdrop || backdrop.dataset.bound === "true") return;
+
+  backdrop.dataset.bound = "true";
+
+  closeBtn?.addEventListener("click", closeProfileFriendsModal);
+
+  backdrop.addEventListener("click", (e) => {
+    if (
+      e.target === backdrop ||
+      e.target.closest("[data-close-profile-friends-modal]")
+    ) {
+      closeProfileFriendsModal();
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !backdrop.hidden) {
+      closeProfileFriendsModal();
+    }
+  });
+}
+
+function renderFriendsList(friends = [], profileUsername = "") {
+  const wrap = document.getElementById("profileFriendsList");
+  const showAllBtn = document.getElementById("profileFriendsShowAllBtn");
+
+  if (!wrap) return;
+
+  profileFriendsState.items = Array.isArray(friends) ? friends : [];
+
+  wrap.innerHTML = "";
+  wrap.classList.toggle("profile_friends_list--scrollable", profileFriendsState.items.length >= 5);
+
+  if (showAllBtn) {
+    showAllBtn.hidden = profileFriendsState.items.length < 5;
+    showAllBtn.onclick = () => {
+      renderProfileFriendsModal(profileFriendsState.items, profileUsername);
+      openProfileFriendsModal();
+    };
+  }
+
+  if (!profileFriendsState.items.length) {
     wrap.innerHTML = `<div class="muted">No friends yet.</div>`;
     return;
   }
 
-  for (const friend of friends) {
+  for (const friend of profileFriendsState.items) {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "friend_item";
@@ -859,7 +971,7 @@ async function setupFriendSection({ me, profile }) {
   async function loadFriendsOnly() {
     try {
       const friendsData = await api(`/api/friends/list/${encodeURIComponent(profile.username)}`);
-      renderFriendsList(friendsData?.friends || []);
+      renderFriendsList(friendsData?.friends || [], profile.username);
     } catch (err) {
       console.error(err);
       renderFriendsList([]);
@@ -905,7 +1017,7 @@ async function setupFriendSection({ me, profile }) {
     }
 
     applyFriendButtonState(button, currentStatus);
-    renderFriendsList(friendsData?.friends || []);
+    renderFriendsList(friendsData?.friends || [], profile.username);
   }
 
   button.addEventListener("click", async () => {
@@ -1213,6 +1325,8 @@ async function loadProfile() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  bindProfileFriendsModal();
+
   loadProfile().catch(err => {
     console.error(err);
 
