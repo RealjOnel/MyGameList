@@ -611,7 +611,6 @@ async function saveSettingsFromForm() {
 
       showToast({
         title: "Settings saved",
-        message: `Updated: ${parts.join(", ")}.`,
         type: "success"
       });
     }
