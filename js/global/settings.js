@@ -89,6 +89,10 @@ const cropState = {
   dragOriginY: 0
 };
 
+const settingsFriendsState = {
+  items: []
+};
+
 function cloneDefaults() {
   return JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
 }
@@ -257,32 +261,60 @@ function getProfileHref(username = "") {
   return `/profile/profile.html?username=${encodeURIComponent(username)}`;
 }
 
+function normalizeUsernameInputValue(value) {
+  return String(value || "").trim();
+}
+
+/* =========================
+   Friends modal + friends list
+   ========================= */
+
 function getSettingsFriendsEls() {
   return {
     list: document.getElementById("settingsFriendsList"),
-    viewAllBtn: document.getElementById("settingsViewAllFriendsBtn")
+    viewAllBtn: document.getElementById("settingsViewAllFriendsBtn"),
+    modal: document.getElementById("settingsFriendsModal"),
+    modalClose: document.getElementById("settingsFriendsModalClose"),
+    modalList: document.getElementById("settingsFriendsModalList")
   };
 }
 
-function renderSettingsFriendsList(friends = []) {
-  const { list } = getSettingsFriendsEls();
-  if (!list) return;
+function isSettingsFriendsModalOpen() {
+  const { modal } = getSettingsFriendsEls();
+  return Boolean(modal && !modal.hidden);
+}
 
+function closeSettingsFriendsModal() {
+  const { modal } = getSettingsFriendsEls();
+  if (!modal) return;
+
+  modal.hidden = true;
+  modal.setAttribute("aria-hidden", "true");
+}
+
+function openSettingsFriendsModal() {
+  const { modal } = getSettingsFriendsEls();
+  if (!modal) return;
+
+  renderSettingsFriendsModalList(settingsFriendsState.items);
+  modal.hidden = false;
+  modal.setAttribute("aria-hidden", "false");
+}
+
+function buildSettingsFriendsMarkup(friends = []) {
   if (!friends.length) {
-    list.innerHTML = `<div class="settings-friends-empty">You have no friends yet.</div>`;
-    return;
+    return `<div class="settings-friends-empty">You have no friends yet.</div>`;
   }
 
-  list.innerHTML = friends.map((friend) => {
+  return friends.map((friend) => {
     const username = String(friend?.username || "Unknown User");
     const avatar = friend?.avatarUrl || DEFAULT_AVATAR_URL;
-    const href = getProfileHref(username);
 
     return `
       <div class="settings-friend-item">
         <div class="settings-friend-main">
           <img src="${escapeHtml(avatar)}" alt="${escapeHtml(username)}">
-          <a class="settings-friend-link" href="${href}">
+          <a class="settings-friend-link" href="${getProfileHref(username)}">
             ${escapeHtml(username)}
           </a>
         </div>
@@ -290,43 +322,97 @@ function renderSettingsFriendsList(friends = []) {
         <button
           class="settings-remove-btn"
           type="button"
-          data-remove-friend="${escapeHtml(username)}"
+          data-settings-remove-friend="${escapeHtml(username)}"
         >
           Remove
         </button>
       </div>
     `;
   }).join("");
+}
 
-  list.querySelectorAll("[data-remove-friend]").forEach((btn) => {
+function bindSettingsFriendRemoveButtons(container) {
+  if (!container) return;
+
+  container.querySelectorAll("[data-settings-remove-friend]").forEach((btn) => {
     btn.addEventListener("click", async () => {
-      const username = btn.dataset.removeFriend;
+      const username = btn.dataset.settingsRemoveFriend;
       if (!username) return;
 
-      await handleRemoveFriendFromSettings(username);
+      btn.disabled = true;
+
+      try {
+        await handleRemoveFriendFromSettings(username);
+      } catch (err) {
+        console.error(err);
+
+        if (err.message === "SESSION_EXPIRED") {
+          redirectToLogin();
+          return;
+        }
+
+        showToast({
+          title: "Remove failed",
+          message: err.message || "Could not remove friend.",
+          type: "error"
+        });
+      } finally {
+        btn.disabled = false;
+      }
     });
   });
 }
 
-async function loadSettingsFriends() {
+function renderSettingsFriendsList(friends = []) {
   const { list } = getSettingsFriendsEls();
+  if (!list) return;
+
+  settingsFriendsState.items = Array.isArray(friends) ? friends : [];
+  list.innerHTML = buildSettingsFriendsMarkup(settingsFriendsState.items);
+  bindSettingsFriendRemoveButtons(list);
+}
+
+function renderSettingsFriendsModalList(friends = []) {
+  const { modalList } = getSettingsFriendsEls();
+  if (!modalList) return;
+
+  modalList.innerHTML = buildSettingsFriendsMarkup(friends);
+  bindSettingsFriendRemoveButtons(modalList);
+}
+
+async function loadSettingsFriends() {
+  const { list, modalList } = getSettingsFriendsEls();
+
   if (!list) return;
 
   const ownUsername = normalizeUsernameInputValue(profileMetaState.username);
   if (!ownUsername) {
     list.innerHTML = `<div class="settings-friends-empty">Could not load your friends list.</div>`;
+    if (modalList) {
+      modalList.innerHTML = `<div class="settings-friends-empty">Could not load your friends list.</div>`;
+    }
     return;
   }
 
   list.innerHTML = `<div class="settings-friends-empty">Loading friends...</div>`;
+  if (modalList) {
+    modalList.innerHTML = `<div class="settings-friends-empty">Loading friends...</div>`;
+  }
 
   try {
     const data = await api(`/api/friends/list/${encodeURIComponent(ownUsername)}`);
-    renderSettingsFriendsList(data?.friends || []);
+    const friends = Array.isArray(data?.friends) ? data.friends : [];
+
+    settingsFriendsState.items = friends;
+    renderSettingsFriendsList(friends);
+    renderSettingsFriendsModalList(friends);
   } catch (err) {
     console.error(err);
 
     list.innerHTML = `<div class="settings-friends-empty">Failed to load friends.</div>`;
+    if (modalList) {
+      modalList.innerHTML = `<div class="settings-friends-empty">Failed to load friends.</div>`;
+    }
 
     showToast({
       title: "Friends failed to load",
@@ -367,7 +453,9 @@ async function handleRemoveFriendFromSettings(friendUsername) {
   }));
 }
 
-// Change Username helper functions
+/* =========================
+   Username change
+   ========================= */
 
 function syncUsernameChangeMeta(data = {}) {
   const info = data?.usernameChange;
@@ -408,10 +496,6 @@ function formatUsernameChangeNote() {
   inputEl.disabled = false;
 }
 
-function normalizeUsernameInputValue(value) {
-  return String(value || "").trim();
-}
-
 async function confirmUsernameChange(nextUsername) {
   const finalName = normalizeUsernameInputValue(nextUsername);
   if (!finalName) return false;
@@ -437,7 +521,10 @@ function syncOwnProfileUrl(oldUsername, newUsername) {
   const currentUsernameParam = url.searchParams.get("username");
 
   if (url.pathname.includes("/profile/")) {
-    if (!currentUsernameParam || currentUsernameParam.trim().toLowerCase() === String(oldUsername || "").trim().toLowerCase()) {
+    if (
+      !currentUsernameParam ||
+      currentUsernameParam.trim().toLowerCase() === String(oldUsername || "").trim().toLowerCase()
+    ) {
       url.searchParams.set("username", newUsername);
       window.history.replaceState({}, "", url.toString());
     }
@@ -490,6 +577,10 @@ async function trySaveUsernameChange() {
     return { changed: false, error: err };
   }
 }
+
+/* =========================
+   Profile meta + media
+   ========================= */
 
 function syncProfileMeta(data = {}) {
   if (!data || typeof data !== "object") return;
@@ -735,6 +826,7 @@ async function saveSettingsFromForm() {
 
       showToast({
         title: "Settings saved",
+        message: `Updated: ${parts.join(", ")}.`,
         type: "success"
       });
     }
@@ -745,6 +837,10 @@ async function saveSettingsFromForm() {
     }
   }
 }
+
+/* =========================
+   Overlay helpers
+   ========================= */
 
 function getOverlay() {
   return document.getElementById("settingsOverlay");
@@ -770,6 +866,10 @@ function getCropEls() {
 function isCropOpen() {
   return Boolean(cropState.type) && !getCropEls().overlay?.hidden;
 }
+
+/* =========================
+   Cropper
+   ========================= */
 
 function revokeCropObjectUrl() {
   if (cropState.objectUrl) {
@@ -1024,75 +1124,6 @@ async function confirmCropperSelection() {
   });
 }
 
-function closeUserDropdownIfOpen() {
-  const userDropdown = document.getElementById("userDropdown");
-  if (userDropdown) {
-    userDropdown.classList.remove("open");
-    userDropdown.setAttribute("aria-hidden", "true");
-  }
-}
-
-function setupTabs() {
-  const settingsTabs = document.querySelectorAll(".settings-tab");
-  const settingsPanels = document.querySelectorAll(".settings-panel");
-
-  settingsTabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
-      const target = tab.dataset.settingsTab;
-
-      settingsTabs.forEach((btn) => {
-        btn.classList.toggle("active", btn === tab);
-      });
-
-      settingsPanels.forEach((panel) => {
-        panel.classList.toggle("active", panel.dataset.settingsPanel === target);
-      });
-    });
-  });
-}
-
-async function openSettings() {
-  const settingsOverlay = getOverlay();
-  if (!settingsOverlay) return;
-
-  closeCropper();
-  clearAllPendingMedia();
-
-  settingsOverlay.hidden = false;
-  settingsOverlay.setAttribute("aria-hidden", "false");
-  document.body.style.overflow = "hidden";
-
-  try {
-    await loadSettingsIntoForm();
-    await loadSettingsFriends();
-  } catch (err) {
-    console.error(err);
-
-    if (err.message === "SESSION_EXPIRED") {
-      redirectToLogin();
-      return;
-    }
-
-    showToast({
-      title: "Settings failed to load",
-      message: err.message || "Could not load settings.",
-      type: "error"
-    });
-  }
-}
-
-function closeSettings() {
-  const settingsOverlay = getOverlay();
-  if (!settingsOverlay) return;
-
-  closeCropper();
-  clearAllPendingMedia();
-
-  settingsOverlay.hidden = true;
-  settingsOverlay.setAttribute("aria-hidden", "true");
-  document.body.style.overflow = "";
-}
-
 function handleCropPointerDown(e) {
   if (!cropState.type) return;
   if (e.pointerType === "mouse" && e.button !== 0) return;
@@ -1203,6 +1234,82 @@ function validateSelectedImage(file) {
   }
 }
 
+/* =========================
+   Settings modal
+   ========================= */
+
+function closeUserDropdownIfOpen() {
+  const userDropdown = document.getElementById("userDropdown");
+  if (userDropdown) {
+    userDropdown.classList.remove("open");
+    userDropdown.setAttribute("aria-hidden", "true");
+  }
+}
+
+function setupTabs() {
+  const settingsTabs = document.querySelectorAll(".settings-tab");
+  const settingsPanels = document.querySelectorAll(".settings-panel");
+
+  settingsTabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const target = tab.dataset.settingsTab;
+
+      settingsTabs.forEach((btn) => {
+        btn.classList.toggle("active", btn === tab);
+      });
+
+      settingsPanels.forEach((panel) => {
+        panel.classList.toggle("active", panel.dataset.settingsPanel === target);
+      });
+    });
+  });
+}
+
+async function openSettings() {
+  const settingsOverlay = getOverlay();
+  if (!settingsOverlay) return;
+
+  closeCropper();
+  closeSettingsFriendsModal();
+  clearAllPendingMedia();
+
+  settingsOverlay.hidden = false;
+  settingsOverlay.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+
+  try {
+    await loadSettingsIntoForm();
+    await loadSettingsFriends();
+    closeSettingsFriendsModal();
+  } catch (err) {
+    console.error(err);
+
+    if (err.message === "SESSION_EXPIRED") {
+      redirectToLogin();
+      return;
+    }
+
+    showToast({
+      title: "Settings failed to load",
+      message: err.message || "Could not load settings.",
+      type: "error"
+    });
+  }
+}
+
+function closeSettings() {
+  const settingsOverlay = getOverlay();
+  if (!settingsOverlay) return;
+
+  closeSettingsFriendsModal();
+  closeCropper();
+  clearAllPendingMedia();
+
+  settingsOverlay.hidden = true;
+  settingsOverlay.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+}
+
 export function initSettingsModal() {
   if (isInitialized) return;
 
@@ -1213,7 +1320,12 @@ export function initSettingsModal() {
   const cancelSettingsBtn = document.getElementById("settingsCancelBtn");
   const saveSettingsBtn = document.getElementById("settingsSaveBtn");
   const bioField = document.querySelector('[data-setting="profile.bio"]');
-  const viewAllFriendsBtn = document.getElementById("settingsViewAllFriendsBtn");
+
+  const {
+    viewAllBtn: settingsViewAllFriendsBtn,
+    modal: settingsFriendsModal,
+    modalClose: settingsFriendsModalClose
+  } = getSettingsFriendsEls();
 
   bindCropper();
 
@@ -1227,7 +1339,7 @@ export function initSettingsModal() {
     }
 
     const closeTrigger = e.target.closest("[data-close-settings]");
-    if (closeTrigger && !isCropOpen()) {
+    if (closeTrigger && !isCropOpen() && !isSettingsFriendsModalOpen()) {
       closeSettings();
     }
   });
@@ -1259,31 +1371,55 @@ export function initSettingsModal() {
 
   if (closeSettingsBtn) {
     closeSettingsBtn.addEventListener("click", () => {
+      if (isSettingsFriendsModalOpen()) {
+        closeSettingsFriendsModal();
+        return;
+      }
+
       if (isCropOpen()) {
         closeCropper();
         return;
       }
+
       closeSettings();
     });
   }
 
   if (cancelSettingsBtn) {
     cancelSettingsBtn.addEventListener("click", () => {
+      if (isSettingsFriendsModalOpen()) {
+        closeSettingsFriendsModal();
+        return;
+      }
+
       if (isCropOpen()) {
         closeCropper();
         return;
       }
+
       closeSettings();
     });
   }
 
-   if (viewAllFriendsBtn) {
-    viewAllFriendsBtn.addEventListener("click", () => {
-      const ownUsername = normalizeUsernameInputValue(profileMetaState.username);
-      if (!ownUsername) return;
+  if (settingsViewAllFriendsBtn) {
+    settingsViewAllFriendsBtn.addEventListener("click", async () => {
+      if (!settingsFriendsState.items.length) {
+        await loadSettingsFriends();
+      }
 
-      closeSettings();
-      window.location.href = getProfileHref(ownUsername);
+      openSettingsFriendsModal();
+    });
+  }
+
+  if (settingsFriendsModalClose) {
+    settingsFriendsModalClose.addEventListener("click", closeSettingsFriendsModal);
+  }
+
+  if (settingsFriendsModal) {
+    settingsFriendsModal.addEventListener("click", (e) => {
+      if (e.target === settingsFriendsModal || e.target.closest("[data-close-settings-friends]")) {
+        closeSettingsFriendsModal();
+      }
     });
   }
 
@@ -1328,6 +1464,11 @@ export function initSettingsModal() {
 
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
+
+    if (isSettingsFriendsModalOpen()) {
+      closeSettingsFriendsModal();
+      return;
+    }
 
     if (isCropOpen()) {
       closeCropper();
