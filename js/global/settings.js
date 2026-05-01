@@ -262,6 +262,8 @@ function formatUsernameChangeNote() {
 
   if (!noteEl || !inputEl) return;
 
+  noteEl.classList.remove("settings-note--danger");
+
   if (usernameChangeState.canChangeNow) {
     noteEl.textContent = `You can change your username now. Next change will be available in ${usernameChangeState.minDaysBetweenChanges} days.`;
     inputEl.readOnly = false;
@@ -277,12 +279,31 @@ function formatUsernameChangeNote() {
     ? `Next username change available on ${nextDate} (${usernameChangeState.waitDaysRemaining} day(s) left).`
     : `Next username change available in ${usernameChangeState.waitDaysRemaining} day(s).`;
 
+  noteEl.classList.add("settings-note--danger");
   inputEl.readOnly = true;
   inputEl.disabled = false;
 }
 
 function normalizeUsernameInputValue(value) {
   return String(value || "").trim();
+}
+
+async function confirmUsernameChange(nextUsername) {
+  const finalName = normalizeUsernameInputValue(nextUsername);
+  if (!finalName) return false;
+
+  const text = `Do you really want to change your name to "${finalName}"? You will need to wait ${usernameChangeState.minDaysBetweenChanges} days before changing it again.`;
+
+  if (typeof window.openMglConfirm === "function") {
+    return await window.openMglConfirm({
+      title: "Confirm Username Change",
+      text,
+      confirmText: "Change Name",
+      cancelText: "Cancel"
+    });
+  }
+
+  return window.confirm(text);
 }
 
 function syncOwnProfileUrl(oldUsername, newUsername) {
@@ -513,11 +534,25 @@ async function saveSettingsFromForm() {
 
     let usernameResult = { changed: false, error: null };
 
-    usernameResult = await trySaveUsernameChange();
+    const wantsUsernameChange =
+      pendingUsernameValue &&
+      pendingUsernameValue !== normalizeUsernameInputValue(profileMetaState.username);
 
-    if (usernameResult.error) {
-      if (usernameResult.error.message === "SESSION_EXPIRED") {
-        throw usernameResult.error;
+    if (wantsUsernameChange) {
+      const confirmed = await confirmUsernameChange(pendingUsernameValue);
+
+      if (confirmed) {
+        usernameResult = await trySaveUsernameChange();
+
+        if (usernameResult.error) {
+          if (usernameResult.error.message === "SESSION_EXPIRED") {
+            throw usernameResult.error;
+          }
+        }
+      } else {
+        if (usernameInput) {
+          usernameInput.value = profileMetaState.username || "";
+        }
       }
     }
 

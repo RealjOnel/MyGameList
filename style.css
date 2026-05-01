@@ -2137,6 +2137,11 @@ html[data-auth="loading"] .notif-bell {
     cursor: not-allowed;
 }
 
+.settings-note--danger{
+    color: #f87171;
+    font-weight: 800;
+}
+
 @media (max-width: 900px){
     .settings-card-grid{
         grid-template-columns: 1fr;
