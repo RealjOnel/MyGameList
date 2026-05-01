@@ -243,6 +243,130 @@ function setImagePreview(imgEl, url, fallbackUrl) {
   imgEl.src = url || fallbackUrl;
 }
 
+function escapeHtml(str = "") {
+  return String(str).replace(/[&<>"']/g, (m) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  }[m]));
+}
+
+function getProfileHref(username = "") {
+  return `/profile/profile.html?username=${encodeURIComponent(username)}`;
+}
+
+function getSettingsFriendsEls() {
+  return {
+    list: document.getElementById("settingsFriendsList"),
+    viewAllBtn: document.getElementById("settingsViewAllFriendsBtn")
+  };
+}
+
+function renderSettingsFriendsList(friends = []) {
+  const { list } = getSettingsFriendsEls();
+  if (!list) return;
+
+  if (!friends.length) {
+    list.innerHTML = `<div class="settings-friends-empty">You have no friends yet.</div>`;
+    return;
+  }
+
+  list.innerHTML = friends.map((friend) => {
+    const username = String(friend?.username || "Unknown User");
+    const avatar = friend?.avatarUrl || DEFAULT_AVATAR_URL;
+    const href = getProfileHref(username);
+
+    return `
+      <div class="settings-friend-item">
+        <div class="settings-friend-main">
+          <img src="${escapeHtml(avatar)}" alt="${escapeHtml(username)}">
+          <a class="settings-friend-link" href="${href}">
+            ${escapeHtml(username)}
+          </a>
+        </div>
+
+        <button
+          class="settings-remove-btn"
+          type="button"
+          data-remove-friend="${escapeHtml(username)}"
+        >
+          Remove
+        </button>
+      </div>
+    `;
+  }).join("");
+
+  list.querySelectorAll("[data-remove-friend]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const username = btn.dataset.removeFriend;
+      if (!username) return;
+
+      await handleRemoveFriendFromSettings(username);
+    });
+  });
+}
+
+async function loadSettingsFriends() {
+  const { list } = getSettingsFriendsEls();
+  if (!list) return;
+
+  const ownUsername = normalizeUsernameInputValue(profileMetaState.username);
+  if (!ownUsername) {
+    list.innerHTML = `<div class="settings-friends-empty">Could not load your friends list.</div>`;
+    return;
+  }
+
+  list.innerHTML = `<div class="settings-friends-empty">Loading friends...</div>`;
+
+  try {
+    const data = await api(`/api/friends/list/${encodeURIComponent(ownUsername)}`);
+    renderSettingsFriendsList(data?.friends || []);
+  } catch (err) {
+    console.error(err);
+
+    list.innerHTML = `<div class="settings-friends-empty">Failed to load friends.</div>`;
+
+    showToast({
+      title: "Friends failed to load",
+      message: err.message || "Could not load your friends list.",
+      type: "error"
+    });
+  }
+}
+
+async function handleRemoveFriendFromSettings(friendUsername) {
+  if (!friendUsername) return;
+
+  const ok = typeof window.openMglConfirm === "function"
+    ? await window.openMglConfirm({
+        title: "Remove Friend",
+        text: `Do you really want to remove ${friendUsername} from your friends list?`,
+        confirmText: "Remove",
+        cancelText: "Keep"
+      })
+    : window.confirm(`Do you really want to remove ${friendUsername} from your friends list?`);
+
+  if (!ok) return;
+
+  await api(`/api/friends/remove/${encodeURIComponent(friendUsername)}`, {
+    method: "DELETE"
+  });
+
+  showToast({
+    title: "Friend removed",
+    message: `${friendUsername} has been removed from your friends list.`,
+    type: "success"
+  });
+
+  await loadSettingsFriends();
+
+  window.dispatchEvent(new CustomEvent("mgl:friends-updated", {
+    detail: { removedUsername: friendUsername }
+  }));
+}
+
 // Change Username helper functions
 
 function syncUsernameChangeMeta(data = {}) {
@@ -940,6 +1064,7 @@ async function openSettings() {
 
   try {
     await loadSettingsIntoForm();
+    await loadSettingsFriends();
   } catch (err) {
     console.error(err);
 
@@ -1088,6 +1213,7 @@ export function initSettingsModal() {
   const cancelSettingsBtn = document.getElementById("settingsCancelBtn");
   const saveSettingsBtn = document.getElementById("settingsSaveBtn");
   const bioField = document.querySelector('[data-setting="profile.bio"]');
+  const viewAllFriendsBtn = document.getElementById("settingsViewAllFriendsBtn");
 
   bindCropper();
 
@@ -1151,6 +1277,16 @@ export function initSettingsModal() {
     });
   }
 
+   if (viewAllFriendsBtn) {
+    viewAllFriendsBtn.addEventListener("click", () => {
+      const ownUsername = normalizeUsernameInputValue(profileMetaState.username);
+      if (!ownUsername) return;
+
+      closeSettings();
+      window.location.href = getProfileHref(ownUsername);
+    });
+  }
+
   if (saveSettingsBtn) {
     saveSettingsBtn.addEventListener("click", async () => {
       try {
@@ -1171,6 +1307,24 @@ export function initSettingsModal() {
       }
     });
   }
+
+  window.addEventListener("mgl:friend-requests-updated", () => {
+    if (settingsOverlay && !settingsOverlay.hidden) {
+      loadSettingsFriends().catch(console.error);
+    }
+  });
+
+  window.addEventListener("mgl:friends-updated", () => {
+    if (settingsOverlay && !settingsOverlay.hidden) {
+      loadSettingsFriends().catch(console.error);
+    }
+  });
+
+  window.addEventListener("mgl:username-updated", () => {
+    if (settingsOverlay && !settingsOverlay.hidden) {
+      loadSettingsFriends().catch(console.error);
+    }
+  });
 
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;

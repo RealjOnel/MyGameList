@@ -2118,6 +2118,32 @@ html[data-auth="loading"] .notif-bell {
     transform: translateY(-1px);
 }
 
+.settings-friends-empty{
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: rgba(19,30,53,0.72);
+    border: 1px dashed rgba(148,163,184,0.18);
+    color: #9cb0ce;
+    font-weight: 700;
+    text-align: center;
+}
+
+.settings-friend-link{
+    color: #e8f0ff;
+    text-decoration: none;
+    font-weight: 800;
+    transition: color 0.18s ease, text-decoration-color 0.18s ease;
+}
+
+.settings-friend-link:hover{
+    color: #8ab4ff;
+    text-decoration: underline;
+}
+
+.settings-friend-link:visited{
+    color: #e8f0ff;
+}
+
 .settings-password-grid{
     width: 100%;
     display: grid;

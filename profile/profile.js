@@ -1247,3 +1247,15 @@ window.addEventListener("mgl:profile-media-updated", (e) => {
     writeCachedProfileMedia(currentUsername, nextMedia);
   }
 });
+
+window.addEventListener("mgl:friends-updated", () => {
+  loadProfile().catch(err => {
+    console.error(err);
+  });
+});
+
+window.addEventListener("mgl:friend-requests-updated", () => {
+  loadProfile().catch(err => {
+    console.error(err);
+  });
+});

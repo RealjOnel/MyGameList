@@ -220,26 +220,18 @@
 
                 <div class="settings-friends-box">
                   <div class="settings-friends-head">
-                    <span class="settings-label">Manage Friends</span>
-                    <button class="btn-secondary" type="button">View All Friends</button>
+                    <div>
+                      <span class="settings-label">Manage Friends</span>
+                      <span class="settings-help">Remove friends or open your full friends list on your profile.</span>
+                    </div>
+
+                    <button id="settingsViewAllFriendsBtn" class="btn-secondary" type="button">
+                      View All Friends
+                    </button>
                   </div>
 
-                  <div class="settings-friends-list">
-                    <div class="settings-friend-item">
-                      <div class="settings-friend-main">
-                        <img src="../assets/User/Default_User_Icon.png" alt="Friend">
-                        <span>Nico_BigMac</span>
-                      </div>
-                      <button class="settings-remove-btn" type="button">Remove</button>
-                    </div>
-
-                    <div class="settings-friend-item">
-                      <div class="settings-friend-main">
-                        <img src="../assets/User/Default_User_Icon.png" alt="Friend">
-                        <span>philfv</span>
-                      </div>
-                      <button class="settings-remove-btn" type="button">Remove</button>
-                    </div>
+                  <div id="settingsFriendsList" class="settings-friends-list">
+                    <div class="settings-friends-empty">Loading friends...</div>
                   </div>
                 </div>
               </div>
