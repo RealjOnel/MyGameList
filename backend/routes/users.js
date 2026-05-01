@@ -8,6 +8,7 @@ import { User } from "../models/user.js";
 import multer from "multer";
 import { cloudinary } from "../services/cloudinary.js";
 import bcrypt from "bcrypt";
+import { RefreshToken } from "../models/refreshToken.js";
 
 const router = express.Router();
 
@@ -743,34 +744,43 @@ router.patch("/password", requireAuth, async (req, res) => {
     res.set("Cache-Control", "no-store");
 
     const bodyResult = parsePasswordChangeBody(req.body);
+
     if (!bodyResult.ok) {
-      return res.status(400).json({ message: bodyResult.message });
+      return res.status(400).json({
+        message: bodyResult.message
+      });
     }
 
     const { currentPassword, newPassword } = bodyResult.value;
 
-    const user = await User.findById(req.userId).select("passwordHash updatedAt");
+    const user = await User.findById(req.userId).select("_id passwordHash tokenVersion updatedAt");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const currentPasswordMatches = await bcrypt.compare(currentPassword, user.passwordHash);
-    if (!currentPasswordMatches) {
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isCurrentPasswordValid) {
       return res.status(400).json({ message: "Current password is incorrect" });
     }
 
-    const isSamePassword = await bcrypt.compare(newPassword, user.passwordHash);
-    if (isSamePassword) {
-      return res.status(400).json({ message: "New password must be different from your current password" });
+    const isSameAsCurrent = await bcrypt.compare(newPassword, user.passwordHash);
+    if (isSameAsCurrent) {
+      return res.status(400).json({ message: "New password must be different from the current password" });
     }
 
     user.passwordHash = await bcrypt.hash(newPassword, 10);
+    user.tokenVersion = Number(user.tokenVersion || 0) + 1;
     user.updatedAt = new Date();
 
     await user.save();
 
+    await RefreshToken.updateMany(
+      { userId: user._id, revokedAt: null },
+      { $set: { revokedAt: new Date() } }
+    );
+
     return res.json({
-      message: "Password updated successfully"
+      message: "Password updated successfully. Please log in again on all devices."
     });
   } catch (e) {
     console.error(e);

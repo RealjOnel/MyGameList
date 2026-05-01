@@ -1,9 +1,12 @@
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 
-export function createAccessToken(userId) {
+export function createAccessToken(userId, tokenVersion = 0) {
   return jwt.sign(
-    { id: userId },
+    {
+      id: String(userId),
+      tokenVersion: Number(tokenVersion || 0)
+    },
     process.env.JWT_SECRET,
     { expiresIn: "1h" }
   );

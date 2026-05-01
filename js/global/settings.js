@@ -7,7 +7,6 @@ const DEFAULT_AVATAR_URL = "/assets/User/Default_User_Icon.png";
 const DEFAULT_BANNER_URL = "/assets/User/banner.png";
 const MAX_IMAGE_SIZE_BYTES = 8 * 1024 * 1024; // 8 MB
 
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 const weakPasswords = new Set(["123456", "password", "qwerty", "abc123"]);
 
 const DEFAULT_SETTINGS = Object.freeze({
@@ -921,14 +920,6 @@ async function saveSettingsFromForm() {
       }
     }
 
-    passwordResult = await trySavePasswordChange();
-
-    if (passwordResult.error) {
-      if (passwordResult.error.message === "SESSION_EXPIRED") {
-        throw passwordResult.error;
-      }
-    }
-
     const mediaEventDetail = {};
 
     if (pendingProfileMedia.avatar) {
@@ -967,6 +958,31 @@ async function saveSettingsFromForm() {
           detail: mediaEventDetail
         })
       );
+    }
+
+    passwordResult = await trySavePasswordChange();
+
+    if (passwordResult.error) {
+      if (passwordResult.error.message === "SESSION_EXPIRED") {
+        throw passwordResult.error;
+      }
+    }
+
+    if (passwordResult.changed) {
+      clearAccessToken();
+      closeSettings();
+
+      showToast({
+        title: "Password changed",
+        message: "Your password was updated. Please log in again.",
+        type: "success"
+      });
+
+      setTimeout(() => {
+        redirectToLogin();
+      }, 1200);
+
+      return;
     }
 
     const partialProblems = [];

@@ -99,7 +99,7 @@ router.post("/register", async (req, res) => {
 
     await user.save();
 
-    const accessToken = createAccessToken(user._id);
+    const accessToken = createAccessToken(user._id, user.tokenVersion);
 
     const refreshTokenValue = createRefreshTokenValue();
     const refreshTokenHash = hashRefreshToken(refreshTokenValue);
@@ -183,7 +183,7 @@ router.post("/login", async (req, res) => {
     user.updatedAt = new Date();
     await user.save();
 
-    const accessToken = createAccessToken(user._id);
+    const accessToken = createAccessToken(user._id, user.tokenVersion);
 
     const refreshTokenValue = createRefreshTokenValue();
     const refreshTokenHash = hashRefreshToken(refreshTokenValue);
@@ -280,6 +280,15 @@ router.post("/auth/refresh", async (req, res) => {
       return res.status(401).json({ message: "Refresh token expired" });
     }
 
+    const user = await User.findById(existingToken.userId).select("_id tokenVersion");
+    if (!user) {
+      existingToken.revokedAt = new Date();
+      await existingToken.save();
+      clearRefreshCookie(res);
+
+      return res.status(401).json({ message: "User not found" });
+    }
+
     const newRefreshTokenValue = createRefreshTokenValue();
     const newRefreshTokenHash = hashRefreshToken(newRefreshTokenValue);
 
@@ -295,7 +304,7 @@ router.post("/auth/refresh", async (req, res) => {
       ip
     });
 
-    const accessToken = createAccessToken(existingToken.userId);
+    const accessToken = createAccessToken(user._id, user.tokenVersion);
 
     setRefreshCookie(res, newRefreshTokenValue);
 
