@@ -129,7 +129,7 @@ PLACEHOLDER FOR EVERY HTML PAGE (YOU MIGHT NEED TO CHANGE PATHS)
 <footer class="main-footer">
     <div class="footer-content">
         <div class="footer-brand">
-            <div class="logo">MY<span class="accent">GAMELIST</span></div>
+            <img src="/assets/logo/mgl_logo_transparent.png" alt="MyGameList Logo" class="footer-logo">
             <p>Your ultimate destination to track, discover, and share your gaming journey.</p>
         </div>
         

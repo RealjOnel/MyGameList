@@ -1318,6 +1318,10 @@ html[data-auth="loading"] .notif-bell {
     max-width: 300px;
 }
 
+.footer-logo {
+    width: 180px;
+}
+
 .footer-brand p {
     color: var(--text-muted);
     margin-top: 1rem;
