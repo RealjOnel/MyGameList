@@ -8,6 +8,14 @@ function getTransporter() {
     return cachedTransporter;
   }
 
+  console.log("[mail][email-change] Creating transporter", {
+    host: env.SMTP_HOST,
+    port: env.SMTP_PORT,
+    secure: env.SMTP_SECURE,
+    user: env.NOREPLY_SMTP_USER,
+    from: env.NOREPLY_EMAIL_FROM
+  });
+
   cachedTransporter = nodemailer.createTransport({
     host: env.SMTP_HOST,
     port: env.SMTP_PORT,
@@ -67,7 +75,7 @@ export async function sendEmailChangeVerificationMail({ to, username, verifyUrl 
       </p>
 
       <p>
-        If you did not request this change, something weird is going on. Please check your account security and contact support if you notice any suspicious activity.
+        If you did not request this change, please ignore this email.
       </p>
     </div>
   `;
@@ -83,14 +91,46 @@ export async function sendEmailChangeVerificationMail({ to, username, verifyUrl 
     verifyUrl,
     ``,
     `This link will expire in 60 minutes.`,
-    `If you did not request this change, something weird is going on. Please check your account security and contact support if you notice any suspicious activity.`
+    `If you did not request this change, please ignore this email.`
   ].join("\n");
 
-  await transporter.sendMail({
-    from: `"MyGameList" <${env.NOREPLY_EMAIL_FROM}>`,
-    to,
-    subject,
-    text,
-    html
-  });
+  try {
+    console.log("[mail][email-change] Verifying transporter...");
+    await transporter.verify();
+    console.log("[mail][email-change] Transporter verify passed");
+
+    console.log("[mail][email-change] Sending mail", {
+      to,
+      subject,
+      from: env.NOREPLY_EMAIL_FROM
+    });
+
+    const info = await transporter.sendMail({
+      from: `"MyGameList" <${env.NOREPLY_EMAIL_FROM}>`,
+      to,
+      subject,
+      text,
+      html
+    });
+
+    console.log("[mail][email-change] Mail sent", {
+      messageId: info.messageId,
+      accepted: info.accepted,
+      rejected: info.rejected,
+      response: info.response
+    });
+
+    return info;
+  } catch (error) {
+    console.error("[mail][email-change] Mail send failed", {
+      message: error?.message,
+      code: error?.code,
+      command: error?.command,
+      response: error?.response,
+      responseCode: error?.responseCode,
+      stack: error?.stack
+    });
+
+    throw error;
+  }
 }
