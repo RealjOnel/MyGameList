@@ -105,7 +105,7 @@
               <label class="settings-row settings-row--stack">
                 <div>
                   <span class="settings-label">Username</span>
-                  <span class="settings-help">Your public name. Username change logic comes in the next step.</span>
+                  <span class="settings-help">Your public name. It can be changed once every 14 days.</span>
                 </div>
                 <div class="settings-field-wrap">
                   <input
@@ -113,9 +113,11 @@
                     id="settingsUsernameInput"
                     type="text"
                     value=""
-                    readonly
+                    maxlength="20"
+                    autocomplete="off"
+                    spellcheck="false"
                   >
-                  <span class="settings-note" id="settingsUsernameNote">Username change available soon</span>
+                  <span class="settings-note" id="settingsUsernameNote">You can change your username every 14 days.</span>
                 </div>
               </label>
 
@@ -218,26 +220,18 @@
 
                 <div class="settings-friends-box">
                   <div class="settings-friends-head">
-                    <span class="settings-label">Manage Friends</span>
-                    <button class="btn-secondary" type="button">View All Friends</button>
+                    <div>
+                      <span class="settings-label">Manage Friends</span>
+                      <span class="settings-help">Remove friends or view your full friends list.</span>
+                    </div>
+
+                    <button id="settingsViewAllFriendsBtn" class="btn-secondary" type="button">
+                      Show All Friends
+                    </button>
                   </div>
 
-                  <div class="settings-friends-list">
-                    <div class="settings-friend-item">
-                      <div class="settings-friend-main">
-                        <img src="../assets/User/Default_User_Icon.png" alt="Friend">
-                        <span>Nico_BigMac</span>
-                      </div>
-                      <button class="settings-remove-btn" type="button">Remove</button>
-                    </div>
-
-                    <div class="settings-friend-item">
-                      <div class="settings-friend-main">
-                        <img src="../assets/User/Default_User_Icon.png" alt="Friend">
-                        <span>philfv</span>
-                      </div>
-                      <button class="settings-remove-btn" type="button">Remove</button>
-                    </div>
+                  <div id="settingsFriendsList" class="settings-friends-list">
+                    <div class="settings-friends-empty">Loading friends...</div>
                   </div>
                 </div>
               </div>
@@ -315,7 +309,21 @@
                   <span class="settings-help">Used for login, account verification and future recovery.</span>
                 </div>
                 <div class="settings-field-wrap">
-                  <input class="settings-input" type="email" value="name@example.com">
+                  <input id="settingsCurrentEmailInput" class="settings-input" type="email" value="" readonly>
+                  <label class="settings-row settings-row--stack">
+                    <div>
+                      <span class="settings-label">Change Email Address</span>
+                      <span class="settings-help">Enter a new email address and your current password. We will send a verification link to the new address.</span>
+                    </div>
+
+                    <div class="settings-email-grid">
+                      <input id="settingsNewEmailInput" class="settings-input" type="email" placeholder="New email address" autocomplete="email">
+
+                      <input id="settingsEmailPasswordInput" class="settings-input" type="password" placeholder="Current password" autocomplete="current-password">
+                    </div>
+
+                    <span class="settings-note">Your email will only change after you confirm it in the verification mail.</span>
+                  </label>
                   <span class="settings-note">Current account email</span>
                 </div>
               </label>
@@ -323,12 +331,15 @@
               <label class="settings-row settings-row--stack">
                 <div>
                   <span class="settings-label">Change Password</span>
-                  <span class="settings-help">Choose a strong password you do not recycle elsewhere. It is recommended to follow our password guidelines.</span>
+                  <span class="settings-help">Choose a strong password you do not recycle elsewhere.</span>
                 </div>
+
                 <div class="settings-password-grid">
-                  <input class="settings-input" type="password" placeholder="Current password">
-                  <input class="settings-input" type="password" placeholder="New password">
-                  <input class="settings-input" type="password" placeholder="Confirm new password">
+                  <input id="settingsCurrentPasswordInput" class="settings-input" type="password" placeholder="Current password" autocomplete="current-password">
+
+                  <input id="settingsNewPasswordInput" class="settings-input" type="password" placeholder="New password" autocomplete="new-password">
+
+                  <input id="settingsConfirmPasswordInput" class="settings-input" type="password" placeholder="Confirm new password" autocomplete="new-password">
                 </div>
               </label>
 
@@ -490,5 +501,26 @@
         <button id="settingsCropConfirm" class="btn-primary" type="button">Confirm</button>
       </div>
     </section>
+  </div>
+
+  <div id="settingsFriendsModal" class="settings-friends-modal-backdrop" hidden aria-hidden="true">
+  <div class="settings-friends-modal-overlay" data-close-settings-friends></div>
+
+  <section class="settings-friends-modal" role="dialog" aria-modal="true" aria-labelledby="settingsFriendsModalTitle">
+    <div class="settings-friends-modal-head">
+      <div>
+        <h3 id="settingsFriendsModalTitle">All Friends</h3>
+        <p>All of your awesome friends!</p>
+      </div>
+
+      <button id="settingsFriendsModalClose" class="settings-friends-modal-close" type="button" aria-label="Close friends modal">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div id="settingsFriendsModalList" class="settings-friends-modal-list">
+      <div class="settings-friends-empty">Loading friends...</div>
+    </div>
+  </section>
   </div>
 </div>

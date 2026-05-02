@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirm Email Change | MyGameList</title>
+  <style>
+    body{
+      margin:0;
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      background:#0b1220;
+      color:#e5eefc;
+      font-family:Arial,sans-serif;
+      padding:24px;
+    }
+
+    .email-change-card{
+      width:min(520px, 100%);
+      padding:28px;
+      border-radius:20px;
+      background:rgba(18,27,45,0.96);
+      border:1px solid rgba(148,163,184,0.18);
+      box-shadow:0 20px 60px rgba(0,0,0,0.35);
+    }
+
+    .email-change-card h1{
+      margin:0 0 12px;
+      font-size:1.6rem;
+    }
+
+    .email-change-card p{
+      margin:0;
+      color:#9cb0ce;
+      line-height:1.6;
+    }
+
+    .email-change-actions{
+      margin-top:20px;
+    }
+
+    .email-change-link{
+      color:#8ab4ff;
+      text-decoration:none;
+      font-weight:700;
+    }
+  </style>
+</head>
+<body>
+  <main class="email-change-card">
+    <h1 id="emailChangeTitle">Confirming email change...</h1>
+    <p id="emailChangeMessage">Please wait while we verify your new email address.</p>
+
+    <div class="email-change-actions">
+      <a class="email-change-link" href="/LoginPageAndLogic/login.html">Go to Login</a>
+    </div>
+  </main>
+
+  <script type="module" src="/js/global/email_change.js"></script>
+</body>
+</html>

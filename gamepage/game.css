@@ -549,13 +549,13 @@
 }
 
 .sub-card-wide{
-  grid-column: span 2;
+  grid-column: span 4;
 }
 
 .sub-body > div{ margin-bottom: 6px; }
 
 .age-rating-card{
-  grid-column: span 2;
+  grid-column: span 3;
   min-height: 0;
 }
 

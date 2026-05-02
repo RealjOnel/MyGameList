@@ -7,6 +7,8 @@ const DEFAULT_AVATAR_URL = "/assets/User/Default_User_Icon.png";
 const DEFAULT_BANNER_URL = "/assets/User/banner.png";
 const MAX_IMAGE_SIZE_BYTES = 8 * 1024 * 1024; // 8 MB
 
+const weakPasswords = new Set(["123456", "password", "qwerty", "abc123"]);
+
 const DEFAULT_SETTINGS = Object.freeze({
   profile: {
     bio: "",
@@ -57,7 +59,16 @@ const pendingProfileMedia = {
 const profileMetaState = {
   avatarUrl: DEFAULT_AVATAR_URL,
   bannerUrl: DEFAULT_BANNER_URL,
-  username: ""
+  username: "",
+  email: ""
+};
+
+const usernameChangeState = {
+  canChangeNow: true,
+  minDaysBetweenChanges: 14,
+  lastChangedAt: null,
+  nextChangeAt: null,
+  waitDaysRemaining: 0
 };
 
 const cropState = {
@@ -80,6 +91,12 @@ const cropState = {
   dragOriginX: 0,
   dragOriginY: 0
 };
+
+const settingsFriendsState = {
+  items: []
+};
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function cloneDefaults() {
   return JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
@@ -143,7 +160,10 @@ async function api(path, { method = "GET", body } = {}) {
   }
 
   if (!res.ok) {
-    throw new Error(data?.message || `Request failed (${res.status})`);
+    const err = new Error(data?.message || `Request failed (${res.status})`);
+    err.status = res.status;
+    err.data = data;
+    throw err;
   }
 
   return data;
@@ -232,6 +252,596 @@ function setImagePreview(imgEl, url, fallbackUrl) {
   imgEl.src = url || fallbackUrl;
 }
 
+function escapeHtml(str = "") {
+  return String(str).replace(/[&<>"']/g, (m) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  }[m]));
+}
+
+function getProfileHref(username = "") {
+  return `/profile/profile.html?username=${encodeURIComponent(username)}`;
+}
+
+function normalizeUsernameInputValue(value) {
+  return String(value || "").trim();
+}
+
+// E-Mail change helpers and validation
+
+function getEmailEls() {
+  return {
+    current: document.getElementById("settingsCurrentEmailInput"),
+    next: document.getElementById("settingsNewEmailInput"),
+    password: document.getElementById("settingsEmailPasswordInput")
+  };
+}
+
+function readEmailChangeValues() {
+  const els = getEmailEls();
+
+  return {
+    newEmail: String(els.next?.value || "").trim(),
+    currentPassword: String(els.password?.value || "").trim()
+  };
+}
+
+function clearEmailChangeFields() {
+  const els = getEmailEls();
+
+  if (els.next) els.next.value = "";
+  if (els.password) els.password.value = "";
+}
+
+function validateEmailChangeValues(values) {
+  const newEmail = String(values?.newEmail || "").trim().toLowerCase();
+  const currentPassword = String(values?.currentPassword || "").trim();
+  const currentEmail = String(profileMetaState.email || "").trim().toLowerCase();
+
+  const anyFilled = Boolean(newEmail || currentPassword);
+
+  if (!anyFilled) {
+    return {
+      ok: true,
+      shouldChange: false
+    };
+  }
+
+  if (!newEmail || !currentPassword) {
+    return {
+      ok: false,
+      message: "Please fill in the new email and your current password"
+    };
+  }
+
+  if (!emailRegex.test(newEmail)) {
+    return {
+      ok: false,
+      message: "Please enter a valid email address"
+    };
+  }
+
+  if (currentEmail && newEmail === currentEmail) {
+    return {
+      ok: false,
+      message: "That is already your current email address"
+    };
+  }
+
+  return {
+    ok: true,
+    shouldChange: true,
+    body: {
+      newEmail,
+      currentPassword
+    }
+  };
+}
+
+async function tryRequestEmailChange() {
+  const values = readEmailChangeValues();
+  const validation = validateEmailChangeValues(values);
+
+  if (!validation.ok) {
+    return {
+      changed: false,
+      error: new Error(validation.message)
+    };
+  }
+
+  if (!validation.shouldChange) {
+    return {
+      changed: false,
+      error: null
+    };
+  }
+
+  try {
+    await api("/api/users/email/request", {
+      method: "POST",
+      body: validation.body
+    });
+
+    clearEmailChangeFields();
+
+    return {
+      changed: true,
+      error: null
+    };
+  } catch (err) {
+    return {
+      changed: false,
+      error: err
+    };
+  }
+}
+
+// Password change helpers and validation
+
+function getPasswordEls() {
+  return {
+    current: document.getElementById("settingsCurrentPasswordInput"),
+    next: document.getElementById("settingsNewPasswordInput"),
+    confirm: document.getElementById("settingsConfirmPasswordInput")
+  };
+}
+
+function readPasswordValues() {
+  const els = getPasswordEls();
+
+  return {
+    currentPassword: String(els.current?.value || "").trim(),
+    newPassword: String(els.next?.value || "").trim(),
+    confirmPassword: String(els.confirm?.value || "").trim()
+  };
+}
+
+function clearPasswordFields() {
+  const els = getPasswordEls();
+
+  if (els.current) els.current.value = "";
+  if (els.next) els.next.value = "";
+  if (els.confirm) els.confirm.value = "";
+}
+
+function validatePasswordChangeValues(values) {
+  const currentPassword = String(values?.currentPassword || "").trim();
+  const newPassword = String(values?.newPassword || "").trim();
+  const confirmPassword = String(values?.confirmPassword || "").trim();
+
+  const anyFilled = Boolean(currentPassword || newPassword || confirmPassword);
+
+  if (!anyFilled) {
+    return {
+      ok: true,
+      shouldChange: false
+    };
+  }
+
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    return {
+      ok: false,
+      message: "Please fill in all password fields"
+    };
+  }
+
+  if (newPassword.length < 8) {
+    return {
+      ok: false,
+      message: "Password must be at least 8 characters long"
+    };
+  }
+
+  if (!/[A-Z]/.test(newPassword)) {
+    return {
+      ok: false,
+      message: "Password must include at least one uppercase letter"
+    };
+  }
+
+  if (!/[a-z]/.test(newPassword)) {
+    return {
+      ok: false,
+      message: "Password must include at least one lowercase letter"
+    };
+  }
+
+  if (!/\d/.test(newPassword)) {
+    return {
+      ok: false,
+      message: "Password must include at least one number"
+    };
+  }
+
+  if (weakPasswords.has(newPassword.toLowerCase())) {
+    return {
+      ok: false,
+      message: "This password is too common. Please choose a stronger one."
+    };
+  }
+
+  if (newPassword !== confirmPassword) {
+    return {
+      ok: false,
+      message: "New password and confirm password do not match"
+    };
+  }
+
+  if (currentPassword === newPassword) {
+    return {
+      ok: false,
+      message: "New password must be different from your current password"
+    };
+  }
+
+  return {
+    ok: true,
+    shouldChange: true,
+    body: {
+      currentPassword,
+      newPassword
+    }
+  };
+}
+
+async function trySavePasswordChange() {
+  const values = readPasswordValues();
+  const validation = validatePasswordChangeValues(values);
+
+  if (!validation.ok) {
+    return {
+      changed: false,
+      error: new Error(validation.message)
+    };
+  }
+
+  if (!validation.shouldChange) {
+    return {
+      changed: false,
+      error: null
+    };
+  }
+
+  try {
+    await api("/api/users/password", {
+      method: "PATCH",
+      body: validation.body
+    });
+
+    clearPasswordFields();
+
+    return {
+      changed: true,
+      error: null
+    };
+  } catch (err) {
+    return {
+      changed: false,
+      error: err
+    };
+  }
+}
+
+/* =========================
+   Friends modal + friends list
+   ========================= */
+
+function getSettingsFriendsEls() {
+  return {
+    list: document.getElementById("settingsFriendsList"),
+    viewAllBtn: document.getElementById("settingsViewAllFriendsBtn"),
+    modal: document.getElementById("settingsFriendsModal"),
+    modalClose: document.getElementById("settingsFriendsModalClose"),
+    modalList: document.getElementById("settingsFriendsModalList")
+  };
+}
+
+function isSettingsFriendsModalOpen() {
+  const { modal } = getSettingsFriendsEls();
+  return Boolean(modal && !modal.hidden);
+}
+
+function closeSettingsFriendsModal() {
+  const { modal } = getSettingsFriendsEls();
+  if (!modal) return;
+
+  modal.hidden = true;
+  modal.setAttribute("aria-hidden", "true");
+}
+
+function openSettingsFriendsModal() {
+  const { modal } = getSettingsFriendsEls();
+  if (!modal) return;
+
+  renderSettingsFriendsModalList(settingsFriendsState.items);
+  modal.hidden = false;
+  modal.setAttribute("aria-hidden", "false");
+}
+
+function buildSettingsFriendsMarkup(friends = []) {
+  if (!friends.length) {
+    return `<div class="settings-friends-empty">You have no friends yet.</div>`;
+  }
+
+  return friends.map((friend) => {
+    const username = String(friend?.username || "Unknown User");
+    const avatar = friend?.avatarUrl || DEFAULT_AVATAR_URL;
+
+    return `
+      <div class="settings-friend-item">
+        <div class="settings-friend-main">
+          <img src="${escapeHtml(avatar)}" alt="${escapeHtml(username)}">
+          <a class="settings-friend-link" href="${getProfileHref(username)}">
+            ${escapeHtml(username)}
+          </a>
+        </div>
+
+        <button
+          class="settings-remove-btn"
+          type="button"
+          data-settings-remove-friend="${escapeHtml(username)}"
+        >
+          Remove
+        </button>
+      </div>
+    `;
+  }).join("");
+}
+
+function bindSettingsFriendRemoveButtons(container) {
+  if (!container) return;
+
+  container.querySelectorAll("[data-settings-remove-friend]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const username = btn.dataset.settingsRemoveFriend;
+      if (!username) return;
+
+      btn.disabled = true;
+
+      try {
+        await handleRemoveFriendFromSettings(username);
+      } catch (err) {
+        console.error(err);
+
+        if (err.message === "SESSION_EXPIRED") {
+          redirectToLogin();
+          return;
+        }
+
+        showToast({
+          title: "Remove failed",
+          message: err.message || "Could not remove friend.",
+          type: "error"
+        });
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+}
+
+function renderSettingsFriendsList(friends = []) {
+  const { list } = getSettingsFriendsEls();
+  if (!list) return;
+
+  settingsFriendsState.items = Array.isArray(friends) ? friends : [];
+  list.innerHTML = buildSettingsFriendsMarkup(settingsFriendsState.items);
+  bindSettingsFriendRemoveButtons(list);
+}
+
+function renderSettingsFriendsModalList(friends = []) {
+  const { modalList } = getSettingsFriendsEls();
+  if (!modalList) return;
+
+  modalList.innerHTML = buildSettingsFriendsMarkup(friends);
+  bindSettingsFriendRemoveButtons(modalList);
+}
+
+async function loadSettingsFriends() {
+  const { list, modalList } = getSettingsFriendsEls();
+
+  if (!list) return;
+
+  const ownUsername = normalizeUsernameInputValue(profileMetaState.username);
+  if (!ownUsername) {
+    list.innerHTML = `<div class="settings-friends-empty">Could not load your friends list.</div>`;
+    if (modalList) {
+      modalList.innerHTML = `<div class="settings-friends-empty">Could not load your friends list.</div>`;
+    }
+    return;
+  }
+
+  list.innerHTML = `<div class="settings-friends-empty">Loading friends...</div>`;
+  if (modalList) {
+    modalList.innerHTML = `<div class="settings-friends-empty">Loading friends...</div>`;
+  }
+
+  try {
+    const data = await api(`/api/friends/list/${encodeURIComponent(ownUsername)}`);
+    const friends = Array.isArray(data?.friends) ? data.friends : [];
+
+    settingsFriendsState.items = friends;
+    renderSettingsFriendsList(friends);
+    renderSettingsFriendsModalList(friends);
+  } catch (err) {
+    console.error(err);
+
+    list.innerHTML = `<div class="settings-friends-empty">Failed to load friends.</div>`;
+    if (modalList) {
+      modalList.innerHTML = `<div class="settings-friends-empty">Failed to load friends.</div>`;
+    }
+
+    showToast({
+      title: "Friends failed to load",
+      message: err.message || "Could not load your friends list.",
+      type: "error"
+    });
+  }
+}
+
+async function handleRemoveFriendFromSettings(friendUsername) {
+  if (!friendUsername) return;
+
+  const ok = typeof window.openMglConfirm === "function"
+    ? await window.openMglConfirm({
+        title: "Remove Friend",
+        text: `Do you really want to remove ${friendUsername} from your friends list?`,
+        confirmText: "Remove",
+        cancelText: "Keep"
+      })
+    : window.confirm(`Do you really want to remove ${friendUsername} from your friends list?`);
+
+  if (!ok) return;
+
+  await api(`/api/friends/remove/${encodeURIComponent(friendUsername)}`, {
+    method: "DELETE"
+  });
+
+  showToast({
+    title: "Friend removed",
+    message: `${friendUsername} has been removed from your friends list.`,
+    type: "success"
+  });
+
+  await loadSettingsFriends();
+
+  window.dispatchEvent(new CustomEvent("mgl:friends-updated", {
+    detail: { removedUsername: friendUsername }
+  }));
+}
+
+/* =========================
+   Username change
+   ========================= */
+
+function syncUsernameChangeMeta(data = {}) {
+  const info = data?.usernameChange;
+  if (!info) return;
+
+  usernameChangeState.canChangeNow = info.canChangeNow !== false;
+  usernameChangeState.minDaysBetweenChanges = Number(info.minDaysBetweenChanges || 14);
+  usernameChangeState.lastChangedAt = info.lastChangedAt || null;
+  usernameChangeState.nextChangeAt = info.nextChangeAt || null;
+  usernameChangeState.waitDaysRemaining = Number(info.waitDaysRemaining || 0);
+}
+
+function formatUsernameChangeNote() {
+  const noteEl = document.getElementById("settingsUsernameNote");
+  const inputEl = document.getElementById("settingsUsernameInput");
+
+  if (!noteEl || !inputEl) return;
+
+  noteEl.classList.remove("settings-note--danger");
+
+  if (usernameChangeState.canChangeNow) {
+    noteEl.textContent = `You can change your username now. Next change will be available in ${usernameChangeState.minDaysBetweenChanges} days.`;
+    inputEl.readOnly = false;
+    inputEl.disabled = false;
+    return;
+  }
+
+  const nextDate = usernameChangeState.nextChangeAt
+    ? new Date(usernameChangeState.nextChangeAt).toLocaleDateString("en-GB")
+    : null;
+
+  noteEl.textContent = nextDate
+    ? `Next username change available on ${nextDate} (${usernameChangeState.waitDaysRemaining} day(s) left).`
+    : `Next username change available in ${usernameChangeState.waitDaysRemaining} day(s).`;
+
+  noteEl.classList.add("settings-note--danger");
+  inputEl.readOnly = true;
+  inputEl.disabled = false;
+}
+
+async function confirmUsernameChange(nextUsername) {
+  const finalName = normalizeUsernameInputValue(nextUsername);
+  if (!finalName) return false;
+
+  const text = `Do you really want to change your name to "${finalName}"? You will need to wait ${usernameChangeState.minDaysBetweenChanges} days before changing it again.`;
+
+  if (typeof window.openMglConfirm === "function") {
+    return await window.openMglConfirm({
+      title: "Confirm Username Change",
+      text,
+      confirmText: "Change Name",
+      cancelText: "Cancel"
+    });
+  }
+
+  return window.confirm(text);
+}
+
+function syncOwnProfileUrl(oldUsername, newUsername) {
+  if (!newUsername) return;
+
+  const url = new URL(window.location.href);
+  const currentUsernameParam = url.searchParams.get("username");
+
+  if (url.pathname.includes("/profile/")) {
+    if (
+      !currentUsernameParam ||
+      currentUsernameParam.trim().toLowerCase() === String(oldUsername || "").trim().toLowerCase()
+    ) {
+      url.searchParams.set("username", newUsername);
+      window.history.replaceState({}, "", url.toString());
+    }
+  }
+
+  document.querySelectorAll('#userDropdown a[href*="profile.html"]').forEach((link) => {
+    link.href = `/profile/profile.html?username=${encodeURIComponent(newUsername)}`;
+  });
+}
+
+async function trySaveUsernameChange() {
+  const usernameInput = document.getElementById("settingsUsernameInput");
+  if (!usernameInput) {
+    return { changed: false, error: null };
+  }
+
+  const nextUsername = normalizeUsernameInputValue(usernameInput.value);
+  const currentUsername = normalizeUsernameInputValue(profileMetaState.username);
+
+  if (!nextUsername || nextUsername === currentUsername) {
+    return { changed: false, error: null };
+  }
+
+  try {
+    const data = await api("/api/users/username", {
+      method: "PATCH",
+      body: { username: nextUsername }
+    });
+
+    const previousUsername = profileMetaState.username;
+
+    syncProfileMeta(data);
+    syncUsernameChangeMeta(data);
+    populateProfileMeta();
+    syncOwnProfileUrl(previousUsername, profileMetaState.username);
+
+    window.dispatchEvent(
+      new CustomEvent("mgl:username-updated", {
+        detail: {
+          oldUsername: previousUsername,
+          username: profileMetaState.username
+        }
+      })
+    );
+
+    return { changed: true, error: null };
+  } catch (err) {
+    syncUsernameChangeMeta(err?.data || {});
+    populateProfileMeta();
+    return { changed: false, error: err };
+  }
+}
+
+/* =========================
+   Profile meta + media
+   ========================= */
+
 function syncProfileMeta(data = {}) {
   if (!data || typeof data !== "object") return;
 
@@ -245,6 +855,10 @@ function syncProfileMeta(data = {}) {
 
   if ("username" in data) {
     profileMetaState.username = data.username || "";
+  }
+
+  if ("email" in data) {
+    profileMetaState.email = data.email || "";
   }
 }
 
@@ -298,7 +912,14 @@ function populateProfileMeta() {
     usernameInput.value = profileMetaState.username || "";
   }
 
+  const currentEmailInput = document.getElementById("settingsCurrentEmailInput");
+
+  if (currentEmailInput) {
+    currentEmailInput.value = profileMetaState.email || "";
+  }
+
   refreshAllUploadUi();
+  formatUsernameChangeNote();
 }
 
 function populateSettingsForm(settings) {
@@ -327,6 +948,7 @@ function updateBioCounter() {
 async function loadSettingsIntoForm() {
   const data = await api("/api/users/settings");
   syncProfileMeta(data);
+  syncUsernameChangeMeta(data);
   populateSettingsForm(data?.settings);
   populateProfileMeta();
   return data;
@@ -369,6 +991,9 @@ async function saveSettingsFromForm() {
   const saveSettingsBtn = document.getElementById("settingsSaveBtn");
   const settings = collectSettingsFromForm();
 
+  const usernameInput = document.getElementById("settingsUsernameInput");
+  const pendingUsernameValue = normalizeUsernameInputValue(usernameInput?.value);
+
   if (saveSettingsBtn) {
     saveSettingsBtn.disabled = true;
     saveSettingsBtn.textContent = "Saving...";
@@ -381,14 +1006,42 @@ async function saveSettingsFromForm() {
     });
 
     syncProfileMeta(data);
-    populateSettingsForm(data?.settings);
-    populateProfileMeta();
+    syncUsernameChangeMeta(data);
 
-    window.dispatchEvent(
-      new CustomEvent("mgl:settings-saved", {
-        detail: { settings: data?.settings }
-      })
-    );
+    populateSettingsForm(data?.settings);
+
+    if (usernameInput) {
+      usernameInput.value = pendingUsernameValue || profileMetaState.username || "";
+    }
+
+    formatUsernameChangeNote();
+    refreshAllUploadUi();
+
+    let usernameResult = { changed: false, error: null };
+    let passwordResult = { changed: false, error: null };
+    let emailResult = { changed: false, error: null };
+
+    const wantsUsernameChange =
+      pendingUsernameValue &&
+      pendingUsernameValue !== normalizeUsernameInputValue(profileMetaState.username);
+
+    if (wantsUsernameChange) {
+      const confirmed = await confirmUsernameChange(pendingUsernameValue);
+
+      if (confirmed) {
+        usernameResult = await trySaveUsernameChange();
+
+        if (usernameResult.error) {
+          if (usernameResult.error.message === "SESSION_EXPIRED") {
+            throw usernameResult.error;
+          }
+        }
+      } else {
+        if (usernameInput) {
+          usernameInput.value = profileMetaState.username || "";
+        }
+      }
+    }
 
     const mediaEventDetail = {};
 
@@ -416,6 +1069,12 @@ async function saveSettingsFromForm() {
 
     populateProfileMeta();
 
+    window.dispatchEvent(
+      new CustomEvent("mgl:settings-saved", {
+        detail: { settings: data?.settings }
+      })
+    );
+
     if (Object.keys(mediaEventDetail).length) {
       window.dispatchEvent(
         new CustomEvent("mgl:profile-media-updated", {
@@ -424,13 +1083,76 @@ async function saveSettingsFromForm() {
       );
     }
 
-    showToast({
-      title: "Settings saved",
-      message: Object.keys(mediaEventDetail).length
-        ? "Your settings and profile media have been updated."
-        : "Your settings have been updated successfully.",
-      type: "success"
-    });
+    emailResult = await tryRequestEmailChange();
+
+    if (emailResult.error) {
+      if (emailResult.error.message === "SESSION_EXPIRED") {
+        throw emailResult.error;
+      }
+    }
+
+    passwordResult = await trySavePasswordChange();
+
+    if (passwordResult.error) {
+      if (passwordResult.error.message === "SESSION_EXPIRED") {
+        throw passwordResult.error;
+      }
+    }
+
+    if (passwordResult.changed) {
+      clearAccessToken();
+      closeSettings();
+
+      showToast({
+        title: "Password changed",
+        message: emailResult.changed
+          ? "Your password was updated and a verification email was sent to your new email address. Please log in again."
+          : "Your password was updated. Please log in again.",
+        type: "success"
+      });
+
+      setTimeout(() => {
+        redirectToLogin();
+      }, 1200);
+
+      return;
+    }
+
+    const partialProblems = [];
+
+    if (usernameResult.error) {
+      partialProblems.push(`the username was not changed: ${usernameResult.error.message}`);
+    }
+
+    if (passwordResult.error) {
+      partialProblems.push(`the password was not changed: ${passwordResult.error.message}`);
+    }
+
+    if (emailResult.error) {
+      partialProblems.push(`the email was not changed: ${emailResult.error.message}`);
+    }
+
+    if (partialProblems.length) {
+      showToast({
+        title: "Partially saved",
+        message: `Your settings were saved, but ${partialProblems.join(" Also, ")}.`,
+        type: "warning"
+      });
+    } else {
+      const parts = [];
+
+      if (usernameResult.changed) parts.push("username");
+      if (passwordResult.changed) parts.push("password");
+      if (emailResult.changed) parts.push("email verification request");
+      if (Object.keys(mediaEventDetail).length) parts.push("profile media");
+      parts.push("settings");
+
+      showToast({
+        title: "Settings saved",
+        message: `Updated: ${parts.join(", ")}.`,
+        type: "success"
+      });
+    }
   } finally {
     if (saveSettingsBtn) {
       saveSettingsBtn.disabled = false;
@@ -438,6 +1160,10 @@ async function saveSettingsFromForm() {
     }
   }
 }
+
+/* =========================
+   Overlay helpers
+   ========================= */
 
 function getOverlay() {
   return document.getElementById("settingsOverlay");
@@ -463,6 +1189,10 @@ function getCropEls() {
 function isCropOpen() {
   return Boolean(cropState.type) && !getCropEls().overlay?.hidden;
 }
+
+/* =========================
+   Cropper
+   ========================= */
 
 function revokeCropObjectUrl() {
   if (cropState.objectUrl) {
@@ -717,74 +1447,6 @@ async function confirmCropperSelection() {
   });
 }
 
-function closeUserDropdownIfOpen() {
-  const userDropdown = document.getElementById("userDropdown");
-  if (userDropdown) {
-    userDropdown.classList.remove("open");
-    userDropdown.setAttribute("aria-hidden", "true");
-  }
-}
-
-function setupTabs() {
-  const settingsTabs = document.querySelectorAll(".settings-tab");
-  const settingsPanels = document.querySelectorAll(".settings-panel");
-
-  settingsTabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
-      const target = tab.dataset.settingsTab;
-
-      settingsTabs.forEach((btn) => {
-        btn.classList.toggle("active", btn === tab);
-      });
-
-      settingsPanels.forEach((panel) => {
-        panel.classList.toggle("active", panel.dataset.settingsPanel === target);
-      });
-    });
-  });
-}
-
-async function openSettings() {
-  const settingsOverlay = getOverlay();
-  if (!settingsOverlay) return;
-
-  closeCropper();
-  clearAllPendingMedia();
-
-  settingsOverlay.hidden = false;
-  settingsOverlay.setAttribute("aria-hidden", "false");
-  document.body.style.overflow = "hidden";
-
-  try {
-    await loadSettingsIntoForm();
-  } catch (err) {
-    console.error(err);
-
-    if (err.message === "SESSION_EXPIRED") {
-      redirectToLogin();
-      return;
-    }
-
-    showToast({
-      title: "Settings failed to load",
-      message: err.message || "Could not load settings.",
-      type: "error"
-    });
-  }
-}
-
-function closeSettings() {
-  const settingsOverlay = getOverlay();
-  if (!settingsOverlay) return;
-
-  closeCropper();
-  clearAllPendingMedia();
-
-  settingsOverlay.hidden = true;
-  settingsOverlay.setAttribute("aria-hidden", "true");
-  document.body.style.overflow = "";
-}
-
 function handleCropPointerDown(e) {
   if (!cropState.type) return;
   if (e.pointerType === "mouse" && e.button !== 0) return;
@@ -895,6 +1557,86 @@ function validateSelectedImage(file) {
   }
 }
 
+/* =========================
+   Settings modal
+   ========================= */
+
+function closeUserDropdownIfOpen() {
+  const userDropdown = document.getElementById("userDropdown");
+  if (userDropdown) {
+    userDropdown.classList.remove("open");
+    userDropdown.setAttribute("aria-hidden", "true");
+  }
+}
+
+function setupTabs() {
+  const settingsTabs = document.querySelectorAll(".settings-tab");
+  const settingsPanels = document.querySelectorAll(".settings-panel");
+
+  settingsTabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const target = tab.dataset.settingsTab;
+
+      settingsTabs.forEach((btn) => {
+        btn.classList.toggle("active", btn === tab);
+      });
+
+      settingsPanels.forEach((panel) => {
+        panel.classList.toggle("active", panel.dataset.settingsPanel === target);
+      });
+    });
+  });
+}
+
+async function openSettings() {
+  const settingsOverlay = getOverlay();
+  if (!settingsOverlay) return;
+
+  closeCropper();
+  closeSettingsFriendsModal();
+  clearAllPendingMedia();
+  clearPasswordFields();
+  clearEmailChangeFields();
+
+  settingsOverlay.hidden = false;
+  settingsOverlay.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+
+  try {
+    await loadSettingsIntoForm();
+    await loadSettingsFriends();
+    closeSettingsFriendsModal();
+  } catch (err) {
+    console.error(err);
+
+    if (err.message === "SESSION_EXPIRED") {
+      redirectToLogin();
+      return;
+    }
+
+    showToast({
+      title: "Settings failed to load",
+      message: err.message || "Could not load settings.",
+      type: "error"
+    });
+  }
+}
+
+function closeSettings() {
+  const settingsOverlay = getOverlay();
+  if (!settingsOverlay) return;
+
+  closeSettingsFriendsModal();
+  closeCropper();
+  clearAllPendingMedia();
+  clearPasswordFields();
+  clearEmailChangeFields();
+
+  settingsOverlay.hidden = true;
+  settingsOverlay.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+}
+
 export function initSettingsModal() {
   if (isInitialized) return;
 
@@ -905,6 +1647,12 @@ export function initSettingsModal() {
   const cancelSettingsBtn = document.getElementById("settingsCancelBtn");
   const saveSettingsBtn = document.getElementById("settingsSaveBtn");
   const bioField = document.querySelector('[data-setting="profile.bio"]');
+
+  const {
+    viewAllBtn: settingsViewAllFriendsBtn,
+    modal: settingsFriendsModal,
+    modalClose: settingsFriendsModalClose
+  } = getSettingsFriendsEls();
 
   bindCropper();
 
@@ -918,7 +1666,7 @@ export function initSettingsModal() {
     }
 
     const closeTrigger = e.target.closest("[data-close-settings]");
-    if (closeTrigger && !isCropOpen()) {
+    if (closeTrigger && !isCropOpen() && !isSettingsFriendsModalOpen()) {
       closeSettings();
     }
   });
@@ -950,21 +1698,55 @@ export function initSettingsModal() {
 
   if (closeSettingsBtn) {
     closeSettingsBtn.addEventListener("click", () => {
+      if (isSettingsFriendsModalOpen()) {
+        closeSettingsFriendsModal();
+        return;
+      }
+
       if (isCropOpen()) {
         closeCropper();
         return;
       }
+
       closeSettings();
     });
   }
 
   if (cancelSettingsBtn) {
     cancelSettingsBtn.addEventListener("click", () => {
+      if (isSettingsFriendsModalOpen()) {
+        closeSettingsFriendsModal();
+        return;
+      }
+
       if (isCropOpen()) {
         closeCropper();
         return;
       }
+
       closeSettings();
+    });
+  }
+
+  if (settingsViewAllFriendsBtn) {
+    settingsViewAllFriendsBtn.addEventListener("click", async () => {
+      if (!settingsFriendsState.items.length) {
+        await loadSettingsFriends();
+      }
+
+      openSettingsFriendsModal();
+    });
+  }
+
+  if (settingsFriendsModalClose) {
+    settingsFriendsModalClose.addEventListener("click", closeSettingsFriendsModal);
+  }
+
+  if (settingsFriendsModal) {
+    settingsFriendsModal.addEventListener("click", (e) => {
+      if (e.target === settingsFriendsModal || e.target.closest("[data-close-settings-friends]")) {
+        closeSettingsFriendsModal();
+      }
     });
   }
 
@@ -989,8 +1771,31 @@ export function initSettingsModal() {
     });
   }
 
+  window.addEventListener("mgl:friend-requests-updated", () => {
+    if (settingsOverlay && !settingsOverlay.hidden) {
+      loadSettingsFriends().catch(console.error);
+    }
+  });
+
+  window.addEventListener("mgl:friends-updated", () => {
+    if (settingsOverlay && !settingsOverlay.hidden) {
+      loadSettingsFriends().catch(console.error);
+    }
+  });
+
+  window.addEventListener("mgl:username-updated", () => {
+    if (settingsOverlay && !settingsOverlay.hidden) {
+      loadSettingsFriends().catch(console.error);
+    }
+  });
+
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
+
+    if (isSettingsFriendsModalOpen()) {
+      closeSettingsFriendsModal();
+      return;
+    }
 
     if (isCropOpen()) {
       closeCropper();
