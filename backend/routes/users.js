@@ -896,7 +896,7 @@ router.post("/email/request", requireAuth, async (req, res) => {
       expiresAt: new Date(Date.now() + 1000 * 60 * 60)
     });
 
-    const verifyUrl = `${env.FRONTEND_ORIGIN}/email-change.html?token=${encodeURIComponent(tokenValue)}`;
+    const verifyUrl = `${env.FRONTEND_ORIGIN}/OtherPages/email_change.html?token=${encodeURIComponent(tokenValue)}`;
 
     await sendEmailChangeVerificationMail({
       to: newEmail,

@@ -15,7 +15,10 @@ function getTransporter() {
     auth: {
       user: env.NOREPLY_SMTP_USER,
       pass: env.NOREPLY_SMTP_PASS
-    }
+    },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000
   });
 
   return cachedTransporter;
