@@ -13,8 +13,8 @@ function getTransporter() {
     port: env.SMTP_PORT,
     secure: env.SMTP_SECURE,
     auth: {
-      user: env.SMTP_USER,
-      pass: env.SMTP_PASS
+      user: env.NOREPLY_SMTP_USER,
+      pass: env.NOREPLY_SMTP_PASS
     }
   });
 
