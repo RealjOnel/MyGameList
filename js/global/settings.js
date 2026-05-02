@@ -59,7 +59,8 @@ const pendingProfileMedia = {
 const profileMetaState = {
   avatarUrl: DEFAULT_AVATAR_URL,
   bannerUrl: DEFAULT_BANNER_URL,
-  username: ""
+  username: "",
+  email: ""
 };
 
 const usernameChangeState = {
@@ -94,6 +95,8 @@ const cropState = {
 const settingsFriendsState = {
   items: []
 };
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function cloneDefaults() {
   return JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
@@ -265,6 +268,115 @@ function getProfileHref(username = "") {
 
 function normalizeUsernameInputValue(value) {
   return String(value || "").trim();
+}
+
+// E-Mail change helpers and validation
+
+function getEmailEls() {
+  return {
+    current: document.getElementById("settingsCurrentEmailInput"),
+    next: document.getElementById("settingsNewEmailInput"),
+    password: document.getElementById("settingsEmailPasswordInput")
+  };
+}
+
+function readEmailChangeValues() {
+  const els = getEmailEls();
+
+  return {
+    newEmail: String(els.next?.value || "").trim(),
+    currentPassword: String(els.password?.value || "").trim()
+  };
+}
+
+function clearEmailChangeFields() {
+  const els = getEmailEls();
+
+  if (els.next) els.next.value = "";
+  if (els.password) els.password.value = "";
+}
+
+function validateEmailChangeValues(values) {
+  const newEmail = String(values?.newEmail || "").trim().toLowerCase();
+  const currentPassword = String(values?.currentPassword || "").trim();
+  const currentEmail = String(profileMetaState.email || "").trim().toLowerCase();
+
+  const anyFilled = Boolean(newEmail || currentPassword);
+
+  if (!anyFilled) {
+    return {
+      ok: true,
+      shouldChange: false
+    };
+  }
+
+  if (!newEmail || !currentPassword) {
+    return {
+      ok: false,
+      message: "Please fill in the new email and your current password"
+    };
+  }
+
+  if (!emailRegex.test(newEmail)) {
+    return {
+      ok: false,
+      message: "Please enter a valid email address"
+    };
+  }
+
+  if (currentEmail && newEmail === currentEmail) {
+    return {
+      ok: false,
+      message: "That is already your current email address"
+    };
+  }
+
+  return {
+    ok: true,
+    shouldChange: true,
+    body: {
+      newEmail,
+      currentPassword
+    }
+  };
+}
+
+async function tryRequestEmailChange() {
+  const values = readEmailChangeValues();
+  const validation = validateEmailChangeValues(values);
+
+  if (!validation.ok) {
+    return {
+      changed: false,
+      error: new Error(validation.message)
+    };
+  }
+
+  if (!validation.shouldChange) {
+    return {
+      changed: false,
+      error: null
+    };
+  }
+
+  try {
+    await api("/api/users/email/request", {
+      method: "POST",
+      body: validation.body
+    });
+
+    clearEmailChangeFields();
+
+    return {
+      changed: true,
+      error: null
+    };
+  } catch (err) {
+    return {
+      changed: false,
+      error: err
+    };
+  }
 }
 
 // Password change helpers and validation
@@ -744,6 +856,10 @@ function syncProfileMeta(data = {}) {
   if ("username" in data) {
     profileMetaState.username = data.username || "";
   }
+
+  if ("email" in data) {
+    profileMetaState.email = data.email || "";
+  }
 }
 
 function getUploadEls(type) {
@@ -794,6 +910,12 @@ function populateProfileMeta() {
 
   if (usernameInput) {
     usernameInput.value = profileMetaState.username || "";
+  }
+
+  const currentEmailInput = document.getElementById("settingsCurrentEmailInput");
+
+  if (currentEmailInput) {
+    currentEmailInput.value = profileMetaState.email || "";
   }
 
   refreshAllUploadUi();
@@ -897,6 +1019,7 @@ async function saveSettingsFromForm() {
 
     let usernameResult = { changed: false, error: null };
     let passwordResult = { changed: false, error: null };
+    let emailResult = { changed: false, error: null };
 
     const wantsUsernameChange =
       pendingUsernameValue &&
@@ -960,6 +1083,14 @@ async function saveSettingsFromForm() {
       );
     }
 
+    emailResult = await tryRequestEmailChange();
+
+    if (emailResult.error) {
+      if (emailResult.error.message === "SESSION_EXPIRED") {
+        throw emailResult.error;
+      }
+    }
+
     passwordResult = await trySavePasswordChange();
 
     if (passwordResult.error) {
@@ -974,7 +1105,9 @@ async function saveSettingsFromForm() {
 
       showToast({
         title: "Password changed",
-        message: "Your password was updated. Please log in again.",
+        message: emailResult.changed
+          ? "Your password was updated and a verification email was sent to your new email address. Please log in again."
+          : "Your password was updated. Please log in again.",
         type: "success"
       });
 
@@ -995,6 +1128,10 @@ async function saveSettingsFromForm() {
       partialProblems.push(`the password was not changed: ${passwordResult.error.message}`);
     }
 
+    if (emailResult.error) {
+      partialProblems.push(`the email was not changed: ${emailResult.error.message}`);
+    }
+
     if (partialProblems.length) {
       showToast({
         title: "Partially saved",
@@ -1006,6 +1143,7 @@ async function saveSettingsFromForm() {
 
       if (usernameResult.changed) parts.push("username");
       if (passwordResult.changed) parts.push("password");
+      if (emailResult.changed) parts.push("email verification request");
       if (Object.keys(mediaEventDetail).length) parts.push("profile media");
       parts.push("settings");
 
@@ -1458,6 +1596,7 @@ async function openSettings() {
   closeSettingsFriendsModal();
   clearAllPendingMedia();
   clearPasswordFields();
+  clearEmailChangeFields();
 
   settingsOverlay.hidden = false;
   settingsOverlay.setAttribute("aria-hidden", "false");
@@ -1491,6 +1630,7 @@ function closeSettings() {
   closeCropper();
   clearAllPendingMedia();
   clearPasswordFields();
+  clearEmailChangeFields();
 
   settingsOverlay.hidden = true;
   settingsOverlay.setAttribute("aria-hidden", "true");

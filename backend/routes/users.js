@@ -9,6 +9,9 @@ import multer from "multer";
 import { cloudinary } from "../services/cloudinary.js";
 import bcrypt from "bcrypt";
 import { RefreshToken } from "../models/refreshToken.js";
+import crypto from "crypto";
+import { EmailChangeToken } from "../models/emailChangeToken.js";
+import { sendEmailChangeVerificationMail } from "../services/emailChangeMailer.js";
 
 const router = express.Router();
 
@@ -491,6 +494,66 @@ function getUsernameChangeInfo(user) {
   };
 }
 
+// E-Mail change helpers
+
+function normalizeEmail(rawValue = "") {
+  return String(rawValue || "").trim().toLowerCase();
+}
+
+function createEmailChangeTokenValue() {
+  return crypto.randomBytes(32).toString("hex");
+}
+
+function hashEmailChangeToken(token) {
+  return crypto.createHash("sha256").update(String(token || "")).digest("hex");
+}
+
+const emailChangeRequestSchema = z.object({
+  newEmail: z.string().trim().email("Please enter a valid email address").max(200),
+  currentPassword: z.string().min(1, "Current password is required").max(200)
+}).strict();
+
+const emailVerifySchema = z.object({
+  token: z.string().min(1, "Verification token is required").max(500)
+}).strict();
+
+function parseEmailChangeRequestBody(raw = {}) {
+  const parsed = emailChangeRequestSchema.safeParse(raw);
+
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message || "Invalid email change payload"
+    };
+  }
+
+  return {
+    ok: true,
+    value: {
+      newEmail: normalizeEmail(parsed.data.newEmail),
+      currentPassword: String(parsed.data.currentPassword || "").trim()
+    }
+  };
+}
+
+function parseEmailVerifyBody(raw = {}) {
+  const parsed = emailVerifySchema.safeParse(raw);
+
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message || "Invalid verification token"
+    };
+  }
+
+  return {
+    ok: true,
+    value: {
+      token: String(parsed.data.token || "").trim()
+    }
+  };
+}
+
 
 // Password validation helpers
 const weakPasswords = new Set(["123456", "password", "qwerty", "abc123"]);
@@ -612,7 +675,7 @@ router.get("/settings", requireAuth, async (req, res) => {
   try {
     res.set("Cache-Control", "no-store");
 
-    const user = await User.findById(req.userId).select("settings avatarUrl bannerUrl username displayUsername usernameChangedAt createdAt");
+    const user = await User.findById(req.userId).select("settings avatarUrl bannerUrl username displayUsername email usernameChangedAt createdAt");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -622,6 +685,7 @@ router.get("/settings", requireAuth, async (req, res) => {
       avatarUrl: user.avatarUrl ?? null,
       bannerUrl: user.bannerUrl ?? null,
       username: getPublicUsername(user),
+      email: user.email ?? "",
       usernameChange: getUsernameChangeInfo(user)
     });
   } catch (e) {
@@ -785,6 +849,122 @@ router.patch("/password", requireAuth, async (req, res) => {
   } catch (e) {
     console.error(e);
     return res.status(500).json({ message: "Failed to update password" });
+  }
+});
+
+// POST /api/users/email/request
+router.post("/email/request", requireAuth, async (req, res) => {
+  try {
+    res.set("Cache-Control", "no-store");
+
+    const bodyResult = parseEmailChangeRequestBody(req.body);
+    if (!bodyResult.ok) {
+      return res.status(400).json({ message: bodyResult.message });
+    }
+
+    const { newEmail, currentPassword } = bodyResult.value;
+
+    const user = await User.findById(req.userId).select("_id email displayUsername passwordHash updatedAt");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const currentEmail = normalizeEmail(user.email);
+    if (newEmail === currentEmail) {
+      return res.status(400).json({ message: "That is already your current email address" });
+    }
+
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    const existingUser = await User.findOne({ email: newEmail }).select("_id");
+    if (existingUser && !sameId(existingUser._id, user._id)) {
+      return res.status(409).json({ message: "This email address is already in use" });
+    }
+
+    await EmailChangeToken.deleteMany({ userId: user._id });
+
+    const tokenValue = createEmailChangeTokenValue();
+    const tokenHash = hashEmailChangeToken(tokenValue);
+
+    await EmailChangeToken.create({
+      userId: user._id,
+      newEmail,
+      tokenHash,
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60)
+    });
+
+    const verifyUrl = `${env.FRONTEND_ORIGIN}/email-change.html?token=${encodeURIComponent(tokenValue)}`;
+
+    await sendEmailChangeVerificationMail({
+      to: newEmail,
+      username: getPublicUsername(user),
+      verifyUrl
+    });
+
+    return res.json({
+      message: "Verification email sent to your new email address"
+    });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: "Failed to send email verification" });
+  }
+});
+
+// POST /api/users/email/verify
+router.post("/email/verify", async (req, res) => {
+  try {
+    res.set("Cache-Control", "no-store");
+
+    const bodyResult = parseEmailVerifyBody(req.body);
+    if (!bodyResult.ok) {
+      return res.status(400).json({ message: bodyResult.message });
+    }
+
+    const tokenHash = hashEmailChangeToken(bodyResult.value.token);
+
+    const changeRequest = await EmailChangeToken.findOne({
+      tokenHash,
+      expiresAt: { $gt: new Date() }
+    }).select("userId newEmail");
+
+    if (!changeRequest) {
+      return res.status(400).json({ message: "This email verification link is invalid or has expired" });
+    }
+
+    const user = await User.findById(changeRequest.userId).select("_id email tokenVersion updatedAt");
+    if (!user) {
+      await EmailChangeToken.deleteMany({ userId: changeRequest.userId });
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const existingUser = await User.findOne({ email: changeRequest.newEmail }).select("_id");
+    if (existingUser && !sameId(existingUser._id, user._id)) {
+      await EmailChangeToken.deleteMany({ userId: user._id });
+      return res.status(409).json({ message: "This email address is already in use" });
+    }
+
+    user.email = changeRequest.newEmail;
+    user.tokenVersion = Number(user.tokenVersion || 0) + 1;
+    user.updatedAt = new Date();
+
+    await user.save();
+
+    await RefreshToken.updateMany(
+      { userId: user._id, revokedAt: null },
+      { $set: { revokedAt: new Date() } }
+    );
+
+    await EmailChangeToken.deleteMany({ userId: user._id });
+
+    return res.json({
+      message: "Email updated successfully. Please log in again."
+    });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: "Failed to verify email change" });
   }
 });
 

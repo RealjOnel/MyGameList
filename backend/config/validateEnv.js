@@ -58,6 +58,10 @@ const envSchema = z.object({
     .string()
     .email("SUPPORT_EMAIL_FROM must be a valid email address"),
 
+  NOREPLY_EMAIL_FROM: z
+    .string()
+    .email("NOREPLY_EMAIL_FROM must be a valid email address"),
+
   SUPPORT_EMAIL_TO: z
     .string()
     .email("SUPPORT_EMAIL_TO must be a valid email address"),

@@ -309,7 +309,21 @@
                   <span class="settings-help">Used for login, account verification and future recovery.</span>
                 </div>
                 <div class="settings-field-wrap">
-                  <input class="settings-input" type="email" value="name@example.com">
+                  <input id="settingsCurrentEmailInput" class="settings-input" type="email" value="" readonly>
+                  <label class="settings-row settings-row--stack">
+                    <div>
+                      <span class="settings-label">Change Email Address</span>
+                      <span class="settings-help">Enter a new email address and your current password. We will send a verification link to the new address.</span>
+                    </div>
+
+                    <div class="settings-email-grid">
+                      <input id="settingsNewEmailInput" class="settings-input" type="email" placeholder="New email address" autocomplete="email">
+
+                      <input id="settingsEmailPasswordInput" class="settings-input" type="password" placeholder="Current password" autocomplete="current-password">
+                    </div>
+
+                    <span class="settings-note">Your email will only change after you confirm it in the verification mail.</span>
+                  </label>
                   <span class="settings-note">Current account email</span>
                 </div>
               </label>
