@@ -1,5 +1,6 @@
 import { showToast } from "./toast.js";
 import { fetchWithAuth, clearAccessToken } from "./authClient.js";
+import { applyCookiePreferences} from "./privacyPreferences.js";
 
 let isInitialized = false;
 
@@ -951,6 +952,7 @@ async function loadSettingsIntoForm() {
   syncUsernameChangeMeta(data);
   populateSettingsForm(data?.settings);
   populateProfileMeta();
+  applyCookiePreferences(data?.settings);
   return data;
 }
 
@@ -1009,6 +1011,7 @@ async function saveSettingsFromForm() {
     syncUsernameChangeMeta(data);
 
     populateSettingsForm(data?.settings);
+    applyCookiePreferences(data?.settings);
 
     if (usernameInput) {
       usernameInput.value = pendingUsernameValue || profileMetaState.username || "";
