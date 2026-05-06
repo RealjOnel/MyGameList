@@ -1,6 +1,7 @@
 import { API_BASE_URL } from "../backend/config.js";
 import { fetchWithAuth, getAccessToken, clearAccessToken } from "../js/global/authClient.js";
 import { showToast } from "../js/global/toast.js";
+import { bootstrapCookiePreferences, preferenceStorageGetItem, preferenceStorageSetItem } from "../js/global/privacyPreferences.js";
 
 function qs(sel) { return document.querySelector(sel); }
 
@@ -166,7 +167,7 @@ function readCachedProfileMedia(username) {
   if (!username) return null;
 
   try {
-    const raw = localStorage.getItem(getProfileMediaCacheKey(username));
+    const raw = preferenceStorageGetItem(getProfileMediaCacheKey(username));
     if (!raw) return null;
 
     const parsed = JSON.parse(raw);
@@ -183,7 +184,7 @@ function writeCachedProfileMedia(username, media = {}) {
   if (!username) return;
 
   try {
-    localStorage.setItem(
+      preferenceStorageSetItem(
       getProfileMediaCacheKey(username),
       JSON.stringify({
         avatarUrl: media?.avatarUrl || "",
@@ -1324,7 +1325,9 @@ async function loadProfile() {
   await setupFriendSection({ me, profile });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await bootstrapCookiePreferences();
+
   bindProfileFriendsModal();
 
   loadProfile().catch(err => {

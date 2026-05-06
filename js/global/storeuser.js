@@ -1,4 +1,5 @@
 import { logout, syncAuthState, fetchWithAuth, clearAccessToken } from "./authClient.js";
+import { bootstrapCookiePreferences, preferenceStorageGetItem, preferenceStorageSetItem, preferenceStorageRemoveItem } from "./privacyPreferences.js";
 
 const DEFAULT_NAV_AVATAR = "/assets/User/Default_User_Icon.png";
 const NAV_AVATAR_CACHE_KEY = "mgl_nav_avatar_url";
@@ -30,14 +31,14 @@ async function loadNavbarUserAvatar() {
   const hasToken = syncAuthState();
 
   if (!hasToken) {
-    localStorage.removeItem(NAV_AVATAR_CACHE_KEY);
+    preferenceStorageRemoveItem(NAV_AVATAR_CACHE_KEY);
     userIcon.src = DEFAULT_NAV_AVATAR;
     userIcon.classList.remove("user-icon--pending");
     userIcon.classList.add("user-icon--ready");
     return;
   }
 
-  const cachedAvatar = localStorage.getItem(NAV_AVATAR_CACHE_KEY);
+  const cachedAvatar = preferenceStorageGetItem(NAV_AVATAR_CACHE_KEY);
 
   if (cachedAvatar) {
     userIcon.src = cachedAvatar;
@@ -52,7 +53,7 @@ async function loadNavbarUserAvatar() {
 
     if (res.status === 401) {
       clearAccessToken();
-      localStorage.removeItem(NAV_AVATAR_CACHE_KEY);
+      preferenceStorageRemoveItem(NAV_AVATAR_CACHE_KEY);
       userIcon.src = DEFAULT_NAV_AVATAR;
       userIcon.classList.remove("user-icon--pending");
       userIcon.classList.add("user-icon--ready");
@@ -73,9 +74,9 @@ async function loadNavbarUserAvatar() {
     userIcon.classList.add("user-icon--ready");
 
     if (data?.avatarUrl) {
-      localStorage.setItem(NAV_AVATAR_CACHE_KEY, data.avatarUrl);
+      preferenceStorageSetItem(NAV_AVATAR_CACHE_KEY, data.avatarUrl);
     } else {
-      localStorage.removeItem(NAV_AVATAR_CACHE_KEY);
+      preferenceStorageRemoveItem(NAV_AVATAR_CACHE_KEY);
     }
   } catch (err) {
     console.error("Failed to load navbar user avatar:", err);
@@ -88,8 +89,9 @@ async function loadNavbarUserAvatar() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   syncAuthState();
+  await bootstrapCookiePreferences();
   loadNavbarUserAvatar().catch(console.error);
 
   const userIcon = document.getElementById("userIcon");
@@ -120,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       try {
         await logout();
-        localStorage.removeItem(NAV_AVATAR_CACHE_KEY);
+        preferenceStorageRemoveItem(NAV_AVATAR_CACHE_KEY);
       } finally {
         logoutBtn.disabled = false;
         window.location.href = getHomeUrl();
@@ -141,9 +143,9 @@ window.addEventListener("mgl:profile-media-updated", (e) => {
     userIcon.classList.add("user-icon--ready");
 
     if (nextAvatarUrl) {
-      localStorage.setItem(NAV_AVATAR_CACHE_KEY, nextAvatarUrl);
+      preferenceStorageSetItem(NAV_AVATAR_CACHE_KEY, nextAvatarUrl);
     } else {
-      localStorage.removeItem(NAV_AVATAR_CACHE_KEY);
+      preferenceStorageRemoveItem(NAV_AVATAR_CACHE_KEY);
     }
   }
 });

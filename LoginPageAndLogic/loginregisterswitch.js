@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "../backend/config.js";
+import { setAccessToken } from "../js/global/authClient.js";
 
 const form = document.getElementById("auth-form");
 const errorMsg = document.getElementById("error-msg");
@@ -171,7 +172,7 @@ form.addEventListener("submit", async (e) => {
 
     console.log("Success:", data);
 
-    localStorage.setItem("token", data.token);
+    setAccessToken(data.token);
 
     window.location.href = "../index.html";
 

@@ -856,35 +856,46 @@ router.patch("/password", requireAuth, async (req, res) => {
 router.post("/email/request", requireAuth, async (req, res) => {
   try {
     res.set("Cache-Control", "no-store");
+    console.log("[email/request] start", { userId: req.userId });
 
     const bodyResult = parseEmailChangeRequestBody(req.body);
     if (!bodyResult.ok) {
+      console.log("[email/request] invalid body", { message: bodyResult.message });
       return res.status(400).json({ message: bodyResult.message });
     }
 
     const { newEmail, currentPassword } = bodyResult.value;
+    console.log("[email/request] parsed body", { newEmail });
 
     const user = await User.findById(req.userId).select("_id email displayUsername passwordHash updatedAt");
+    console.log("[email/request] user loaded", { found: Boolean(user) });
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     const currentEmail = normalizeEmail(user.email);
     if (newEmail === currentEmail) {
+      console.log("[email/request] same email");
       return res.status(400).json({ message: "That is already your current email address" });
     }
 
     const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
+    console.log("[email/request] password checked", { ok: isCurrentPasswordValid });
+
     if (!isCurrentPasswordValid) {
       return res.status(400).json({ message: "Current password is incorrect" });
     }
 
     const existingUser = await User.findOne({ email: newEmail }).select("_id");
+    console.log("[email/request] existing email checked", { exists: Boolean(existingUser) });
+
     if (existingUser && !sameId(existingUser._id, user._id)) {
       return res.status(409).json({ message: "This email address is already in use" });
     }
 
     await EmailChangeToken.deleteMany({ userId: user._id });
+    console.log("[email/request] old tokens deleted");
 
     const tokenValue = createEmailChangeTokenValue();
     const tokenHash = hashEmailChangeToken(tokenValue);
@@ -895,20 +906,27 @@ router.post("/email/request", requireAuth, async (req, res) => {
       tokenHash,
       expiresAt: new Date(Date.now() + 1000 * 60 * 60)
     });
+    console.log("[email/request] token created");
 
-    const verifyUrl = `${env.FRONTEND_ORIGIN}/email-change.html?token=${encodeURIComponent(tokenValue)}`;
+    const verifyUrl = `${env.FRONTEND_ORIGIN}/OtherPages/email_change.html?token=${encodeURIComponent(tokenValue)}`;
+    console.log("[email/request] verify url built", { verifyUrl });
 
     await sendEmailChangeVerificationMail({
       to: newEmail,
       username: getPublicUsername(user),
       verifyUrl
     });
+    console.log("[email/request] mail sent");
 
     return res.json({
       message: "Verification email sent to your new email address"
     });
   } catch (e) {
-    console.error(e);
+    console.error("[email/request] failed", {
+      message: e?.message,
+      code: e?.code,
+      stack: e?.stack
+    });
     return res.status(500).json({ message: "Failed to send email verification" });
   }
 });
