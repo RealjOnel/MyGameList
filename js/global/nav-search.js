@@ -1,5 +1,6 @@
 import { API_BASE_URL } from "../../backend/config.js";
 import { fetchWithAuth, clearAccessToken, getAccessToken } from "./authClient.js";
+import { bootstrapCookiePreferences, preferenceStorageGetItem, preferenceStorageSetItem } from "./privacyPreferences.js";
 
 const STORAGE_KEY = "navSearchMode";
 const MODES = ["games", "users", "forum"];
@@ -243,7 +244,7 @@ function setVariant(root, variant){
     tabsWrap.removeAttribute("aria-hidden");
     tabsWrap.querySelectorAll("button").forEach(b => (b.tabIndex = 0));
 
-    let mode = localStorage.getItem(STORAGE_KEY) || "games";
+    let mode = preferenceStorageGetItem(STORAGE_KEY) || "games";
     if (!MODES.includes(mode)) mode = "games";
     root.dataset.mode = mode;
     setActiveTab(root, mode);
@@ -414,7 +415,7 @@ function setupSearch(root){
   const modeMenu = root.querySelector(".nav-search-mode-menu");
   const modeOptions = root.querySelectorAll(".nav-search-mode-option");
 
-  let mode = localStorage.getItem(STORAGE_KEY) || "games";
+  let mode = preferenceStorageGetItem(STORAGE_KEY) || "games";
   if (!MODES.includes(mode)) mode = "games";
   root.dataset.mode = root.dataset.mode || mode;
   setActiveTab(root, root.dataset.mode);
@@ -423,7 +424,7 @@ function setupSearch(root){
   tabs.forEach(t => t.addEventListener("click", () => {
     const next = t.dataset.mode;
     root.dataset.mode = next;
-    localStorage.setItem(STORAGE_KEY, next);
+    preferenceStorageSetItem(STORAGE_KEY, next);
     setActiveTab(root, next);
     updateModePlaceholder(root);
     input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -446,7 +447,7 @@ function setupSearch(root){
       btn.addEventListener("click", () => {
         const next = btn.dataset.mode;
         root.dataset.mode = next;
-        localStorage.setItem(STORAGE_KEY, next);
+        preferenceStorageSetItem(STORAGE_KEY, next);
         setActiveTab(root, next);
         updateModePlaceholder(root);
         modeMenu.hidden = true;
