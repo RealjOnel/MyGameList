@@ -12,6 +12,45 @@ const DEFAULT_CUSTOMIZATION = Object.freeze({
   liveSearchSuggestions: true
 });
 
+const SEARCH_DEBOUNCE_MS = 180;
+const MIN_QUERY_LENGTH = 2;
+const GAME_SUGGESTION_LIMIT = 10;
+const USER_SUGGESTION_LIMIT = 8;
+const SUGGESTION_CACHE_MAX = 40;
+
+const suggestionCache = {
+  games: new Map(),
+  users: new Map()
+};
+
+function normalizeQueryKey(q = "") {
+  return String(q).trim().toLowerCase();
+}
+
+function getCachedSuggestions(mode, q) {
+  const key = normalizeQueryKey(q);
+  if (!key) return null;
+  return suggestionCache[mode]?.get(key) || null;
+}
+
+function setCachedSuggestions(mode, q, items) {
+  const key = normalizeQueryKey(q);
+  if (!key || !suggestionCache[mode]) return;
+
+  const bucket = suggestionCache[mode];
+
+  if (bucket.has(key)) {
+    bucket.delete(key);
+  }
+
+  bucket.set(key, items);
+
+  if (bucket.size > SUGGESTION_CACHE_MAX) {
+    const oldestKey = bucket.keys().next().value;
+    bucket.delete(oldestKey);
+  }
+}
+
 function normalizeCustomization(raw = {}) {
   return {
     defaultExploreView: ["grid", "compact", "table"].includes(raw?.defaultExploreView)
@@ -255,26 +294,47 @@ function setVariant(root, variant){
   }
 }
 
-async function fetchGameSuggestions(q){
+async function fetchGameSuggestions(q, signal) {
+  const cached = getCachedSuggestions("games", q);
+  if (cached) return cached;
+
   const params = new URLSearchParams({
     page: "1",
     sort: "rating",
     order: "desc",
-    search: q
+    search: q,
+    limit: String(GAME_SUGGESTION_LIMIT)
   });
 
-  const res = await fetch(`${API_BASE_URL}/api/igdb/games?${params.toString()}`);
+  const res = await fetch(`${API_BASE_URL}/api/igdb/games?${params.toString()}`, {
+    cache: "no-store",
+    signal
+  });
+
+  if (!res.ok) {
+    throw new Error("Game search failed");
+  }
+
   const games = await res.json();
 
-  return (Array.isArray(games) ? games : [])
+  const items = (Array.isArray(games) ? games : [])
     .filter(g => g?.cover?.image_id && g?.name)
     .slice(0, 15);
+
+  setCachedSuggestions("games", q, items);
+  return items;
 }
 
-async function fetchUserSuggestions(q){
+async function fetchUserSuggestions(q, signal) {
+  const cached = getCachedSuggestions("users", q);
+  if (cached) return cached;
+
   const res = await fetch(
-    `${API_BASE_URL}/api/users/search?q=${encodeURIComponent(q)}`,
-    { cache: "no-store" }
+    `${API_BASE_URL}/api/users/search?q=${encodeURIComponent(q)}&limit=${USER_SUGGESTION_LIMIT}`,
+    {
+      cache: "no-store",
+      signal
+    }
   );
 
   if (!res.ok) {
@@ -282,7 +342,10 @@ async function fetchUserSuggestions(q){
   }
 
   const data = await res.json();
-  return Array.isArray(data?.users) ? data.users : [];
+  const items = Array.isArray(data?.users) ? data.users : [];
+
+  setCachedSuggestions("users", q, items);
+  return items;
 }
 
 function renderSuggestions(root, mode, items, q){
@@ -414,6 +477,19 @@ function setupSearch(root){
   const modeBtn = root.querySelector(".nav-search-mode-btn");
   const modeMenu = root.querySelector(".nav-search-mode-menu");
   const modeOptions = root.querySelectorAll(".nav-search-mode-option");
+  const state = root.querySelector(".nav-search-state");
+
+  const requestState = {
+    controller: null,
+    requestId: 0
+  };
+
+  function cancelActiveSearch() {
+    if (requestState.controller) {
+      requestState.controller.abort();
+      requestState.controller = null;
+    }
+  }
 
   let mode = preferenceStorageGetItem(STORAGE_KEY) || "games";
   if (!MODES.includes(mode)) mode = "games";
@@ -458,6 +534,12 @@ function setupSearch(root){
   }
 
   const run = debounce(async () => {
+    const modeNow = root.dataset.mode || "games";
+    const q = input.value.trim();
+    const currentRequestId = ++requestState.requestId;
+
+    cancelActiveSearch();
+
     if (root.dataset.variant === "page") {
       panel.hidden = true;
       return;
@@ -468,39 +550,63 @@ function setupSearch(root){
       return;
     }
 
-    const modeNow = root.dataset.mode || "games";
-    const q = input.value.trim();
-
-    if (!q){
-      renderSuggestions(root, modeNow, [], "");
+    if (!q || q.length < MIN_QUERY_LENGTH) {
+      state.textContent = "";
+      panel.hidden = true;
       return;
     }
 
-    try{
-      if (modeNow === "games"){
-        const items = await fetchGameSuggestions(q);
-        renderSuggestions(root, modeNow, items, q);
-      } else if (modeNow === "users"){
-        const items = await fetchUserSuggestions(q);
-        renderSuggestions(root, modeNow, items, q);
-      } else {
-        renderSuggestions(root, modeNow, [], q);
-      }
-    } catch {
-      renderSuggestions(root, modeNow, [], q);
+    const cached = getCachedSuggestions(modeNow, q);
+    if (cached) {
+      renderSuggestions(root, modeNow, cached, q);
+      return;
     }
-  }, 220);
+
+    const controller = new AbortController();
+    requestState.controller = controller;
+
+    panel.hidden = false;
+    state.textContent = "Searching...";
+
+    try {
+      let items = [];
+
+      if (modeNow === "games") {
+        items = await fetchGameSuggestions(q, controller.signal);
+      } else if (modeNow === "users") {
+        items = await fetchUserSuggestions(q, controller.signal);
+      } else {
+        items = [];
+      }
+
+      if (controller.signal.aborted) return;
+      if (currentRequestId !== requestState.requestId) return;
+
+      renderSuggestions(root, modeNow, items, q);
+    } catch (err) {
+      if (err?.name === "AbortError") return;
+      if (currentRequestId !== requestState.requestId) return;
+
+      console.error("Nav search failed:", err);
+      renderSuggestions(root, modeNow, [], q);
+    } finally {
+      if (requestState.controller === controller) {
+        requestState.controller = null;
+      }
+    }
+  }, SEARCH_DEBOUNCE_MS);
 
   input.addEventListener("input", run);
 
   input.addEventListener("focus", () => {
     if (root.dataset.variant === "page") return;
     if (!liveSearchSuggestionsEnabled()) return;
-    if (input.value.trim()) panel.hidden = false;
+    if (input.value.trim().length >= MIN_QUERY_LENGTH) panel.hidden = false;
   });
 
   document.addEventListener("click", (e) => {
     if (!root.contains(e.target)) {
+      cancelActiveSearch();
       panel.hidden = true;
       if (modeMenu) modeMenu.hidden = true;
     }
@@ -508,11 +614,15 @@ function setupSearch(root){
 
   input.addEventListener("keydown", async (e) => {
     if (e.key === "Escape"){
+      cancelActiveSearch();
       panel.hidden = true;
       input.blur();
       return;
     }
+
     if (e.key === "Enter"){
+      cancelActiveSearch();
+
       const q = input.value.trim();
       if (!q) return;
 
