@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "../backend/config.js";
-import { fetchWithAuth, getAccessToken, clearAccessToken } from "./global/authClient.js";
+import { fetchWithAuth, getAccessToken, clearAccessToken, bootstrapAuth } from "./global/authClient.js";
 import { showToast } from "./global/toast.js";
 
 const MAX_FILES = 3;
@@ -375,6 +375,7 @@ function setupDragAndDrop() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  await bootstrapAuth();
   await loadCurrentUser();
 
   qs("openBugReportBtn")?.addEventListener("click", () => {

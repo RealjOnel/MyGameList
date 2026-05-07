@@ -5,12 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script>
     (function () {
-        try {
-        const token = localStorage.getItem("token");
-        document.documentElement.dataset.auth = token ? "in" : "out";
-        } catch (e) {
-        document.documentElement.dataset.auth = "out";
-        }
+        document.documentElement.dataset.auth = "loading";
     })();
     </script>
     <title>MyGameList | Game</title>

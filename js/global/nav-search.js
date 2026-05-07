@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "../../backend/config.js";
-import { fetchWithAuth, clearAccessToken, getAccessToken } from "./authClient.js";
+import { fetchWithAuth, clearAccessToken, getAccessToken, bootstrapAuth } from "./authClient.js";
 import { bootstrapCookiePreferences, preferenceStorageGetItem, preferenceStorageSetItem } from "./privacyPreferences.js";
 
 const STORAGE_KEY = "navSearchMode";
@@ -577,7 +577,10 @@ function mountSearch(){
 document.addEventListener("DOMContentLoaded", mountSearch);
 window.addEventListener("pageshow", mountSearch);
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await bootstrapCookiePreferences();
+  await bootstrapAuth();
+
   loadCustomizationSettings().catch((err) => {
     console.error("Customization init failed", err);
   });

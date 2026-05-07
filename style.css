@@ -48,11 +48,14 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* Default: shows nothing until decided */
+/* =========================
+   AUTH UI STATE
+   ========================= */
+
 #loginBtn,
 #navUserWrap,
-#userMenu {
-    transition: opacity 0.16s ease, transform 0.16s ease;
+#friendBell {
+    display: none !important;
 }
 
 .nav-user-wrap{
@@ -62,32 +65,35 @@ body {
     margin-left: 8px;
 }
 
-/* while auth is being decided: hide auth-dependent UI */
-/* loading: nichts Auth-bezogen zeigen */
+/* loading: absichtlich nichts zeigen */
 html[data-auth="loading"] #loginBtn,
-html[data-auth="loading"] #navUserWrap{
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
+html[data-auth="loading"] #navUserWrap,
+html[data-auth="loading"] #friendBell {
+    display: none !important;
 }
 
 /* ausgeloggt */
-html[data-auth="out"] #loginBtn{
+html[data-auth="out"] #loginBtn {
     display: inline-flex !important;
 }
 
-html[data-auth="out"] #navUserWrap{
+html[data-auth="out"] #navUserWrap,
+html[data-auth="out"] #friendBell {
     display: none !important;
 }
 
 /* eingeloggt */
-html[data-auth="in"] #loginBtn{
+html[data-auth="in"] #loginBtn {
     display: none !important;
 }
 
-html[data-auth="in"] #navUserWrap{
+html[data-auth="in"] #navUserWrap {
     display: flex !important;
     align-items: center;
+}
+
+html[data-auth="in"] #friendBell {
+    display: block !important;
 }
 
 [hidden] { display: none !important; }
@@ -900,25 +906,8 @@ button {
    Friend Notification Bell
    ========================= */
 
-.notif-bell {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transform: translateY(-4px);
-    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0.18s;
-}
-
-html[data-auth="in"] .notif-bell {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    transform: translateY(0);
-    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s;
-}
-
-html[data-auth="out"] .notif-bell,
-html[data-auth="loading"] .notif-bell {
-    display: none !important;
+.notif-bell{
+    position: relative;
 }
 
 .notif-bell-btn{

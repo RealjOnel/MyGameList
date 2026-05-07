@@ -15,7 +15,7 @@ import profileCommentRoutes from "./routes/profileComments.js";
 import friendsRoutes from "./routes/friends.js";
 import reviewRoutes from "./routes/reviews.js";
 import supportRoutes from "./routes/support.js";
-import { loginLimiter, registerLimiter, authLimiter, apiLimiter } from "./middleware/rateLimiter.js";
+import { loginLimiter, registerLimiter, refreshLimiter, apiLimiter } from "./middleware/rateLimiter.js";
 
 const app = express();
 
@@ -56,11 +56,10 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 
-// Apply rate limiters
+// Apply auth-specific rate limiters only where needed
 app.use("/api/login", loginLimiter);
 app.use("/api/register", registerLimiter);
-app.use("/api/auth", authLimiter);
-app.use("/api", apiLimiter);
+app.use("/api/auth/refresh", refreshLimiter);
 
 // Connect to MongoDB
 mongoose.connect(env.MONGO_URI)
@@ -77,15 +76,17 @@ app.get("/ping", (req, res) => {
   res.send("SERVER PING OK");
 });
 
-// API routes
+// Auth routes first, without global /api limiter
 app.use("/api", authRoutes);
-app.use("/api/igdb", igdbRoutes);
-app.use("/api/library", libraryRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/profile-comments", profileCommentRoutes);
-app.use("/api/friends", friendsRoutes);
-app.use("/api/reviews", reviewRoutes);
-app.use("/api/support", supportRoutes);
+
+// Non-auth API routes with generic limiter
+app.use("/api/igdb", apiLimiter, igdbRoutes);
+app.use("/api/library", apiLimiter, libraryRoutes);
+app.use("/api/users", apiLimiter, userRoutes);
+app.use("/api/profile-comments", apiLimiter, profileCommentRoutes);
+app.use("/api/friends", apiLimiter, friendsRoutes);
+app.use("/api/reviews", apiLimiter, reviewRoutes);
+app.use("/api/support", apiLimiter, supportRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {

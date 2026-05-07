@@ -1,4 +1,4 @@
-import { fetchWithAuth, clearAccessToken, getAccessToken } from "../../js/global/authClient.js";
+import { fetchWithAuth, clearAccessToken, getAccessToken, bootstrapAuth } from "../../js/global/authClient.js";
 import { showToast } from "../../js/global/toast.js";
 
 const LOGIN_URL = "../../LoginPageAndLogic/login.html";
@@ -205,6 +205,8 @@ export function initReviewModal() {
     }
 
     async function handleOpen() {
+        await bootstrapAuth();
+
         if (!getAccessToken()) {
             redirectToLogin();
             return;

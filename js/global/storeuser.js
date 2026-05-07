@@ -1,4 +1,4 @@
-import { logout, syncAuthState, fetchWithAuth, clearAccessToken } from "./authClient.js";
+import { logout, syncAuthState, fetchWithAuth, clearAccessToken, bootstrapAuth } from "./authClient.js";
 import { bootstrapCookiePreferences, preferenceStorageGetItem, preferenceStorageSetItem, preferenceStorageRemoveItem } from "./privacyPreferences.js";
 
 const DEFAULT_NAV_AVATAR = "/assets/User/Default_User_Icon.png";
@@ -90,8 +90,8 @@ async function loadNavbarUserAvatar() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  syncAuthState();
   await bootstrapCookiePreferences();
+  await bootstrapAuth();
   loadNavbarUserAvatar().catch(console.error);
 
   const userIcon = document.getElementById("userIcon");

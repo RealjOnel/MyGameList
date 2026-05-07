@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "../backend/config.js";
-import { fetchWithAuth, clearAccessToken, getAccessToken } from "../js/global/authClient.js";
+import { fetchWithAuth, clearAccessToken, getAccessToken, bootstrapAuth } from "../js/global/authClient.js";
 
 function qs(id){ return document.getElementById(id); }
 function esc(str){ return String(str ?? "").replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m])); }
@@ -1118,7 +1118,9 @@ async function loadGame(){
   initTabs();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await bootstrapAuth();
+
   loadGame().catch(err => {
     console.error(err);
     const title = document.getElementById("gameTitle");
