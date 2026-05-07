@@ -294,32 +294,24 @@ function setVariant(root, variant){
   }
 }
 
-async function fetchGameSuggestions(q, signal) {
+async function fetchGameSuggestions(q, signal){
   const cached = getCachedSuggestions("games", q);
   if (cached) return cached;
 
-  const params = new URLSearchParams({
-    page: "1",
-    sort: "rating",
-    order: "desc",
-    search: q,
-    limit: String(GAME_SUGGESTION_LIMIT)
-  });
-
-  const res = await fetch(`${API_BASE_URL}/api/igdb/games?${params.toString()}`, {
-    cache: "no-store",
-    signal
-  });
+  const res = await fetch(
+    `${API_BASE_URL}/api/igdb/search-suggestions?q=${encodeURIComponent(q)}&limit=${GAME_SUGGESTION_LIMIT}`,
+    {
+      cache: "no-store",
+      signal
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Game search failed");
   }
 
   const games = await res.json();
-
-  const items = (Array.isArray(games) ? games : [])
-    .filter(g => g?.cover?.image_id && g?.name)
-    .slice(0, 15);
+  const items = Array.isArray(games) ? games : [];
 
   setCachedSuggestions("games", q, items);
   return items;
@@ -477,7 +469,7 @@ function setupSearch(root){
   const modeBtn = root.querySelector(".nav-search-mode-btn");
   const modeMenu = root.querySelector(".nav-search-mode-menu");
   const modeOptions = root.querySelectorAll(".nav-search-mode-option");
-  const state = root.querySelector(".nav-search-state");
+  const stateEl = root.querySelector(".nav-search-state");
 
   const requestState = {
     controller: null,
@@ -534,12 +526,6 @@ function setupSearch(root){
   }
 
   const run = debounce(async () => {
-    const modeNow = root.dataset.mode || "games";
-    const q = input.value.trim();
-    const currentRequestId = ++requestState.requestId;
-
-    cancelActiveSearch();
-
     if (root.dataset.variant === "page") {
       panel.hidden = true;
       return;
@@ -550,9 +536,14 @@ function setupSearch(root){
       return;
     }
 
+    const modeNow = root.dataset.mode || "games";
+    const q = input.value.trim();
+    const currentRequestId = ++requestState.requestId;
+
+    cancelActiveSearch();
+
     if (!q || q.length < MIN_QUERY_LENGTH) {
-      state.textContent = "";
-      panel.hidden = true;
+      renderSuggestions(root, modeNow, [], "");
       return;
     }
 
@@ -566,7 +557,7 @@ function setupSearch(root){
     requestState.controller = controller;
 
     panel.hidden = false;
-    state.textContent = "Searching...";
+    if (stateEl) stateEl.textContent = "Searching...";
 
     try {
       let items = [];
@@ -689,7 +680,6 @@ window.addEventListener("pageshow", mountSearch);
 
 document.addEventListener("DOMContentLoaded", async () => {
   await bootstrapCookiePreferences();
-  await bootstrapAuth();
 
   loadCustomizationSettings().catch((err) => {
     console.error("Customization init failed", err);
