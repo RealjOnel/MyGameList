@@ -1,5 +1,5 @@
 import { showToast } from "./toast.js";
-import { fetchWithAuth, clearAccessToken, getAccessToken } from "./authClient.js";
+import { fetchWithAuth, clearAccessToken, getAccessToken, bootstrapAuth } from "./authClient.js";
 
 function escapeHtml(str = "") {
   return String(str).replace(/[&<>"']/g, (m) => ({
@@ -309,6 +309,8 @@ function initBellToggle() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   initBellToggle();
+
+  await bootstrapAuth();
 
   if (!getAccessToken()) {
     hideBell();

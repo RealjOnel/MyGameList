@@ -1,4 +1,4 @@
-import { fetchWithAuth, clearAccessToken, getAccessToken } from "../js/global/authClient.js";
+import { fetchWithAuth, clearAccessToken, getAccessToken, bootstrapAuth } from "../js/global/authClient.js";
 import { showToast } from "../js/global/toast.js";
 
 const LOGIN_URL = "../LoginPageAndLogic/login.html";
@@ -563,6 +563,8 @@ function closeAllReviewDropdowns() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  await bootstrapAuth();
+
   updateReviewsHeading();
 
   setupDropdown("gamereviewDropdown", "recommendation");
@@ -579,16 +581,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   await Promise.all([loadOwnReview(), loadGameReviews()]);
-});
 
-window.addEventListener("mgl:review-saved", async () => {
-  await Promise.all([loadOwnReview(), loadGameReviews()]);
-});
-
-window.addEventListener("mgl:review-deleted", async () => {
-  await Promise.all([loadOwnReview(), loadGameReviews()]);
-});
-
-window.addEventListener("mgl:game-loaded", () => {
+  window.addEventListener("mgl:game-loaded", () => {
   updateReviewsHeading();
+  });
 });

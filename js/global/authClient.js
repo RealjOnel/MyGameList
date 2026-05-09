@@ -1,29 +1,52 @@
 import { API_BASE_URL } from "../../backend/config.js";
 
 let refreshPromise = null;
+let bootstrapPromise = null;
+let accessToken = null;
+let authState = "loading"; // "loading" | "in" | "out"
+
+function safeParseJson(text) {
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    return {};
+  }
+}
+
+function applyAuthState() {
+  document.documentElement.dataset.auth = authState;
+
+  window.dispatchEvent(new CustomEvent("mgl:auth-state-changed", {
+    detail: {
+      state: authState,
+      isAuthenticated: authState === "in"
+    }
+  }));
+}
+
+export function getAuthState() {
+  return authState;
+}
 
 export function syncAuthState() {
-  const token = localStorage.getItem("token");
-  document.documentElement.dataset.auth = token ? "in" : "out";
-  return !!token;
+  applyAuthState();
+  return authState === "in";
 }
 
 export function getAccessToken() {
-  return localStorage.getItem("token");
+  return accessToken;
 }
 
 export function setAccessToken(token) {
-  if (token) {
-    localStorage.setItem("token", token);
-  } else {
-    localStorage.removeItem("token");
-  }
-  syncAuthState();
+  accessToken = token || null;
+  authState = accessToken ? "in" : "out";
+  applyAuthState();
 }
 
 export function clearAccessToken() {
-  localStorage.removeItem("token");
-  syncAuthState();
+  accessToken = null;
+  authState = "out";
+  applyAuthState();
 }
 
 async function runRefresh() {
@@ -34,7 +57,7 @@ async function runRefresh() {
   });
 
   const text = await res.text();
-  const data = text ? JSON.parse(text) : {};
+  const data = safeParseJson(text);
 
   if (!res.ok || !data?.token) {
     clearAccessToken();
@@ -50,6 +73,7 @@ export async function refreshAccessToken() {
     refreshPromise = runRefresh()
       .catch((err) => {
         console.error("Refresh failed:", err);
+        clearAccessToken();
         return null;
       })
       .finally(() => {
@@ -58,6 +82,30 @@ export async function refreshAccessToken() {
   }
 
   return refreshPromise;
+}
+
+export async function bootstrapAuth() {
+  if (bootstrapPromise) {
+    return bootstrapPromise;
+  }
+
+  if (authState === "in" && accessToken) {
+    return accessToken;
+  }
+
+  authState = "loading";
+  applyAuthState();
+
+  bootstrapPromise = refreshAccessToken()
+    .finally(() => {
+      if (!accessToken) {
+        authState = "out";
+        applyAuthState();
+      }
+      bootstrapPromise = null;
+    });
+
+  return bootstrapPromise;
 }
 
 export async function logout() {

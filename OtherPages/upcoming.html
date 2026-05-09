@@ -5,14 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script>
-        (function () {
-            try {
-                const token = localStorage.getItem("token");
-                document.documentElement.dataset.auth = token ? "in" : "out";
-            } catch (e) {
-                document.documentElement.dataset.auth = "out";
-            }
-        })();
+    (function () {
+        document.documentElement.dataset.auth = "loading";
+    })();
     </script>
     <title>MyGameList | Upcoming Games</title>
     <link rel="icon" href="/assets/logo/mgllogotabv2.png">
@@ -94,7 +89,7 @@
                 </div>
 
                 <button id="loginBtn" class="btn-login nav-chip nav-chip--login"
-                    onclick="window.location.href='./LoginPageAndLogic/login.html'">
+                    onclick="window.location.href='/LoginPageAndLogic/login.html'">
                     LOGIN
                 </button>
 
@@ -276,7 +271,6 @@
         </div>
     </footer>
 
-    <script src="../js/HomePage/mouseeffect.js"></script>
     <script src="../js/global/reveal.js"></script>
     <script src="../js/global/active.js"></script>
     <script src="../js/global/navbar.js"></script>

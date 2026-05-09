@@ -11,6 +11,28 @@ const MAX_TRENDING_LIMIT = 30;
 const MAX_POPULARITY_TYPE = 50;
 const MAX_GAME_ID = 2_147_483_647;
 
+const DEFAULT_SUGGESTION_LIMIT = 10;
+const MAX_SUGGESTION_LIMIT = 15;
+const SUGGESTION_FETCH_LIMIT = 25;
+
+const SUGGESTION_BANNED_NAME_PATTERNS = [
+  /\bexpansion pass\b/i,
+  /\bseason pass\b/i,
+  /\bsoundtrack\b/i,
+  /\bartbook\b/i,
+  /\bbundle\b/i,
+  /\bcollection\b/i,
+  /\bcomplete edition\b/i,
+  /\bcollector'?s edition\b/i,
+  /\bdeluxe\b/i,
+  /\bdefinitive\b/i,
+  /\bultimate\b/i,
+  /\bgame of the year\b/i,
+  /\bgoty\b/i,
+  /\b dlc\b/i,
+  /^dlc\b/i
+];
+
 const GENRE_MAP = {
   all: null,
   pointandclick: 2,
@@ -232,6 +254,31 @@ function extractEntityIds(list) {
   )];
 }
 
+function shouldExcludeSuggestionGame(game) {
+  const category = Number(game?.category);
+  const name = String(game?.name || "").trim();
+
+  if ([1, 2, 3, 4, 5, 6, 7].includes(category)) {
+    return true;
+  }
+
+  return SUGGESTION_BANNED_NAME_PATTERNS.some((pattern) => pattern.test(name));
+}
+
+function getSuggestionScore(game, rawQuery) {
+  const q = normalizeSearchScore(rawQuery);
+  const name = normalizeSearchScore(game?.name || "");
+
+  if (!q || !name) return 999;
+
+  if (name === q) return 0;
+  if (name.startsWith(q)) return 1;
+  if (name.includes(` ${q}`)) return 2;
+  if (name.includes(q)) return 3;
+
+  return 4;
+}
+
 async function fetchExpandedAgeRatingsByIds(ids, headers) {
   const uniqueIds = extractEntityIds(ids);
   if (!uniqueIds.length) return [];
@@ -444,6 +491,74 @@ router.get("/trending", async (req, res) => {
   } catch (err) {
     console.error(err.response?.data || err);
     res.status(500).json({ error: "Trending games failed" });
+  }
+});
+
+// FAST SEARCH SUGGESTIONS FOR NAVBAR
+router.get("/search-suggestions", async (req, res) => {
+  try {
+    const q = sanitizeSearchInput(req.query.q || "");
+
+    if (q.length < 2) {
+      res.set("Cache-Control", "no-store");
+      return res.json([]);
+    }
+
+    const limitResult = parseBoundedInt(req.query.limit, {
+      defaultValue: DEFAULT_SUGGESTION_LIMIT,
+      min: 1,
+      max: MAX_SUGGESTION_LIMIT,
+      fieldName: "limit"
+    });
+
+    if (!limitResult.ok) {
+      return res.status(400).json({ error: limitResult.message });
+    }
+
+    const token = await getTwitchToken();
+    const headers = getIgdbHeaders(token);
+
+    const escapedQuery = escapeIgdbString(q);
+
+    const response = await axios.post(
+      "https://api.igdb.com/v4/games",
+      `
+        search "${escapedQuery}";
+        fields
+          id,
+          name,
+          category,
+          cover.image_id,
+          genres.name,
+          involved_companies.company.name,
+          involved_companies.developer,
+          involved_companies.publisher;
+        where cover != null;
+        limit ${SUGGESTION_FETCH_LIMIT};
+      `,
+      { headers, timeout: 10000 }
+    );
+
+    let games = Array.isArray(response.data) ? response.data : [];
+
+    games = games
+      .filter((game) => game?.id && game?.name && game?.cover?.image_id)
+      .filter((game) => !shouldExcludeSuggestionGame(game))
+      .sort((a, b) => {
+        const aScore = getSuggestionScore(a, q);
+        const bScore = getSuggestionScore(b, q);
+
+        if (aScore !== bScore) return aScore - bScore;
+
+        return String(a?.name || "").localeCompare(String(b?.name || ""));
+      })
+      .slice(0, limitResult.value);
+
+    res.set("Cache-Control", "no-store");
+    return res.json(games);
+  } catch (err) {
+    console.error(err.response?.data || err);
+    return res.status(500).json({ error: "Search suggestions failed" });
   }
 });
 

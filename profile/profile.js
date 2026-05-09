@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "../backend/config.js";
-import { fetchWithAuth, getAccessToken, clearAccessToken } from "../js/global/authClient.js";
+import { fetchWithAuth, getAccessToken, clearAccessToken, bootstrapAuth } from "../js/global/authClient.js";
 import { showToast } from "../js/global/toast.js";
 import { bootstrapCookiePreferences, preferenceStorageGetItem, preferenceStorageSetItem } from "../js/global/privacyPreferences.js";
 
@@ -1326,9 +1326,10 @@ async function loadProfile() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  await bootstrapCookiePreferences();
-
   bindProfileFriendsModal();
+
+  await bootstrapCookiePreferences();
+  await bootstrapAuth();
 
   loadProfile().catch(err => {
     console.error(err);

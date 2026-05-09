@@ -5,12 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script>
     (function () {
-        try {
-        const token = localStorage.getItem("token");
-        document.documentElement.dataset.auth = token ? "in" : "out";
-        } catch (e) {
-        document.documentElement.dataset.auth = "out";
-        }
+        document.documentElement.dataset.auth = "loading";
     })();
     </script>
     <title>Loading... | MyGameList</title>
@@ -134,15 +129,12 @@
         <div class="profile_actionbuttons">
             <div class="profile_actionbuttons">
                 <button class="profile_button" onclick="window.location.href='#'">      
-                    View Game list
+                    View Game List
                 </button>
-                <button class="profile_button">
-                    <span>Send Message</span>
-
-                    <svg class="snake-border" viewBox="0 0 100 40" preserveAspectRatio="none">
-                        <rect x="2" y="2" width="96" height="36" rx="15" ry="15"></rect>
-                    </svg>
-                </button>
+                 <!--<button class="profile_button">
+                    <span>Send Message</span> MESSAGE SYSTEM AFTER RELEASE
+                </button> 
+                SEND MESSAGE FEATURE AFTER RELEASE --> 
                 <button class="profile_button" id="friendActionBtn" type="button">Add Friend</button>
             </div>
         </div>
@@ -219,9 +211,6 @@
 
     <div class="user_data">
         <div class="profile_right">
-            <div class="profile_empty">
-                Empty
-            </div>
             <div class="profile_favs" id="profileFavoritesSection">
                 <div class="profile_favourites">
                     <h3 class="section-title section-title--gradient section-title--glow section-title--long">Favorite Games</h3>
