@@ -51,12 +51,12 @@ function buildEmailChangeTemplate({ username, verifyUrl }) {
 
   // links for assets
   const links = {
-    tiktok: "https://www.tiktok.com/@mygamelist",
-    youtube: "https://www.youtube.com/@mygamelist",
-    instagram: "https://www.instagram.com/mygamelist",
-    discord: "https://discord.gg/yourinvite",
-    tos: `${siteUrl}/OtherPages/terms.html`,
-    privacy: `${siteUrl}/OtherPages/privacy.html`
+    tiktok: "https://www.tiktok.com/",
+    youtube: "https://www.youtube.com/",
+    instagram: "https://www.instagram.com/",
+    discord: "https://discord.gg/bEeuWGQJRA",
+    tos: `${siteUrl}/OtherPages/terms_of_service.html`,
+    privacy: `${siteUrl}/OtherPages/privacy_policy.html`
   };
 
   const html = `
@@ -65,7 +65,7 @@ function buildEmailChangeTemplate({ username, verifyUrl }) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Confirm your MyGameList email change</title>
+  <title>Confirm your MyGameList Email Change</title>
 </head>
 <body style="margin:0; padding:0; background-color:#f3f6fb; font-family:Arial, Helvetica, sans-serif; color:#0f172a;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f3f6fb; margin:0; padding:0;">
