@@ -1,15 +1,13 @@
 import express from "express";
 import mongoose from "mongoose";
 import { z } from "zod";
-import { requireAuth } from "../middleware/authMiddleware.js";
+import { getOptionalUserId, requireAuth } from "../middleware/authMiddleware.js";
 import { Game } from "../models/game.js";
 import { User } from "../models/user.js";
 import { UserGameEntry } from "../models/userGameEntry.js";
 import { Review } from "../models/review.js";
 import { ReviewReaction } from "../models/reviewReaction.js";
 import { sanitizeReviewHtml } from "../utils/sanitizeReviewHtml.js";
-import jwt from "jsonwebtoken";
-import { env } from "../config/validateEnv.js";
 import { reviewWriteLimiter, reviewReactionLimiter } from "../middleware/rateLimiter.js";
 
 const router = express.Router();
@@ -191,37 +189,6 @@ async function getGameByIgdbId(igdbId) {
   return Game.findOne({ igdbId });
 }
 
-function getOptionalViewerId(req) {
-  const authHeader = String(req.headers?.authorization || "").trim();
-  if (!authHeader) return null;
-
-  const [scheme, token] = authHeader.split(" ");
-
-  if (scheme !== "Bearer" || !token) {
-    return null;
-  }
-
-  try {
-    const payload = jwt.verify(token, env.JWT_SECRET);
-
-    const rawUserId = payload?.id || payload?.userId;
-
-    if (!rawUserId) {
-      return null;
-    }
-
-    const viewerId = String(rawUserId);
-
-    if (!mongoose.Types.ObjectId.isValid(viewerId)) {
-      return null;
-    }
-
-    return viewerId;
-  } catch {
-    return null;
-  }
-}
-
 async function buildReactionState(reviewIds, viewerId = null) {
   const state = new Map();
 
@@ -372,7 +339,7 @@ router.get("/game/:igdbId", async (req, res) => {
     const page = parsePage(req.query.page);
     const limit = parseLimit(req.query.limit, 10, 50);
 
-    const viewerId = getOptionalViewerId(req);
+    const viewerId = await getOptionalUserId(req);
 
     const game = await getGameByIgdbId(igdbIdResult.value);
     if (!game) {
@@ -499,7 +466,7 @@ router.get("/profile/:username", async (req, res) => {
     const page = parsePage(req.query.page);
     const limit = parseLimit(req.query.limit, 6, 50);
 
-    const viewerId = getOptionalViewerId(req);
+    const viewerId = await getOptionalUserId(req);
 
     const [viewer, targetUser] = await Promise.all([
       viewerId

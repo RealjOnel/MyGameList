@@ -1,9 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
-import jwt from "jsonwebtoken";
 import { z } from "zod";
-import { env } from "../config/validateEnv.js";
-import { requireAuth } from "../middleware/authMiddleware.js";
+import { getOptionalUserId, requireAuth } from "../middleware/authMiddleware.js";
 import { User } from "../models/user.js";
 import { FriendRequest } from "../models/friendRequest.js";
 import { sendFriendRequestLimiter } from "../middleware/rateLimiter.js";
@@ -88,37 +86,6 @@ function normalizeProfileSettings(settings = {}) {
       publicProfile: raw?.privacy?.publicProfile !== false
     }
   };
-}
-
-function getOptionalViewerId(req) {
-  const authHeader = String(req.headers?.authorization || "").trim();
-  if (!authHeader) return null;
-
-  const [scheme, token] = authHeader.split(" ");
-
-  if (scheme !== "Bearer" || !token) {
-    return null;
-  }
-
-  try {
-    const payload = jwt.verify(token, env.JWT_SECRET);
-
-    const rawUserId = payload?.id || payload?.userId;
-
-    if (!rawUserId) {
-      return null;
-    }
-
-    const viewerId = String(rawUserId);
-
-    if (!mongoose.Types.ObjectId.isValid(viewerId)) {
-      return null;
-    }
-
-    return viewerId;
-  } catch {
-    return null;
-  }
 }
 
 function canViewProfile(viewer, targetUser) {
@@ -238,7 +205,7 @@ router.get("/list/:username", async (req, res) => {
       return res.status(400).json({ message: usernameResult.message });
     }
 
-    const viewerId = getOptionalViewerId(req);
+    const viewerId = await getOptionalUserId(req);
 
     const [viewer, profileUser] = await Promise.all([
       viewerId

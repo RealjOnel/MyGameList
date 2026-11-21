@@ -380,35 +380,35 @@ const rating = (typeof game.rating === "number" && isFinite(game.rating))
 
 card.innerHTML = `
   <div class="game-cover">
-    <img class="game-cover-img" src="${imageUrl}" alt="${game.name}">
+    <img class="game-cover-img" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(game.name)}">
     ${
       iconInfo
-        ? `<div class="platform-badge platform-${iconInfo.brand} platform-${iconInfo.key || ""}" title="${primaryPlatform}">
-             <img src="${iconInfo.src}" alt="${primaryPlatform}">
+        ? `<div class="platform-badge platform-${escapeHtml(iconInfo.brand)} platform-${escapeHtml(iconInfo.key || "")}" title="${escapeHtml(primaryPlatform)}">
+             <img src="${escapeHtml(iconInfo.src)}" alt="${escapeHtml(primaryPlatform)}">
            </div>`
         : ``
     }
   </div>
 
   <div class="game-info">
-    <h4>${game.name}</h4>
-    <p class="game-sub">${genre} • ${studio}</p>
+    <h4>${escapeHtml(game.name)}</h4>
+    <p class="game-sub">${escapeHtml(genre)} • ${escapeHtml(studio)}</p>
 
     <!-- Extra meta (hidden in grid, shown in table) -->
     <div class="game-meta">
       <div class="meta-item">
-        ${iconInfo ? `<img class="meta-icon" src="${iconInfo.src}" alt="">` : ""}
-        <span class="meta-text">${primaryPlatform || "—"}</span>
+        ${iconInfo ? `<img class="meta-icon" src="${escapeHtml(iconInfo.src)}" alt="">` : ""}
+        <span class="meta-text">${escapeHtml(primaryPlatform || "—")}</span>
       </div>
 
       <div class="meta-item">
         <span class="meta-label">Year</span>
-        <span class="meta-text">${year}</span>
+        <span class="meta-text">${escapeHtml(year)}</span>
       </div>
 
       <div class="meta-item">
         <span class="meta-label">Rating</span>
-        <span class="meta-text">${rating}</span>
+        <span class="meta-text">${escapeHtml(rating)}</span>
       </div>
     </div>
   </div>

@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 import { User } from "../models/user.js";
 
 function getPayloadUserId(payload) {
@@ -7,6 +8,36 @@ function getPayloadUserId(payload) {
 
 function getPayloadTokenVersion(payload) {
   return Number(payload?.tokenVersion ?? -1);
+}
+
+export async function getOptionalUserId(req) {
+  const authHeader = String(req.headers?.authorization || "").trim();
+  if (!authHeader) return null;
+
+  const [scheme, token] = authHeader.split(" ");
+
+  if (scheme !== "Bearer" || !token) {
+    return null;
+  }
+
+  let payload;
+  try {
+    payload = jwt.verify(token, process.env.JWT_SECRET);
+  } catch {
+    return null;
+  }
+
+  const userId = getPayloadUserId(payload);
+  if (!userId || !mongoose.Types.ObjectId.isValid(String(userId))) {
+    return null;
+  }
+
+  const user = await User.findById(userId).select("_id tokenVersion");
+  if (!user || Number(user.tokenVersion || 0) !== getPayloadTokenVersion(payload)) {
+    return null;
+  }
+
+  return String(user._id);
 }
 
 export async function requireAuth(req, res, next) {

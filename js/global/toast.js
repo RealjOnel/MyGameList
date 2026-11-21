@@ -24,10 +24,17 @@ export function showToast({
   const toast = document.createElement("div");
   toast.className = `toast toast--${type}`;
 
-  toast.innerHTML = `
-    ${title ? `<div class="toast-title">${title}</div>` : ""}
-    <div class="toast-message">${message}</div>
-  `;
+  if (title) {
+    const titleElement = document.createElement("div");
+    titleElement.className = "toast-title";
+    titleElement.textContent = String(title);
+    toast.appendChild(titleElement);
+  }
+
+  const messageElement = document.createElement("div");
+  messageElement.className = "toast-message";
+  messageElement.textContent = String(message);
+  toast.appendChild(messageElement);
 
   container.appendChild(toast);
 

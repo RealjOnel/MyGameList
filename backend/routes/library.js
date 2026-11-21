@@ -1,10 +1,7 @@
 import express from "express";
 import axios from "axios";
-import mongoose from "mongoose";
-import jwt from "jsonwebtoken";
 import { z } from "zod";
-import { env } from "../config/validateEnv.js";
-import { requireAuth } from "../middleware/authMiddleware.js";
+import { getOptionalUserId, requireAuth } from "../middleware/authMiddleware.js";
 import { getTwitchToken } from "../services/twitchToken.js";
 import { Game } from "../models/game.js";
 import { UserGameEntry } from "../models/userGameEntry.js";
@@ -124,37 +121,6 @@ function sameId(a, b) {
 
 function hasFriend(user, targetUserId) {
   return Array.isArray(user?.friends) && user.friends.some((id) => sameId(id, targetUserId));
-}
-
-function getOptionalViewerId(req) {
-  const authHeader = String(req.headers?.authorization || "").trim();
-  if (!authHeader) return null;
-
-  const [scheme, token] = authHeader.split(" ");
-
-  if (scheme !== "Bearer" || !token) {
-    return null;
-  }
-
-  try {
-    const payload = jwt.verify(token, env.JWT_SECRET);
-
-    const rawUserId = payload?.id || payload?.userId;
-
-    if (!rawUserId) {
-      return null;
-    }
-
-    const viewerId = String(rawUserId);
-
-    if (!mongoose.Types.ObjectId.isValid(viewerId)) {
-      return null;
-    }
-
-    return viewerId;
-  } catch {
-    return null;
-  }
 }
 
 function normalizeUserSettings(settings = {}) {
@@ -353,7 +319,7 @@ router.get("/profile/:username", async (req, res) => {
       return res.status(400).json({ message: usernameResult.message });
     }
 
-    const viewerId = getOptionalViewerId(req);
+    const viewerId = await getOptionalUserId(req);
 
     const [viewer, user] = await Promise.all([
       viewerId

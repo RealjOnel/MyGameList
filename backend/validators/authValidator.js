@@ -24,8 +24,15 @@ export const strongPasswordSchema = z
     message: "This password is too common. Please choose a stronger one."
   });
 
+export const usernameSchema = z
+  .string()
+  .trim()
+  .min(3, "Username must be at least 3 characters long")
+  .max(20, "Username must be 20 characters or less")
+  .regex(/^[A-Za-z0-9_]+$/, "Username may only contain letters, numbers and underscores");
+
 export const registerSchema = z.object({
-  username: z.string().trim().min(3).max(20),
+  username: usernameSchema,
   email: z.string().trim().email(),
   password: strongPasswordSchema
 });

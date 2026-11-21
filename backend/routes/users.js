@@ -1,10 +1,9 @@
 import express from "express";
-import mongoose from "mongoose";
-import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { env } from "../config/validateEnv.js";
-import { requireAuth } from "../middleware/authMiddleware.js";
+import { getOptionalUserId, requireAuth } from "../middleware/authMiddleware.js";
 import { User } from "../models/user.js";
+import { usernameSchema as accountUsernameSchema } from "../validators/authValidator.js";
 import multer from "multer";
 import { cloudinary } from "../services/cloudinary.js";
 import bcrypt from "bcrypt";
@@ -412,49 +411,12 @@ function getPublicUsername(user) {
   return user?.displayUsername || user?.username || "";
 }
 
-function getOptionalViewerId(req) {
-  const authHeader = String(req.headers?.authorization || "").trim();
-  if (!authHeader) return null;
-
-  const [scheme, token] = authHeader.split(" ");
-
-  if (scheme !== "Bearer" || !token) {
-    return null;
-  }
-
-  try {
-    const payload = jwt.verify(token, env.JWT_SECRET);
-    const rawUserId = payload?.id || payload?.userId;
-
-    if (!rawUserId) {
-      return null;
-    }
-
-    const viewerId = String(rawUserId);
-
-    if (!mongoose.Types.ObjectId.isValid(viewerId)) {
-      return null;
-    }
-
-    return viewerId;
-  } catch {
-    return null;
-  }
-}
-
 // Username change helpers
 
 const USERNAME_CHANGE_INTERVAL_DAYS = 14;
 const USERNAME_CHANGE_INTERVAL_MS = USERNAME_CHANGE_INTERVAL_DAYS * 24 * 60 * 60 * 1000;
 
-const usernameUpdateSchema = z.object({
-  username: z
-    .string()
-    .trim()
-    .min(3, "Username must be at least 3 characters long")
-    .max(20, "Username must be 20 characters or less")
-    .regex(/^[A-Za-z0-9_]+$/, "Username may only contain letters, numbers and underscores")
-}).strict();
+const usernameUpdateSchema = z.object({ username: accountUsernameSchema }).strict();
 
 function parseUsernameUpdateBody(raw = {}) {
   const parsed = usernameUpdateSchema.safeParse(raw);
@@ -909,8 +871,6 @@ router.post("/email/request", requireAuth, async (req, res) => {
     console.log("[email/request] token created");
 
     const verifyUrl = `${env.FRONTEND_ORIGIN}/OtherPages/email_change.html?token=${encodeURIComponent(tokenValue)}`;
-    console.log("[email/request] verify url built", { verifyUrl });
-
     await sendEmailChangeVerificationMail({
       to: newEmail,
       username: getPublicUsername(user),
@@ -1136,7 +1096,7 @@ router.get("/profile/:username", async (req, res) => {
       });
     }
 
-    const viewerId = getOptionalViewerId(req);
+    const viewerId = await getOptionalUserId(req);
 
     const [viewer, user] = await Promise.all([
       viewerId

@@ -537,17 +537,17 @@ function renderRecentActivity(items) {
     btn.innerHTML = `
       <div class="pg_card">
         <div class="pg_iconclass">
-          <img src="${coverUrl(e.game.coverImageId)}" class="pg_icon" alt="${e.game.name || "Game cover"}">
+          <img src="${escapeHtml(coverUrl(e.game.coverImageId))}" class="pg_icon" alt="${escapeHtml(e.game.name || "Game cover")}">
         </div>
         <div class="pg_stateclass">
           <div class="pg_top">
-            <span class="pg_name">${e.game.name || "Unknown Game"}</span>
+            <span class="pg_name">${escapeHtml(e.game.name || "Unknown Game")}</span>
             <span class="${statusClass(e.status)}">${statusLabel(e.status)}</span>
           </div>
 
           <div class="pg_bottom">
-            <span class="pg_state">Rating: ${e.rating ?? "—"}</span>
-            <span class="pg_state last_edit">Last Edit: ${formatDateTime(e.updatedAt)}</span>
+            <span class="pg_state">Rating: ${escapeHtml(e.rating ?? "—")}</span>
+            <span class="pg_state last_edit">Last Edit: ${escapeHtml(formatDateTime(e.updatedAt))}</span>
           </div>
         </div>
       </div>
@@ -671,17 +671,24 @@ function renderFriendsList(friends = [], profileUsername = "") {
   }
 
   for (const friend of profileFriendsState.items) {
+    const username = String(friend?.username || "Unknown User");
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "friend_item";
 
-    btn.innerHTML = `
-      <img src="${avatarUrl(friend.avatarUrl)}" alt="${friend.username || "Friend"}" class="friend_icon">
-      <span class="friend_name">${friend.username || "Unknown User"}</span>
-    `;
+    const img = document.createElement("img");
+    img.src = avatarUrl(friend?.avatarUrl);
+    img.alt = username;
+    img.className = "friend_icon";
+
+    const name = document.createElement("span");
+    name.className = "friend_name";
+    name.textContent = username;
+
+    btn.append(img, name);
 
     btn.addEventListener("click", () => {
-      window.location.href = `./profile.html?username=${encodeURIComponent(friend.username)}`;
+      window.location.href = `./profile.html?username=${encodeURIComponent(username)}`;
     });
 
     wrap.appendChild(btn);
@@ -717,26 +724,26 @@ function renderProfileReviewsCard(review) {
   const preview = truncateText(review?.plainText || "", 220);
 
   return `
-    <button class="review_item" type="button" data-review-id="${review.id}">
+    <button class="review_item" type="button" data-review-id="${escapeHtml(review.id || "")}">
       <div class="review_card">
         <div class="review_iconclass">
           <img
-            src="${coverUrl(game.coverImageId)}"
+            src="${escapeHtml(coverUrl(game.coverImageId))}"
             class="review_icon"
-            alt="${game.name || "Game cover"}"
+            alt="${escapeHtml(game.name || "Game cover")}"
           >
         </div>
 
         <div class="review_contentclass">
           <div class="review_top">
-            <h3>${game.name || "Unknown Game"}</h3>
-            <p>${preview || "No preview available."}</p>
+            <h3>${escapeHtml(game.name || "Unknown Game")}</h3>
+            <p>${escapeHtml(preview || "No preview available.")}</p>
           </div>
 
           <div class="review_bottom">
             <div class="review_text">
-              <p class="review_rating">${recommendationLabel(review.recommendation)} • ${rating}/10</p>
-              <p>${date}</p>
+              <p class="review_rating">${escapeHtml(recommendationLabel(review.recommendation))} • ${escapeHtml(rating)}/10</p>
+              <p>${escapeHtml(date)}</p>
             </div>
           </div>
         </div>
@@ -1295,9 +1302,9 @@ async function loadProfile() {
           <div class="favourite_box">
             <span class="cover_shimmer" aria-hidden="true"></span>
             <img
-              src="${coverUrl(e.game.coverImageId)}"
+              src="${escapeHtml(coverUrl(e.game.coverImageId))}"
               class="favourite_icon"
-              alt="${e.game.name || "Game Cover"}"
+              alt="${escapeHtml(e.game.name || "Game Cover")}"
             >
           </div>
         `;
