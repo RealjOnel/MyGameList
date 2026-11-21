@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en" data-auth="loading">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+    (function () {
+        document.documentElement.dataset.auth = "loading";
+    })();
+    </script>
+    <title>MyGameList | Trending Games</title>
+    <link rel="icon" href="/assets/logo/mgllogotabv2.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="/css/trending.css">
+    <link rel="stylesheet" href="/css/navbar.css">
+</head>
+
+<body>
+
+    <nav class="navbar navbar--unified">
+        <div class="navbar-shell">
+            <div class="logo">
+                <a href="/index.html">MY<span class="accent">GAMELIST</span></a>
+            </div>
+
+            <div class="nav-search-slot" id="navSearchSlot"></div>
+
+            <div class="navbar-main">
+                <div class="nav-dock" id="navDock">
+                    <a href="/index.html" class="nav-dock__node nav-dock__node--link" data-route="index.html">
+                        <span class="nav-dock__icon"><i class="fa-solid fa-house"></i></span>
+                        <span class="nav-dock__text">Home</span>
+                    </a>
+
+                    <div class="nav-dock__node nav-dock__node--dropdown" data-route="explore.html">
+                        <button class="nav-dock__button" type="button" data-dropdown-toggle aria-expanded="false">
+                            <span class="nav-dock__icon"><i class="fa-solid fa-gamepad"></i></span>
+                            <span class="nav-dock__text">Games</span>
+                        </button>
+
+                        <div class="nav-dock__menu">
+                            <a href="/OtherPages/explore.html">Explore</a>
+                            <a href="/OtherPages/trending.html">Trending Games</a>
+                            <a href="/OtherPages/upcoming.html">Upcoming Games</a>
+                            <a href="#">New Releases</a>
+                        </div>
+                    </div>
+
+                    <a href="/OtherPages/features.html" class="nav-dock__node nav-dock__node--link"
+                        data-route="features.html">
+                        <span class="nav-dock__icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+                        <span class="nav-dock__text">Features</span>
+                    </a>
+
+                    <div class="nav-dock__node nav-dock__node--dropdown" data-route="statistics.html">
+                        <button class="nav-dock__button" type="button" data-dropdown-toggle aria-expanded="false">
+                            <span class="nav-dock__icon"><i class="fa-solid fa-chart-simple"></i></span>
+                            <span class="nav-dock__text">Statistics</span>
+                        </button>
+
+                        <div class="nav-dock__menu">
+                            <a href="/OtherPages/statistics.html">Overview</a>
+                            <a href="/OtherPages/methodology.html">Our Methodology</a>
+                            <a href="#">Top Games</a>
+                            <a href="#">Hidden Gems</a>
+                            <a href="#">Overhyped Titles</a>
+                        </div>
+                    </div>
+
+                    <div class="nav-dock__node nav-dock__node--dropdown" data-route="help.html">
+                        <button class="nav-dock__button" type="button" data-dropdown-toggle aria-expanded="false">
+                            <span class="nav-dock__icon"><i class="fa-solid fa-circle-question"></i></span>
+                            <span class="nav-dock__text">Help</span>
+                        </button>
+
+                        <div class="nav-dock__menu">
+                            <a href="/OtherPages/help.html">Overview</a>
+                            <a href="/OtherPages/about.html">About</a>
+                            <a href="/OtherPages/faq.html">FAQ</a>
+                            <a href="/OtherPages/support.html">Support</a>
+                            <a href="/OtherPages/staff.html">Staff</a>
+                        </div>
+                    </div>
+
+                    <span class="nav-dock__indicator" aria-hidden="true"></span>
+                </div>
+
+                <button id="loginBtn" class="btn-login nav-chip nav-chip--login"
+                    onclick="window.location.href='/LoginPageAndLogic/login.html'">
+                    LOGIN
+                </button>
+
+                <div class="nav-user-wrap" id="navUserWrap">
+                    <div id="friendBell" class="notif-bell">
+                        <button id="friendBellBtn" class="notif-bell-btn nav-chip nav-chip--icon" type="button"
+                            aria-label="Friend Notifications">
+                            <i class="fa-regular fa-bell"></i>
+                            <span id="friendBellBadge" class="notif-bell-badge" hidden>0</span>
+                        </button>
+
+                        <div id="friendBellDropdown" class="notif-dropdown" aria-hidden="true">
+                            <div class="notif-dropdown-head">Friend Requests</div>
+                            <div id="friendBellList" class="notif-dropdown-list">
+                                <div class="notif-empty">No new notifications.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="userMenu" class="user-menu">
+                        <img id="userIcon" src="/assets/User/Default_User_Icon.png" alt="User" class="user-icon user-icon--pending">
+
+                        <div id="userDropdown" class="user-dropdown" aria-hidden="true">
+                            <a class="dropdown-item" href="/profile/profile.html">Profile</a>
+                            <button class="dropdown-item" type="button" data-open-settings>Settings</button>
+                            <div class="dropdown-divider"></div>
+                            <button id="logoutBtn" class="dropdown-item danger" type="button">Logout</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="trending-page">
+        <header class="trending-hero reveal">
+            <div class="badge-stats">Trending</div>
+            <h1>What's <span class="gradient-text">Hot Right Now</span></h1>
+            <p class="hero-lead">Discover the games everyone is playing and talking about.</p>
+        </header>
+
+        <!-- Trending Last 24 Hours -->
+        <section class="trending-section reveal">
+            <div class="trending-section-header">
+                <h2 class="trending-section-title">Trending Last 24 Hours</h2>
+                <a href="#" class="trending-see-all">See All <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="trending-scroll-wrapper">
+                <div class="trending-row" id="trending24Row">
+                    <!-- Card -->
+                    <a href="#" class="trending-card reveal">
+                        <div class="trending-card-cover">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co1tmu.webp" alt="Elden Ring">
+                            <div class="trending-rank">#1</div>
+                            <div class="trending-card-overlay">
+                                <span class="trending-stat"><i class="fa-solid fa-fire"></i> 24.3K active</span>
+                            </div>
+                        </div>
+                        <div class="trending-card-info">
+                            <h3>Elden Ring</h3>
+                            <p>FromSoftware</p>
+                        </div>
+                    </a>
+                    <!-- Card -->
+                    <a href="#" class="trending-card reveal">
+                        <div class="trending-card-cover">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co5vmg.webp" alt="Baldur's Gate 3">
+                            <div class="trending-rank">#2</div>
+                            <div class="trending-card-overlay">
+                                <span class="trending-stat"><i class="fa-solid fa-fire"></i> 18.7K active</span>
+                            </div>
+                        </div>
+                        <div class="trending-card-info">
+                            <h3>Baldur's Gate 3</h3>
+                            <p>Larian Studios</p>
+                        </div>
+                    </a>
+                    <!-- Card -->
+                    <a href="#" class="trending-card reveal">
+                        <div class="trending-card-cover">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co6974.webp" alt="Cyberpunk 2077">
+                            <div class="trending-rank">#3</div>
+                            <div class="trending-card-overlay">
+                                <span class="trending-stat"><i class="fa-solid fa-fire"></i> 15.2K active</span>
+                            </div>
+                        </div>
+                        <div class="trending-card-info">
+                            <h3>Cyberpunk 2077</h3>
+                            <p>CD Projekt Red</p>
+                        </div>
+                    </a>
+                    <!-- Card -->
+                    <a href="#" class="trending-card reveal">
+                        <div class="trending-card-cover">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.webp" alt="The Witcher 3">
+                            <div class="trending-rank">#4</div>
+                            <div class="trending-card-overlay">
+                                <span class="trending-stat"><i class="fa-solid fa-fire"></i> 12.9K active</span>
+                            </div>
+                        </div>
+                        <div class="trending-card-info">
+                            <h3>The Witcher 3</h3>
+                            <p>CD Projekt Red</p>
+                        </div>
+                    </a>
+                    <!-- Card -->
+                    <a href="#" class="trending-card reveal">
+                        <div class="trending-card-cover">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co2lbd.webp" alt="Red Dead Redemption 2">
+                            <div class="trending-rank">#5</div>
+                            <div class="trending-card-overlay">
+                                <span class="trending-stat"><i class="fa-solid fa-fire"></i> 10.1K active</span>
+                            </div>
+                        </div>
+                        <div class="trending-card-info">
+                            <h3>Red Dead Redemption 2</h3>
+                            <p>Rockstar Games</p>
+                        </div>
+                    </a>
+                    <!-- Card -->
+                    <a href="#" class="trending-card reveal">
+                        <div class="trending-card-cover">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co7asf.webp" alt="Hogwarts Legacy">
+                            <div class="trending-rank">#6</div>
+                            <div class="trending-card-overlay">
+                                <span class="trending-stat"><i class="fa-solid fa-fire"></i> 9.4K active</span>
+                            </div>
+                        </div>
+                        <div class="trending-card-info">
+                            <h3>Hogwarts Legacy</h3>
+                            <p>Avalanche Software</p>
+                        </div>
+                    </a>
+                </div>
+                <button class="trending-scroll-btn trending-scroll-btn--left" data-target="trending24Row" aria-label="Scroll left"><i class="fa-solid fa-chevron-left"></i></button>
+                <button class="trending-scroll-btn trending-scroll-btn--right" data-target="trending24Row" aria-label="Scroll right"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+        </section>
+
+        <!-- Trending Based on Your Interests -->
+        <section class="trending-section reveal">
+            <div class="trending-section-header">
+                <h2 class="trending-section-title">Trending Based on Your Interests</h2>
+                <a href="#" class="trending-see-all">See All <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="trending-scroll-wrapper">
+                <div class="trending-row" id="trendingInterestsRow">
+                    <!-- Card -->
+                    <a href="#" class="trending-card reveal">
+                        <div class="trending-card-cover">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co49x5.webp" alt="God of War">
+                            <div class="trending-tag">Action RPG</div>
+                            <div class="trending-card-overlay">
+                                <span class="trending-stat"><i class="fa-solid fa-star"></i> 9.5 / 10</span>
+                            </div>
+                        </div>
+                        <div class="trending-card-info">
+                            <h3>God of War</h3>
+                            <p>Santa Monica Studio</p>
+                        </div>
+                    </a>
+                    <!-- Card -->
+                    <a href="#" class="trending-card reveal">
+                        <div class="trending-card-cover">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co2lbe.webp" alt="Sekiro">
+                            <div class="trending-tag">Action</div>
+                            <div class="trending-card-overlay">
+                                <span class="trending-stat"><i class="fa-solid fa-star"></i> 9.2 / 10</span>
+                            </div>
+                        </div>
+                        <div class="trending-card-info">
+                            <h3>Sekiro: Shadows Die Twice</h3>
+                            <p>FromSoftware</p>
+                        </div>
+                    </a>
+                    <!-- Card -->
+                    <a href="#" class="trending-card reveal">
+                        <div class="trending-card-cover">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co5xod.webp" alt="Hollow Knight">
+                            <div class="trending-tag">Metroidvania</div>
+                            <div class="trending-card-overlay">
+                                <span class="trending-stat"><i class="fa-solid fa-star"></i> 9.4 / 10</span>
+                            </div>
+                        </div>
+                        <div class="trending-card-info">
+                            <h3>Hollow Knight</h3>
+                            <p>Team Cherry</p>
+                        </div>
+                    </a>
+                    <!-- Card -->
+                    <a href="#" class="trending-card reveal">
+                        <div class="trending-card-cover">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co1rgi.webp" alt="Hades">
+                            <div class="trending-tag">Roguelite</div>
+                            <div class="trending-card-overlay">
+                                <span class="trending-stat"><i class="fa-solid fa-star"></i> 9.3 / 10</span>
+                            </div>
+                        </div>
+                        <div class="trending-card-info">
+                            <h3>Hades</h3>
+                            <p>Supergiant Games</p>
+                        </div>
+                    </a>
+                    <!-- Card -->
+                    <a href="#" class="trending-card reveal">
+                        <div class="trending-card-cover">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co6ah0.webp" alt="Dark Souls III">
+                            <div class="trending-tag">Action RPG</div>
+                            <div class="trending-card-overlay">
+                                <span class="trending-stat"><i class="fa-solid fa-star"></i> 9.1 / 10</span>
+                            </div>
+                        </div>
+                        <div class="trending-card-info">
+                            <h3>Dark Souls III</h3>
+                            <p>FromSoftware</p>
+                        </div>
+                    </a>
+                    <!-- Card -->
+                    <a href="#" class="trending-card reveal">
+                        <div class="trending-card-cover">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co1wyy.webp" alt="Disco Elysium">
+                            <div class="trending-tag">RPG</div>
+                            <div class="trending-card-overlay">
+                                <span class="trending-stat"><i class="fa-solid fa-star"></i> 9.6 / 10</span>
+                            </div>
+                        </div>
+                        <div class="trending-card-info">
+                            <h3>Disco Elysium</h3>
+                            <p>ZA/UM</p>
+                        </div>
+                    </a>
+                </div>
+                <button class="trending-scroll-btn trending-scroll-btn--left" data-target="trendingInterestsRow" aria-label="Scroll left"><i class="fa-solid fa-chevron-left"></i></button>
+                <button class="trending-scroll-btn trending-scroll-btn--right" data-target="trendingInterestsRow" aria-label="Scroll right"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+        </section>
+
+        <!-- Discover New Games -->
+        <section class="trending-section reveal">
+            <div class="trending-section-header">
+                <h2 class="trending-section-title">Discover New Games</h2>
+                <a href="#" class="trending-see-all">See All <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+            <div class="trending-scroll-wrapper">
+                <div class="trending-row" id="trendingDiscoverRow">
+                    <!-- Card -->
+                    <a href="#" class="trending-card reveal">
+                        <div class="trending-card-cover">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co6fln.webp" alt="Lies of P">
+                            <div class="trending-tag trending-tag--new">New</div>
+                            <div class="trending-card-overlay">
+                                <span class="trending-stat"><i class="fa-solid fa-eye"></i> 8.3K views</span>
+                            </div>
+                        </div>
+                        <div class="trending-card-info">
+                            <h3>Lies of P</h3>
+                            <p>Round8 Studio</p>
+                        </div>
+                    </a>
+                    <!-- Card -->
+                    <a href="#" class="trending-card reveal">
+                        <div class="trending-card-cover">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co8wd0.webp" alt="Blue Prince">
+                            <div class="trending-tag trending-tag--new">New</div>
+                            <div class="trending-card-overlay">
+                                <span class="trending-stat"><i class="fa-solid fa-eye"></i> 7.1K views</span>
+                            </div>
+                        </div>
+                        <div class="trending-card-info">
+                            <h3>Blue Prince</h3>
+                            <p>Dogubomb</p>
+                        </div>
+                    </a>
+                    <!-- Card -->
+                    <a href="#" class="trending-card reveal">
+                        <div class="trending-card-cover">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co3p2d.webp" alt="Tunic">
+                            <div class="trending-tag trending-tag--new">New</div>
+                            <div class="trending-card-overlay">
+                                <span class="trending-stat"><i class="fa-solid fa-eye"></i> 6.8K views</span>
+                            </div>
+                        </div>
+                        <div class="trending-card-info">
+                            <h3>Tunic</h3>
+                            <p>Andrew Shouldice</p>
+                        </div>
+                    </a>
+                    <!-- Card -->
+                    <a href="#" class="trending-card reveal">
+                        <div class="trending-card-cover">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co5w57.webp" alt="Sifu">
+                            <div class="trending-tag trending-tag--new">New</div>
+                            <div class="trending-card-overlay">
+                                <span class="trending-stat"><i class="fa-solid fa-eye"></i> 5.9K views</span>
+                            </div>
+                        </div>
+                        <div class="trending-card-info">
+                            <h3>Sifu</h3>
+                            <p>Sloclap</p>
+                        </div>
+                    </a>
+                    <!-- Card -->
+                    <a href="#" class="trending-card reveal">
+                        <div class="trending-card-cover">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co3wk8.webp" alt="Stray">
+                            <div class="trending-tag trending-tag--new">New</div>
+                            <div class="trending-card-overlay">
+                                <span class="trending-stat"><i class="fa-solid fa-eye"></i> 5.3K views</span>
+                            </div>
+                        </div>
+                        <div class="trending-card-info">
+                            <h3>Stray</h3>
+                            <p>BlueTwelve Studio</p>
+                        </div>
+                    </a>
+                    <!-- Card -->
+                    <a href="#" class="trending-card reveal">
+                        <div class="trending-card-cover">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co4hp7.webp" alt="Pentiment">
+                            <div class="trending-tag trending-tag--new">New</div>
+                            <div class="trending-card-overlay">
+                                <span class="trending-stat"><i class="fa-solid fa-eye"></i> 4.7K views</span>
+                            </div>
+                        </div>
+                        <div class="trending-card-info">
+                            <h3>Pentiment</h3>
+                            <p>Obsidian Entertainment</p>
+                        </div>
+                    </a>
+                </div>
+                <button class="trending-scroll-btn trending-scroll-btn--left" data-target="trendingDiscoverRow" aria-label="Scroll left"><i class="fa-solid fa-chevron-left"></i></button>
+                <button class="trending-scroll-btn trending-scroll-btn--right" data-target="trendingDiscoverRow" aria-label="Scroll right"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <img src="/assets/logo/mgl_logo_transparent.png" alt="MyGameList Logo" class="footer-logo">
+                <p>Your ultimate destination to track, discover, and share your gaming journey.</p>
+            </div>
+
+            <div class="footer-links">
+                <div class="link-group">
+                    <h4>Platform</h4>
+                    <a href="/OtherPages/explore.html">Games</a>
+                    <a href="#">Top Games</a>
+                    <a href="/OtherPages/statistics.html">Statistics</a>
+                </div>
+                <div class="link-group">
+                    <h4>Community</h4>
+                    <a href="#">Discord</a>
+                    <a href="#">Forum</a>
+                    <a href="/OtherPages/guidelines.html">Guidelines</a>
+                </div>
+                <div class="link-group">
+                    <h4>Legal</h4>
+                    <a href="/OtherPages/terms_of_service.html">Terms of Service</a>
+                    <a href="/OtherPages/legal_notice.html">Legal Notice</a>
+                    <a href="/OtherPages/privacy_policy.html">Privacy Policy</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
+                <div class="link-group">
+                    <h4>Help</h4>
+                    <a href="/OtherPages/about.html">About</a>
+                    <a href="/OtherPages/faq.html">FAQ</a>
+                    <a href="/OtherPages/support.html">Support</a>
+                    <a href="/OtherPages/staff.html">Staff</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 MyGameList. All rights reserved. Built with love for gamers.</p>
+        </div>
+    </footer>
+
+    <script src="../js/global/reveal.js"></script>
+    <script src="../js/global/active.js"></script>
+    <script src="../js/global/navbar.js"></script>
+    <script type="module" src="../js/global/storeuser.js"></script>
+    <script type="module" src="../js/global/nav-search.js"></script>
+    <script type="module" src="../js/global/friendNotifications.js"></script>
+    <script type="module" src="../SettingsLoader/settingsLoader.js"></script>
+    <script>
+        // Horizontal scroll buttons
+        // if you find a better way to do this please do
+        document.querySelectorAll('.trending-scroll-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetId = btn.dataset.target;
+                const row = document.getElementById(targetId);
+                const scrollAmount = 320;
+                if (btn.classList.contains('trending-scroll-btn--left')) {
+                    row.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+                } else {
+                    row.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+
+</body>
+
+</html>

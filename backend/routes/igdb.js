@@ -412,6 +412,143 @@ async function fetchGamesByCompanySearch(query, headers) {
   return Array.isArray(gamesResp.data) ? gamesResp.data : [];
 }
 
+// Upcoming Games Related helpers and constants
+const UPCOMING_LIMIT_DEFAULT = 120;
+const UPCOMING_LIMIT_MAX = 240;
+const UPCOMING_RELEASE_FETCH_MAX = 500;
+const UPCOMING_RELEASE_FETCH_MULTIPLIER = 3;
+const UPCOMING_GAME_CHUNK = 100;
+
+const UPCOMING_BANNED_PATTERNS = [
+  /collector/i,
+  /collector's/i,
+  /soundtrack/i,
+  /artbook/i,
+  /case/i,
+  /steelbook/i,
+  /special/i,
+  /figurine/i,
+  /statue/i,
+  /\bpack\b/i,
+  /\bbundle\b/i,
+  /\bdlc\b/i,
+  /character pack/i,
+  /\bseason pass\b/i,
+  /\bgame of the year\b/i,
+  /\bgoty\b/i,
+  /\bultimate( edition)?\b/i,
+  /\bcomplete( edition)?\b/i,
+  /\bdefinitive( edition)?\b/i,
+  /\bdeluxe( edition)?\b/i,
+  /\bpremium( edition)?\b/i,
+];
+
+function chunkArray(items, size) {
+  const chunks = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+  return chunks;
+}
+
+function uniqStrings(items = []) {
+  return [...new Set(
+    (Array.isArray(items) ? items : [])
+      .map((item) => String(item || "").trim())
+      .filter(Boolean)
+  )];
+}
+
+function getDeveloperName(game) {
+  return (
+    game?.involved_companies?.find((c) => c?.developer)?.company?.name ||
+    game?.involved_companies?.find((c) => c?.publisher)?.company?.name ||
+    "Unknown Studio"
+  );
+}
+
+function parseQuarterFromHuman(human = "") {
+  const text = String(human || "").toUpperCase();
+
+  if (text.includes("Q1")) return 1;
+  if (text.includes("Q2")) return 2;
+  if (text.includes("Q3")) return 3;
+  if (text.includes("Q4")) return 4;
+
+  return null;
+}
+
+function getQuarterFromRelease(release) {
+  const month = Number(release?.m);
+
+  if (Number.isInteger(month) && month >= 1 && month <= 12) {
+    return Math.floor((month - 1) / 3) + 1;
+  }
+
+  return parseQuarterFromHuman(release?.human);
+}
+
+function getYearFromRelease(release) {
+  const year = Number(release?.y);
+
+  if (Number.isInteger(year) && year > 0) {
+    return year;
+  }
+
+  const timestamp = Number(release?.date);
+  if (Number.isFinite(timestamp) && timestamp > 0) {
+    return new Date(timestamp * 1000).getUTCFullYear();
+  }
+
+  return null;
+}
+
+function isUpcomingMainGame(game) {
+  if (!game?.id || !game?.name) return false;
+  if (!game?.cover?.image_id) return false;
+  if (game?.version_parent) return false;
+
+  const excludedCategories = new Set([1, 2, 3, 4, 5, 6, 7]);
+  if (excludedCategories.has(Number(game?.category))) {
+    return false;
+  }
+
+  return !UPCOMING_BANNED_PATTERNS.some((rx) => rx.test(game.name));
+}
+
+async function fetchGamesByIds(ids, headers) {
+  const chunks = chunkArray(ids, UPCOMING_GAME_CHUNK);
+  const out = [];
+
+  for (const chunk of chunks) {
+    const resp = await axios.post(
+      "https://api.igdb.com/v4/games",
+      `
+        fields
+          id,
+          name,
+          category,
+          version_parent,
+          first_release_date,
+          cover.image_id,
+          genres.name,
+          platforms.name,
+          involved_companies.company.name,
+          involved_companies.developer,
+          involved_companies.publisher;
+        where id = (${chunk.join(",")}) & cover != null;
+        limit ${chunk.length};
+      `,
+      { headers, timeout: 15000 }
+    );
+
+    const games = Array.isArray(resp.data) ? resp.data : [];
+    out.push(...games);
+  }
+
+  return out;
+}
+
 // TRENDING GAMES
 router.get("/trending", async (req, res) => {
   try {
@@ -710,6 +847,120 @@ router.get("/games", async (req, res) => {
   } catch (err) {
     console.error(err.response?.data || err);
     res.status(500).json({ error: "Explore games failed" });
+  }
+});
+
+// UPCOMING GAMES
+router.get("/upcoming", async (req, res) => {
+  try {
+    const limitResult = parseBoundedInt(req.query.limit, {
+      defaultValue: UPCOMING_LIMIT_DEFAULT,
+      min: 1,
+      max: UPCOMING_LIMIT_MAX,
+      fieldName: "limit"
+    });
+
+    if (!limitResult.ok) {
+      return res.status(400).json({ error: limitResult.message });
+    }
+
+    const token = await getTwitchToken();
+    const headers = getIgdbHeaders(token);
+
+    const nowUnix = Math.floor(Date.now() / 1000);
+    const requestedLimit = limitResult.value;
+
+    const releaseFetchLimit = Math.min(
+      Math.max(requestedLimit * UPCOMING_RELEASE_FETCH_MULTIPLIER, requestedLimit),
+      UPCOMING_RELEASE_FETCH_MAX
+    );
+
+    const releaseResp = await axios.post(
+      "https://api.igdb.com/v4/release_dates",
+      `
+        fields
+          game,
+          date,
+          human,
+          y,
+          m,
+          d,
+          platform,
+          status,
+          release_region,
+          date_format;
+        where game != null & date > ${nowUnix};
+        sort date asc;
+        limit ${releaseFetchLimit};
+      `,
+      { headers, timeout: 15000 }
+    );
+
+    const releaseDates = Array.isArray(releaseResp.data) ? releaseResp.data : [];
+
+    const earliestReleaseByGameId = new Map();
+
+    for (const release of releaseDates) {
+      const gameId = Number(release?.game);
+      const releaseDate = Number(release?.date);
+
+      if (!Number.isFinite(gameId) || !Number.isFinite(releaseDate)) {
+        continue;
+      }
+
+      const current = earliestReleaseByGameId.get(gameId);
+
+      if (!current || releaseDate < Number(current.date)) {
+        earliestReleaseByGameId.set(gameId, release);
+      }
+    }
+
+    const gameIds = [...earliestReleaseByGameId.keys()];
+    if (!gameIds.length) {
+      res.set("Cache-Control", "no-store");
+      return res.json([]);
+    }
+
+    const games = await fetchGamesByIds(gameIds, headers);
+
+    const mapped = games
+      .filter(isUpcomingMainGame)
+      .map((game) => {
+        const release = earliestReleaseByGameId.get(game.id);
+        const releaseDate = Number(release?.date);
+
+        if (!Number.isFinite(releaseDate)) {
+          return null;
+        }
+
+        const year = getYearFromRelease(release);
+        const quarter = getQuarterFromRelease(release);
+        const daysUntil = Math.max(0, Math.ceil((releaseDate - nowUnix) / 86400));
+
+        return {
+          id: game.id,
+          name: game.name || "Unknown",
+          coverImageId: game?.cover?.image_id || null,
+          developer: getDeveloperName(game),
+          genres: uniqStrings((game.genres || []).map((g) => g?.name)),
+          platforms: uniqStrings((game.platforms || []).map((p) => p?.name)),
+          releaseDate,
+          releaseHuman: String(release?.human || "").trim(),
+          releaseYear: year,
+          releaseQuarter: quarter,
+          daysUntil,
+          firstReleaseDate: Number(game?.first_release_date) || null
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.releaseDate - b.releaseDate)
+      .slice(0, limitResult.value);
+
+    res.set("Cache-Control", "no-store");
+    return res.json(mapped);
+  } catch (err) {
+    console.error(err.response?.data || err);
+    return res.status(500).json({ error: "Upcoming games failed" });
   }
 });
 
