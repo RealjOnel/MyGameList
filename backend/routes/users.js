@@ -3,6 +3,7 @@ import { z } from "zod";
 import { env } from "../config/validateEnv.js";
 import { getOptionalUserId, requireAuth } from "../middleware/authMiddleware.js";
 import { User } from "../models/user.js";
+import { usernameSchema as accountUsernameSchema } from "../validators/authValidator.js";
 import multer from "multer";
 import { cloudinary } from "../services/cloudinary.js";
 import bcrypt from "bcrypt";
@@ -415,14 +416,7 @@ function getPublicUsername(user) {
 const USERNAME_CHANGE_INTERVAL_DAYS = 14;
 const USERNAME_CHANGE_INTERVAL_MS = USERNAME_CHANGE_INTERVAL_DAYS * 24 * 60 * 60 * 1000;
 
-const usernameUpdateSchema = z.object({
-  username: z
-    .string()
-    .trim()
-    .min(3, "Username must be at least 3 characters long")
-    .max(20, "Username must be 20 characters or less")
-    .regex(/^[A-Za-z0-9_]+$/, "Username may only contain letters, numbers and underscores")
-}).strict();
+const usernameUpdateSchema = z.object({ username: accountUsernameSchema }).strict();
 
 function parseUsernameUpdateBody(raw = {}) {
   const parsed = usernameUpdateSchema.safeParse(raw);

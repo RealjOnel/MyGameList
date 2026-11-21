@@ -385,7 +385,7 @@ function renderSuggestions(root, mode, items, q){
 
   if (mode === "games"){
     for (const g of items){
-      const img = `https://images.igdb.com/igdb/image/upload/t_cover_small/${g.cover.image_id}.jpg`;
+      const img = `https://images.igdb.com/igdb/image/upload/t_cover_small/${g?.cover?.image_id || ""}.jpg`;
       const genre = g?.genres?.[0]?.name || "Unknown Genre";
       const studio =
         g?.involved_companies?.find(c => c?.developer)?.company?.name ||
@@ -394,13 +394,25 @@ function renderSuggestions(root, mode, items, q){
 
       const li = document.createElement("li");
       li.className = "nav-search-item";
-      li.innerHTML = `
-        <div class="nav-search-thumb"><img src="${img}" alt=""></div>
-        <div class="nav-search-text">
-          <div class="nav-search-title">${g.name}</div>
-          <div class="nav-search-sub">${genre} • ${studio}</div>
-        </div>
-      `;
+
+      const thumb = document.createElement("div");
+      thumb.className = "nav-search-thumb";
+      const image = document.createElement("img");
+      image.src = img;
+      image.alt = "";
+      thumb.appendChild(image);
+
+      const text = document.createElement("div");
+      text.className = "nav-search-text";
+      const title = document.createElement("div");
+      title.className = "nav-search-title";
+      title.textContent = String(g?.name || "Unknown Game");
+      const subtitle = document.createElement("div");
+      subtitle.className = "nav-search-sub";
+      subtitle.textContent = `${genre} • ${studio}`;
+      text.append(title, subtitle);
+
+      li.append(thumb, text);
 
       li.addEventListener("click", () => {
         root.querySelector(".nav-search-panel").hidden = true;
@@ -419,19 +431,31 @@ function renderSuggestions(root, mode, items, q){
       li.className = "nav-search-item";
 
       const avatar = user.avatarUrl || getDefaultAvatarUrl();
+      const username = String(user.username || "User");
+      const thumb = document.createElement("div");
+      thumb.className = "nav-search-thumb nav-search-thumb--user";
 
-      li.innerHTML = `
-        <div class="nav-search-thumb nav-search-thumb--user">
-          <img src="${avatar}" alt="${user.username || "User"}">
-        </div>
-        <div class="nav-search-text">
-          <div class="nav-search-title">${user.username}</div>
-          <div class="nav-search-sub">Open profile</div>
-        </div>
-      `;
+      const img = document.createElement("img");
+      img.src = avatar;
+      img.alt = username;
+      thumb.appendChild(img);
+
+      const text = document.createElement("div");
+      text.className = "nav-search-text";
+
+      const title = document.createElement("div");
+      title.className = "nav-search-title";
+      title.textContent = username;
+
+      const subtitle = document.createElement("div");
+      subtitle.className = "nav-search-sub";
+      subtitle.textContent = "Open profile";
+      text.append(title, subtitle);
+
+      li.append(thumb, text);
 
       li.addEventListener("click", () => {
-        window.location.href = getProfileHref(user.username);
+        window.location.href = getProfileHref(username);
       });
 
       list.appendChild(li);

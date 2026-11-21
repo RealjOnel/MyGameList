@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { User } from "../models/user.js";
 import { getOptionalUserId } from "./authMiddleware.js";
+import { usernameSchema } from "../validators/authValidator.js";
 
 test("optional authentication rejects revoked access tokens", async (t) => {
   const previousSecret = process.env.JWT_SECRET;
@@ -42,4 +43,10 @@ test("optional authentication rejects revoked access tokens", async (t) => {
   assert.equal(await getOptionalUserId(request("Bearer invalid")), null);
   assert.equal(await getOptionalUserId(request(undefined)), null);
   assert.equal(lookupCount, 2);
+});
+
+test("username validation rejects markup characters", () => {
+  assert.equal(usernameSchema.safeParse("Valid_User12").success, true);
+  assert.equal(usernameSchema.safeParse("<svg>").success, false);
+  assert.equal(usernameSchema.safeParse("user name").success, false);
 });
