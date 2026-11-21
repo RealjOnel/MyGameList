@@ -29,6 +29,20 @@ app.use(
   })
 );
 
+app.use((req, res, next) => {
+  if (!env.MAINTENANCE_MODE) {
+    return next();
+  }
+
+  return res
+    .status(503)
+    .set({
+      "Cache-Control": "no-store",
+      "Retry-After": "3600"
+    })
+    .json({ message: "Service temporarily unavailable for maintenance." });
+});
+
 const allowedOrigins = [
   env.FRONTEND_ORIGIN,
   "http://localhost:5500",
@@ -61,15 +75,16 @@ app.use("/api/login", loginLimiter);
 app.use("/api/register", registerLimiter);
 app.use("/api/auth/refresh", refreshLimiter);
 
-// Connect to MongoDB
-mongoose.connect(env.MONGO_URI)
-  .then(() => {
-    console.log("MongoDB Connected");
-    console.log("readyState:", mongoose.connection.readyState);
-    console.log("DB:", mongoose.connection.db?.databaseName);
-    console.log("Host:", mongoose.connection.host);
-  })
-  .catch((err) => console.log("MongoDB Error:", err));
+if (!env.MAINTENANCE_MODE) {
+  mongoose.connect(env.MONGO_URI)
+    .then(() => {
+      console.log("MongoDB Connected");
+      console.log("readyState:", mongoose.connection.readyState);
+      console.log("DB:", mongoose.connection.db?.databaseName);
+      console.log("Host:", mongoose.connection.host);
+    })
+    .catch((err) => console.log("MongoDB Error:", err));
+}
 
 app.get("/ping", (req, res) => {
   console.log("PING ROUTE HIT");
