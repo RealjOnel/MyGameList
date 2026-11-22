@@ -922,14 +922,19 @@ async function loadGame(){
       ? websites.slice(0, 10).map(w => {
           const url = w?.url;
           if (!url) return "";
-          const host = (() => {
-            try {
-              return new URL(url).hostname.replace("www.","");
-            } catch {
-              return url;
-            }
-          })();
-          return `<a class="site-link" href="${esc(url)}" target="_blank" rel="noreferrer">${esc(host)}</a>`;
+          let parsedUrl;
+          try {
+            parsedUrl = new URL(url);
+          } catch {
+            return "";
+          }
+
+          if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+            return "";
+          }
+
+          const host = parsedUrl.hostname.replace("www.", "");
+          return `<a class="site-link" href="${esc(parsedUrl.href)}" target="_blank" rel="noreferrer">${esc(host)}</a>`;
         }).join("")
       : `<span class="muted">No websites.</span>`;
 
